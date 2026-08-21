@@ -1,13 +1,16 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { io } from 'socket.io-client';
 import { AckGateway } from '../src/ack.gateway.js';
 
 async function createNestApp(...gateways): Promise<INestApplication> {
+logger.debug(`>>> Entering createNestApp(gateways=${gateways})`);
   const testingModule = await Test.createTestingModule({
     providers: gateways,
   }).compile();
   const app = testingModule.createNestApplication();
+logger.debug(`createNestApp(gateways=${gateways}): app → ${app}`);
   return app;
 }
 

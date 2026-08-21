@@ -177,32 +177,43 @@ export class FastifyAdapter<
       }
     },
     storage() {
+	logger.debug('>>> Entering storage()');
       const versions = new Map<string, unknown>();
       return {
         get(version: string | Array<string>) {
+		logger.debug(`>>> Entering get(version=${version})`);
           if (Array.isArray(version)) {
+			logger.debug(`storage(): versions → ${versions}`);
+		logger.debug(`<<< Exiting get(version=${version})`);
             return versions.get(version.find(v => versions.has(v))!) || null;
           }
           return versions.get(version) || null;
         },
         set(versionOrVersions: string | Array<string>, store: unknown) {
+		logger.debug(`>>> Entering set(versionOrVersions=${versionOrVersions},store=${store})`);
           const storeVersionConstraint = (version: string) =>
             versions.set(version, store);
           if (Array.isArray(versionOrVersions))
             versionOrVersions.forEach(storeVersionConstraint);
           else storeVersionConstraint(versionOrVersions);
+		logger.debug(`<<< Exiting set(versionOrVersions=${versionOrVersions},store=${store})`);
         },
         del(version: string | Array<string>) {
+		logger.debug(`>>> Entering del(version=${version})`);
           if (Array.isArray(version)) {
             version.forEach(v => versions.delete(v));
           } else {
             versions.delete(version);
+			logger.debug(`<<< Exiting del(version=${version})`);
           }
         },
         empty() {
+		logger.debug('>>> Entering empty()');
           versions.clear();
+		logger.debug('<<< Exiting empty()');
         },
       };
+	logger.debug('<<< Exiting storage()');
     },
     deriveConstraint: (req: FastifyRequest) => {
       // Media Type (Accept Header) Versioning Handler
@@ -297,7 +308,9 @@ export class FastifyAdapter<
       done: (err?: Error) => void,
     ) => void | Promise<void>,
   ) {
+	logger.debug(`>>> Entering setOnRequestHook(hook=${hook})`);
     this.onRequestHook = hook;
+	logger.debug(`<<< Exiting setOnRequestHook(hook=${hook})`);
   }
 
   public setOnResponseHook(
@@ -307,10 +320,13 @@ export class FastifyAdapter<
       done: (err?: Error) => void,
     ) => void | Promise<void>,
   ) {
+	logger.debug(`>>> Entering setOnResponseHook(hook=${hook})`);
     this.onResponseHook = hook;
+	logger.debug(`<<< Exiting setOnResponseHook(hook=${hook})`);
   }
 
   public async init() {
+	logger.debug('>>> Entering init()');
     if (this.isMiddieRegistered) {
       return;
     }
@@ -322,6 +338,7 @@ export class FastifyAdapter<
         (this.instance.use as any)(...args);
       }
       this.pendingMiddlewares = [];
+	logger.debug(`init(): this.pendingMiddlewares → ${this.pendingMiddlewares}`);
     }
   }
 
@@ -345,6 +362,7 @@ export class FastifyAdapter<
         listenOptions.port !== undefined ||
         listenOptions.path !== undefined)
     ) {
+	logger.debug(`>>> Entering listen(listenOptions=${listenOptions},args=${args})`);
       // First parameter is an object with a path, port and/or host attributes
       options = listenOptions;
     } else {
@@ -363,62 +381,92 @@ export class FastifyAdapter<
   }
 
   public post(...args: any[]) {
+	logger.debug(`>>> Entering post(args=${args})`);
+	logger.debug(`<<< Exiting post(args=${args})`);
     return this.injectRouteOptions('POST', ...args);
   }
 
   public head(...args: any[]) {
+	logger.debug(`>>> Entering head(args=${args})`);
+	logger.debug(`<<< Exiting head(args=${args})`);
     return this.injectRouteOptions('HEAD', ...args);
   }
 
   public delete(...args: any[]) {
+	logger.debug(`>>> Entering delete(args=${args})`);
+	logger.debug(`<<< Exiting delete(args=${args})`);
     return this.injectRouteOptions('DELETE', ...args);
   }
 
   public put(...args: any[]) {
+	logger.debug(`>>> Entering put(args=${args})`);
+	logger.debug(`<<< Exiting put(args=${args})`);
     return this.injectRouteOptions('PUT', ...args);
   }
 
   public patch(...args: any[]) {
+	logger.debug(`>>> Entering patch(args=${args})`);
+	logger.debug(`<<< Exiting patch(args=${args})`);
     return this.injectRouteOptions('PATCH', ...args);
   }
 
   public options(...args: any[]) {
+	logger.debug(`>>> Entering options(args=${args})`);
+	logger.debug(`<<< Exiting options(args=${args})`);
     return this.injectRouteOptions('OPTIONS', ...args);
   }
 
   public search(...args: any[]) {
+	logger.debug('>>> Entering search()');
+	logger.debug('<<< Exiting search()');
     return this.injectRouteOptions('SEARCH', ...args);
   }
 
   public query(...args: any[]) {
+	logger.debug('>>> Entering query()');
+	logger.debug('<<< Exiting query()');
     return this.injectRouteOptions('QUERY', ...args);
   }
 
   public propfind(...args: any[]) {
+	logger.debug('>>> Entering propfind()');
+	logger.debug('<<< Exiting propfind()');
     return this.injectRouteOptions('PROPFIND', ...args);
   }
 
   public proppatch(...args: any[]) {
+	logger.debug('>>> Entering proppatch()');
+	logger.debug('<<< Exiting proppatch()');
     return this.injectRouteOptions('PROPPATCH', ...args);
   }
 
   public mkcol(...args: any[]) {
+	logger.debug('>>> Entering mkcol()');
+	logger.debug('<<< Exiting mkcol()');
     return this.injectRouteOptions('MKCOL', ...args);
   }
 
   public copy(...args: any[]) {
+	logger.debug('>>> Entering copy()');
+	logger.debug('<<< Exiting copy()');
     return this.injectRouteOptions('COPY', ...args);
   }
 
   public move(...args: any[]) {
+	logger.debug('>>> Entering move()');
+	logger.debug('<<< Exiting move()');
     return this.injectRouteOptions('MOVE', ...args);
   }
 
   public lock(...args: any[]) {
+	logger.debug('>>> Entering lock()');
+	logger.debug('<<< Exiting lock()');
     return this.injectRouteOptions('LOCK', ...args);
   }
 
   public unlock(...args: any[]) {
+	logger.debug('>>> Entering unlock()');
+	logger.debug('<<< Exiting unlock()');
     return this.injectRouteOptions('UNLOCK', ...args);
   }
 
@@ -428,10 +476,13 @@ export class FastifyAdapter<
     versioningOptions: VersioningOptions,
   ): VersionedRoute<TRequest, TReply> {
     if (!this.versioningOptions) {
+	logger.debug(`>>> Entering applyVersionFilter(handler=${handler},version=${version},versioningOptions=${versioningOptions})`);
       this.versioningOptions = versioningOptions;
     }
     const versionedRoute = handler as VersionedRoute<TRequest, TReply>;
+	logger.debug(`applyVersionFilter(handler=${handler},version=${version},versioningOptions=${versioningOptions}): this.versioningOptions → ${this.versioningOptions}`);
     versionedRoute.version = version;
+	logger.debug(`<<< Exiting applyVersionFilter(handler=${handler},version=${version},versioningOptions=${versioningOptions})`);
     return versionedRoute;
   }
 
@@ -440,6 +491,7 @@ export class FastifyAdapter<
     body: any,
     statusCode?: number,
   ) {
+	logger.debug(`>>> Entering reply(response=${response},body=${body},statusCode=${statusCode})`);
     const fastifyReply: TReply = this.isNativeResponse(response)
       ? new Reply(
           response,
@@ -465,6 +517,7 @@ export class FastifyAdapter<
         fastifyReply.getHeader('Content-Type') === undefined &&
         streamHeaders.type !== undefined
       ) {
+		logger.debug(`reply(response=${response},body=${body},statusCode=${statusCode}): streamHeaders → ${streamHeaders}`);
         fastifyReply.header('Content-Type', streamHeaders.type);
       }
       if (
@@ -491,20 +544,27 @@ export class FastifyAdapter<
         FastifyAdapter.name,
       );
       fastifyReply.header('Content-Type', 'application/json');
+	logger.debug(`<<< Exiting reply(response=${response},body=${body},statusCode=${statusCode})`);
     }
+	logger.debug(`reply(response=${response},body=${body},statusCode=${statusCode}): body → ${body}`);
     return fastifyReply.send(body);
   }
 
   public status(response: TRawResponse | TReply, statusCode: number) {
+	logger.debug(`>>> Entering status(response=${response},statusCode=${statusCode})`);
     if (this.isNativeResponse(response)) {
       response.statusCode = statusCode;
+	logger.debug(`status(response=${response},statusCode=${statusCode}): response.statusCode → ${response.statusCode}`);
+	logger.debug(`<<< Exiting status(response=${response},statusCode=${statusCode})`);
       return response;
     }
     return (response as { code: Function }).code(statusCode);
   }
 
   public end(response: TReply, message?: string) {
+	logger.debug(`>>> Entering end(response=${response},message=${message})`);
     response.raw.end(message!);
+	logger.debug(`<<< Exiting end(response=${response},message=${message})`);
   }
 
   public render(
@@ -512,27 +572,38 @@ export class FastifyAdapter<
     view: string,
     options: any,
   ) {
+	logger.debug(`<<< Exiting render(response=${response},view=${view},options=${options})`);
     return response && response.view(view, options);
   }
 
   public redirect(response: TReply, statusCode: number, url: string) {
+	logger.debug(`>>> Entering redirect(response=${response},statusCode=${statusCode},url=${url})`);
     const code = statusCode ?? HttpStatus.FOUND;
+	logger.debug(`<<< Exiting redirect(response=${response},statusCode=${statusCode},url=${url})`);
     return response.status(code).redirect(url);
   }
 
   public setErrorHandler(handler: Parameters<TInstance['setErrorHandler']>[0]) {
+	logger.debug(`>>> Entering setErrorHandler(handler=${handler})`);
+	logger.debug(`<<< Exiting setErrorHandler(handler=${handler})`);
     return this.instance.setErrorHandler(handler);
   }
 
   public setNotFoundHandler(handler: Function) {
+	logger.debug(`>>> Entering setNotFoundHandler(handler=${handler})`);
+	logger.debug(`<<< Exiting setNotFoundHandler(handler=${handler})`);
     return this.instance.setNotFoundHandler(handler as any);
   }
 
   public getHttpServer<T = TServer>(): T {
+	logger.debug('>>> Entering getHttpServer()');
+	logger.debug('<<< Exiting getHttpServer()');
     return this.instance.server as unknown as T;
   }
 
   public getInstance<T = TInstance>(): T {
+	logger.debug('>>> Entering getInstance()');
+	logger.debug('<<< Exiting getInstance()');
     return this.instance as unknown as T;
   }
 
@@ -541,6 +612,8 @@ export class FastifyAdapter<
       FastifyRegister<FastifyInstance<TServer, TRawRequest, TRawResponse>>
     >,
   >(plugin: TRegister['0'], opts?: TRegister['1']) {
+	logger.debug(`>>> Entering register(plugin=${plugin},opts=${opts})`);
+	logger.debug(`<<< Exiting register(plugin=${plugin},opts=${opts})`);
     return (this.instance.register as any)(plugin, opts);
   }
 
@@ -549,15 +622,20 @@ export class FastifyAdapter<
   public inject(
     opts?: InjectOptions | string,
   ): LightMyRequestChain | Promise<LightMyRequestResponse> {
+	logger.debug(`>>> Entering inject(opts=${opts})`);
+	logger.debug(`<<< Exiting inject(opts=${opts})`);
     return this.instance.inject(opts!);
   }
 
   public async close() {
+	logger.debug('>>> Entering close()');
     try {
       return await this.instance.close();
     } catch (err) {
+	logger.error('Exception in close():', (err as Error).message, err);
       // Check if server is still running
       if (err.code !== 'ERR_SERVER_NOT_RUNNING') {
+	logger.debug('<<< Exiting close()');
         throw err;
       }
       return;
@@ -565,10 +643,14 @@ export class FastifyAdapter<
   }
 
   public initHttpServer() {
+	logger.debug('>>> Entering initHttpServer()');
     this.httpServer = this.instance.server;
+	logger.debug(`initHttpServer(): this.httpServer → ${this.httpServer}`);
   }
 
   public async useStaticAssets(options: FastifyStaticOptions) {
+	logger.debug(`>>> Entering useStaticAssets(options=${options})`);
+	logger.debug(`<<< Exiting useStaticAssets(options=${options})`);
     return this.register(
       await loadPackage(
         '@fastify/static',
@@ -580,10 +662,12 @@ export class FastifyAdapter<
   }
 
   public async setViewEngine(options: FastifyViewOptions | string) {
+	logger.debug(`>>> Entering setViewEngine(options=${options})`);
     if (isString(options)) {
       new Logger('FastifyAdapter').error(
         "setViewEngine() doesn't support a string argument.",
       );
+	logger.debug(`<<< Exiting setViewEngine(options=${options})`);
       process.exit(1);
     }
     return this.register(
@@ -597,45 +681,62 @@ export class FastifyAdapter<
   }
 
   public isHeadersSent(response: TReply): boolean {
+	logger.debug(`>>> Entering isHeadersSent(response=${response})`);
+	logger.debug(`<<< Exiting isHeadersSent(response=${response})`);
     return response.sent;
   }
 
   public getHeader(response: any, name: string) {
+	logger.debug(`>>> Entering getHeader(response=${response},name=${name})`);
+	logger.debug(`<<< Exiting getHeader(response=${response},name=${name})`);
     return response.getHeader(name);
   }
 
   public setHeader(response: TReply, name: string, value: string) {
+	logger.debug(`>>> Entering setHeader(response=${response},name=${name},value=${value})`);
+	logger.debug(`<<< Exiting setHeader(response=${response},name=${name},value=${value})`);
     return response.header(name, value);
   }
 
   public appendHeader(response: any, name: string, value: string) {
+	logger.debug(`>>> Entering appendHeader(response=${response},name=${name},value=${value})`);
     response.header(name, value);
+	logger.debug(`<<< Exiting appendHeader(response=${response},name=${name},value=${value})`);
   }
 
   public getRequestHostname(request: TRequest): string {
+	logger.debug(`>>> Entering getRequestHostname(request=${request})`);
+	logger.debug(`<<< Exiting getRequestHostname(request=${request})`);
     return request.hostname;
   }
 
   public getRequestMethod(request: TRequest): string {
+	logger.debug(`>>> Entering getRequestMethod(request=${request})`);
+	logger.debug(`<<< Exiting getRequestMethod(request=${request})`);
     return request.raw ? request.raw.method! : request.method;
   }
 
   public getRequestUrl(request: TRequest): string;
   public getRequestUrl(request: TRawRequest): string;
   public getRequestUrl(request: TRequest & TRawRequest): string {
+	logger.debug(`>>> Entering getRequestUrl(request=${request})`);
+	logger.debug(`<<< Exiting getRequestUrl(request=${request})`);
     return this.getRequestOriginalUrl(request.raw || request);
   }
 
   public enableCors(options?: FastifyCorsOptions) {
+	logger.debug(`>>> Entering enableCors(options=${options})`);
     this.register(
       import('@fastify/cors') as unknown as Parameters<
         TInstance['register']
       >[0],
       options,
     );
+	logger.debug(`<<< Exiting enableCors(options=${options})`);
   }
 
   public registerParserMiddleware(prefix?: string, rawBody?: boolean) {
+	logger.debug(`>>> Entering registerParserMiddleware(prefix=${prefix},rawBody=${rawBody})`);
     if (this._isParserRegistered) {
       return;
     }
@@ -649,6 +750,7 @@ export class FastifyAdapter<
         ? `/${prefix}`
         : prefix
       : undefined;
+	logger.debug(`<<< Exiting registerParserMiddleware(prefix=${prefix},rawBody=${rawBody})`);
   }
 
   public useBodyParser(
@@ -692,13 +794,16 @@ export class FastifyAdapter<
     requestMethod: RequestMethod,
   ): Promise<(path: string, callback: Function) => any> {
     if (!this.isMiddieRegistered) {
+	logger.debug(`>>> Entering createMiddlewareFactory(requestMethod=${requestMethod})`);
       await this.registerMiddie();
     }
     return (path: string, callback: Function) => {
       const hasEndOfStringCharacter = path.endsWith('$');
+	logger.debug(`createMiddlewareFactory(requestMethod=${requestMethod}): hasEndOfStringCharacter → ${hasEndOfStringCharacter}`);
       path = hasEndOfStringCharacter ? path.slice(0, -1) : path;
 
       let normalizedPath = LegacyRouteConverter.tryConvert(path);
+	logger.debug(`createMiddlewareFactory(requestMethod=${requestMethod}): normalizedPath → ${normalizedPath}`);
 
       // Fallback to "*path" to support plugins like GraphQL
       normalizedPath = normalizedPath === '/*path' ? '*path' : normalizedPath;
@@ -742,6 +847,8 @@ export class FastifyAdapter<
                 return next();
               }
             }
+			logger.debug('>>> Entering use()');
+			logger.debug('<<< Exiting use()');
             return callback(req, res, next);
           },
         );
@@ -749,16 +856,21 @@ export class FastifyAdapter<
         if (e instanceof TypeError) {
           LegacyRouteConverter.printError(path);
         }
+		logger.debug(`<<< Exiting createMiddlewareFactory(requestMethod=${requestMethod})`);
         throw e;
       }
     };
   }
 
   public getType(): string {
+	logger.debug('>>> Entering getType()');
+	logger.debug('<<< Exiting getType()');
     return 'fastify';
   }
 
   public isRouteOrderSensitive(): boolean {
+	logger.debug('>>> Entering isRouteOrderSensitive()');
+	logger.debug('<<< Exiting isRouteOrderSensitive()');
     return false;
   }
 
@@ -774,6 +886,8 @@ export class FastifyAdapter<
 
   public mapException(error: unknown): unknown {
     if (this.isHttpFastifyError(error)) {
+	logger.debug(`>>> Entering mapException(error=${error})`);
+	logger.debug(`<<< Exiting mapException(error=${error})`);
       return new HttpException(error.message, error.statusCode);
     }
 
@@ -783,7 +897,9 @@ export class FastifyAdapter<
   private isHttpFastifyError(
     error: any,
   ): error is Error & { statusCode: number } {
+	logger.debug(`>>> Entering isHttpFastifyError(error=${error})`);
     // condition based on this code - https://github.com/fastify/fastify-error/blob/d669b150a82968322f9f7be992b2f6b463272de3/index.js#L22
+	logger.debug(`<<< Exiting isHttpFastifyError(error=${error})`);
     return (
       error.statusCode !== undefined &&
       error instanceof Error &&
@@ -799,18 +915,24 @@ export class FastifyAdapter<
       | Promise<{ default: FastifyPluginAsync<any> }>,
     prefix = '/',
   ) {
+	logger.debug(`>>> Entering registerWithPrefix(factory=${factory},prefix=${prefix})`);
+	logger.debug(`<<< Exiting registerWithPrefix(factory=${factory},prefix=${prefix})`);
     return this.instance.register(factory, { prefix });
   }
 
   private isNativeResponse(
     response: TRawResponse | TReply,
   ): response is TRawResponse {
+	logger.debug(`>>> Entering isNativeResponse(response=${response})`);
+	logger.debug(`<<< Exiting isNativeResponse(response=${response})`);
     return !('status' in response);
   }
 
   private registerJsonContentParser(rawBody?: boolean) {
+	logger.debug(`>>> Entering registerJsonContentParser(rawBody=${rawBody})`);
     const contentType = 'application/json';
     const withRawBody = !!rawBody;
+	logger.debug(`registerJsonContentParser(rawBody=${rawBody}): contentType → ${contentType}`);
     const { bodyLimit } = this.getInstance().initialConfig;
 
     this.useBodyParser(
@@ -825,13 +947,16 @@ export class FastifyAdapter<
           onConstructorPoisoning || 'error',
         ) as FastifyBodyParser<string | Buffer, TServer>;
         defaultJsonParser(req, body, done);
+		logger.debug(`<<< Exiting registerJsonContentParser(rawBody=${rawBody})`);
       },
     );
   }
 
   private registerUrlencodedContentParser(rawBody?: boolean) {
+	logger.debug(`>>> Entering registerUrlencodedContentParser(rawBody=${rawBody})`);
     const contentType = 'application/x-www-form-urlencoded';
     const withRawBody = !!rawBody;
+	logger.debug(`registerUrlencodedContentParser(rawBody=${rawBody}): contentType → ${contentType}`);
     const { bodyLimit } = this.getInstance().initialConfig;
 
     this.useBodyParser(
@@ -840,18 +965,23 @@ export class FastifyAdapter<
       { bodyLimit },
       (_req, body, done) => {
         done(null, querystringParse(body.toString()));
+		logger.debug(`<<< Exiting registerUrlencodedContentParser(rawBody=${rawBody})`);
       },
     );
   }
 
   private async registerMiddie() {
+	logger.debug('>>> Entering registerMiddie()');
     this.isMiddieRegistered = true;
     await this.register(
       middie as unknown as Parameters<TInstance['register']>[0],
     );
+	logger.debug(`registerMiddie(): this.isMiddieRegistered → ${this.isMiddieRegistered}`);
   }
 
   private getRequestOriginalUrl(rawRequest: TRawRequest) {
+	logger.debug(`>>> Entering getRequestOriginalUrl(rawRequest=${rawRequest})`);
+	logger.debug(`<<< Exiting getRequestOriginalUrl(rawRequest=${rawRequest})`);
     return rawRequest.originalUrl || rawRequest.url!;
   }
 
@@ -859,6 +989,7 @@ export class FastifyAdapter<
     routerMethodKey: Uppercase<HTTPMethods>,
     ...args: any[]
   ) {
+	logger.debug(`>>> Entering injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args})`);
     const handlerRef = args[args.length - 1];
     const isVersioned =
       !isUndefined(handlerRef.version) &&
@@ -879,8 +1010,11 @@ export class FastifyAdapter<
     );
 
     const hasConfig = !isUndefined(routeConfig);
+	logger.debug(`injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args}): hasConfig → ${hasConfig}`);
     const hasConstraints = !isUndefined(routeConstraints);
+	logger.debug(`injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args}): hasConstraints → ${hasConstraints}`);
     const hasSchema = !isUndefined(routeSchema);
+	logger.debug(`injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args}): hasSchema → ${hasSchema}`);
     const routeToInject: RouteOptions<TServer, TRawRequest, TRawResponse> &
       RouteShorthandOptions = {
       method: routerMethodKey,
@@ -919,6 +1053,7 @@ export class FastifyAdapter<
         return this.instance.route(routeToInjectWithOptions);
       }
     }
+	logger.debug(`<<< Exiting injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args})`);
     return this.instance.route(routeToInject);
   }
 
@@ -931,6 +1066,7 @@ export class FastifyAdapter<
       routerOptions.ignoreDuplicateSlashes ||
       initialConfig.ignoreDuplicateSlashes
     ) {
+	logger.debug(`>>> Entering sanitizeUrl(url=${url})`);
       url = this.removeDuplicateSlashes(url);
     }
 
@@ -947,6 +1083,7 @@ export class FastifyAdapter<
     ) {
       url = url.toLowerCase();
     }
+	logger.debug(`sanitizeUrl(url=${url}): url → ${url}`);
     return safeDecodeURI(
       url,
       routerOptions.useSemicolonDelimiter ||
@@ -955,14 +1092,18 @@ export class FastifyAdapter<
   }
 
   private removeDuplicateSlashes(path: string) {
+	logger.debug(`>>> Entering removeDuplicateSlashes(path=${path})`);
     const REMOVE_DUPLICATE_SLASHES_REGEXP = /\/\/+/g;
+	logger.debug(`<<< Exiting removeDuplicateSlashes(path=${path})`);
     return path.indexOf('//') !== -1
       ? path.replace(REMOVE_DUPLICATE_SLASHES_REGEXP, '/')
       : path;
   }
 
   private trimLastSlash(path: string) {
+	logger.debug(`>>> Entering trimLastSlash(path=${path})`);
     if (path.length > 1 && path.charCodeAt(path.length - 1) === 47) {
+	logger.debug(`<<< Exiting trimLastSlash(path=${path})`);
       return path.slice(0, -1);
     }
     return path;

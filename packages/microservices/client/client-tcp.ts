@@ -33,6 +33,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
 
   constructor(options: Required<TcpClientOptions>['options']) {
     super();
+	logger.debug(`>>> Entering constructor(options=${options})`);
     this.port = this.getOptionsProp(options, 'port', TCP_DEFAULT_PORT);
     this.host = this.getOptionsProp(options, 'host', TCP_DEFAULT_HOST);
     this.socketClass = this.getOptionsProp(options, 'socketClass', JsonSocket);
@@ -41,10 +42,12 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+	logger.debug(`<<< Exiting constructor(options=${options})`);
   }
 
   public connect(): Promise<any> {
     if (this.connectionPromise) {
+	logger.debug('>>> Entering connect()');
       return this.connectionPromise;
     }
     this.socket = this.createSocket();
@@ -62,6 +65,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
         this.socket!.on('message', (buffer: WritePacket & PacketId) =>
           this.handleResponse(buffer),
         );
+		logger.debug(`connect(): this.pendingEventListeners → ${this.pendingEventListeners}`);
       }),
       share(),
     );
@@ -71,9 +75,11 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
       this.socket.connect(this.port, this.host);
     }
     this.connectionPromise = lastValueFrom(source$).catch(err => {
+	logger.error('Exception in connect()');
       if (err instanceof EmptyError) {
         return;
       }
+	logger.debug('<<< Exiting connect()');
       throw err;
     });
 
@@ -84,7 +90,9 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
     const { err, response, isDisposed, id } =
       await this.deserializer.deserialize(buffer);
     const callback = this.routingMap.get(id);
+	logger.debug(`handleResponse(buffer=${buffer}): callback → ${callback}`);
     if (!callback) {
+	logger.debug(`>>> Entering handleResponse(buffer=${buffer})`);
       return undefined;
     }
     if (isDisposed || err) {
@@ -98,6 +106,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
       err,
       response,
     });
+	logger.debug(`<<< Exiting handleResponse(buffer=${buffer})`);
   }
 
   public createSocket(): TcpSocket {
@@ -106,6 +115,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
      * TLS enabled, "upgrade" the TCP Socket to TLS
      */
     if (this.tlsOptions) {
+	logger.debug('>>> Entering createSocket()');
       socket = tlsConnect({
         ...this.tlsOptions,
         port: this.port,
@@ -117,6 +127,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
     // Pass maxBufferSize only if socketClass is JsonSocket
     // For custom socket classes, users should handle maxBufferSize in their own implementation
     if (this.maxBufferSize !== undefined && this.socketClass === JsonSocket) {
+	logger.debug('<<< Exiting createSocket()');
       return new this.socketClass(socket, {
         maxBufferSize: this.maxBufferSize,
       });
@@ -125,48 +136,62 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
   }
 
   public close() {
+	logger.debug('>>> Entering close()');
     this.socket && this.socket.end();
     this.handleClose();
     this.pendingEventListeners = [];
+	logger.debug(`close(): this.pendingEventListeners → ${this.pendingEventListeners}`);
   }
 
   public registerConnectListener(socket: TcpSocket) {
+	logger.debug(`>>> Entering registerConnectListener(socket=${socket})`);
     socket.on(TcpEventsMap.CONNECT, () => {
       this._status$.next(TcpStatus.CONNECTED);
     });
+	logger.debug(`<<< Exiting registerConnectListener(socket=${socket})`);
   }
 
   public registerErrorListener(socket: TcpSocket) {
+	logger.debug(`>>> Entering registerErrorListener(socket=${socket})`);
     socket.on(TcpEventsMap.ERROR, err => {
       if (err.code !== ECONNREFUSED) {
         this.handleError(err);
       } else {
         this._status$.next(TcpStatus.DISCONNECTED);
+		logger.debug(`<<< Exiting registerErrorListener(socket=${socket})`);
       }
     });
   }
 
   public registerCloseListener(socket: TcpSocket) {
+	logger.debug(`>>> Entering registerCloseListener(socket=${socket})`);
     socket.on(TcpEventsMap.CLOSE, () => {
       this._status$.next(TcpStatus.DISCONNECTED);
       this.handleClose();
     });
+	logger.debug(`<<< Exiting registerCloseListener(socket=${socket})`);
   }
 
   public handleError(err: any) {
+	logger.debug(`>>> Entering handleError(err=${err})`);
     this.logger.error(err);
+	logger.debug(`<<< Exiting handleError(err=${err})`);
   }
 
   public handleClose() {
+	logger.debug('>>> Entering handleClose()');
     this.socket = null;
     this.connectionPromise = null;
 
+	logger.debug(`handleClose(): this.socket → ${this.socket}`);
     if (this.routingMap.size > 0) {
       const err = new Error('Connection closed');
+	logger.debug(`handleClose(): this.connectionPromise → ${this.connectionPromise}`);
       for (const callback of this.routingMap.values()) {
         callback({ err });
       }
       this.routingMap.clear();
+	logger.debug(`handleClose(): err → ${err}`);
     }
   }
 
@@ -174,15 +199,19 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
     EventKey extends keyof TcpEvents = keyof TcpEvents,
     EventCallback extends TcpEvents[EventKey] = TcpEvents[EventKey],
   >(event: EventKey, callback: EventCallback) {
+	logger.debug(`>>> Entering on(event=${event},callback=${callback})`);
     if (this.socket) {
       this.socket.on(event, callback as any);
     } else {
       this.pendingEventListeners.push({ event, callback });
+	logger.debug(`<<< Exiting on(event=${event},callback=${callback})`);
     }
   }
 
   public unwrap<T>(): T {
     if (!this.socket) {
+	logger.debug('>>> Entering unwrap()');
+	logger.debug('<<< Exiting unwrap()');
       throw new Error(
         'Not initialized. Please call the "connect" method first.',
       );
@@ -204,16 +233,19 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
       return () => this.routingMap.delete(packet.id);
     } catch (err) {
       callback({ err });
+	logger.debug(`<<< Exiting publish(partialPacket=${partialPacket},callback=${callback})`);
       return () => {};
     }
   }
 
   protected async dispatchEvent(packet: ReadPacket): Promise<any> {
+	logger.debug(`>>> Entering dispatchEvent(packet=${packet})`);
     const pattern = this.normalizePattern(packet.pattern);
     const serializedPacket = this.serializer.serialize({
       ...packet,
       pattern,
     });
+	logger.debug(`dispatchEvent(packet=${packet}): pattern → ${pattern}`);
     return this.socket!.sendMessage(serializedPacket);
   }
 }

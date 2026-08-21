@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   BeforeApplicationShutdown,
   Injectable,
@@ -14,11 +15,15 @@ class TestInjectable
   implements OnApplicationShutdown, BeforeApplicationShutdown
 {
   beforeApplicationShutdown(signal: string) {
+	logger.debug(`>>> Entering beforeApplicationShutdown(signal=${signal})`);
     console.log('beforeApplicationShutdown ' + signal);
+	logger.debug(`<<< Exiting beforeApplicationShutdown(signal=${signal})`);
   }
 
   onApplicationShutdown(signal: string) {
+	logger.debug(`>>> Entering onApplicationShutdown(signal=${signal})`);
     console.log('onApplicationShutdown ' + signal);
+	logger.debug(`<<< Exiting onApplicationShutdown(signal=${signal})`);
   }
 }
 
@@ -28,8 +33,10 @@ class TestInjectable
 class AppModule {}
 
 async function bootstrap() {
+logger.debug('>>> Entering bootstrap()');
   const app = await NestFactory.create(AppModule, { logger: false });
 
+logger.debug(`bootstrap(): app → ${app}`);
   const shutdownOptions = USE_GRACEFUL_EXIT ? { useProcessExit: true } : {};
 
   if (SIGNAL_TO_LISTEN && SIGNAL_TO_LISTEN !== 'NONE') {
@@ -40,6 +47,7 @@ async function bootstrap() {
 
   await app.listen(1800);
   process.kill(process.pid, SIGNAL);
+logger.debug('<<< Exiting bootstrap()');
 }
 
 void bootstrap();

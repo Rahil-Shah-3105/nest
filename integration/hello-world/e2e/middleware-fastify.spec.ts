@@ -18,6 +18,7 @@ import {
 import { Test } from '@nestjs/testing';
 import { FastifyRequest } from 'fastify';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 describe('Middleware (FastifyAdapter)', () => {
@@ -43,6 +44,8 @@ describe('Middleware (FastifyAdapter)', () => {
     class UsersController {
       @Get()
       findAll() {
+		logger.debug('>>> Entering findAll()');
+		logger.debug('<<< Exiting findAll()');
         return 'users';
       }
 
@@ -58,12 +61,14 @@ describe('Middleware (FastifyAdapter)', () => {
       })
       class TrailingSlashModule implements NestModule {
         configure(consumer: MiddlewareConsumer) {
+		logger.debug(`>>> Entering configure(consumer=${consumer})`);
           consumer
             .apply(AuthMiddleware)
             .forRoutes(
               { path: 'users', method: RequestMethod.ALL },
               { path: 'users/:id', method: RequestMethod.ALL },
             );
+			logger.debug(`<<< Exiting configure(consumer=${consumer})`);
         }
       }
 
@@ -184,31 +189,43 @@ describe('Middleware (FastifyAdapter)', () => {
     class TestController {
       @Get('express_style_wildcard/wildcard_nested')
       express_style_wildcard() {
+		logger.debug('>>> Entering express_style_wildcard()');
+		logger.debug('<<< Exiting express_style_wildcard()');
         return RETURN_VALUE;
       }
 
       @Get('legacy_style_wildcard/wildcard_nested')
       legacy_style_wildcard() {
+		logger.debug('>>> Entering legacy_style_wildcard()');
+		logger.debug('<<< Exiting legacy_style_wildcard()');
         return RETURN_VALUE;
       }
 
       @Get('test')
       test() {
+		logger.debug('>>> Entering test()');
+		logger.debug('<<< Exiting test()');
         return RETURN_VALUE;
       }
 
       @Get('query')
       query() {
+		logger.debug('>>> Entering query()');
+		logger.debug('<<< Exiting query()');
         return RETURN_VALUE;
       }
 
       @Get('tests/wildcard_nested')
       wildcard_nested() {
+		logger.debug('>>> Entering wildcard_nested()');
+		logger.debug('<<< Exiting wildcard_nested()');
         return RETURN_VALUE;
       }
 
       @Get('tests/included')
       included() {
+		logger.debug('>>> Entering included()');
+		logger.debug('<<< Exiting included()');
         return RETURN_VALUE;
       }
     }
@@ -613,6 +630,7 @@ describe('Middleware (FastifyAdapter)', () => {
         consumer
           .apply((req, res, next) => {
             req.extras = { data: 'Data attached in middleware' };
+			logger.debug(`configure(consumer=${consumer}): req.extras → ${req.extras}`);
             req.headers['ping'] = 'pong';
 
             // When global prefix is set and the route is the root path

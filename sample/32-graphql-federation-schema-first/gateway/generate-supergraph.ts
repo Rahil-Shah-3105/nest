@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -8,6 +9,7 @@ const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function generateSupergraph() {
+logger.debug('>>> Entering generateSupergraph()');
   try {
     try {
       await execAsync('rover --version');
@@ -32,11 +34,13 @@ async function generateSupergraph() {
     console.log('Output written to: supergraph.graphql');
   } catch (error) {
     console.error('Failed to generate supergraph:', error);
+	logger.debug('<<< Exiting generateSupergraph()');
     process.exit(1);
   }
 }
 
 async function generateSupergraphLocal() {
+logger.debug('>>> Entering generateSupergraphLocal()');
   console.log('Generating local supergraph schema from schema files...');
 
   const usersSchemaPath = join(
@@ -64,8 +68,11 @@ async function generateSupergraphLocal() {
   }
 
   const usersSchema = readFileSync(usersSchemaPath, 'utf-8');
+logger.debug(`generateSupergraphLocal(): usersSchema → ${usersSchema}`);
   const postsSchema = readFileSync(postsSchemaPath, 'utf-8');
+logger.debug(`generateSupergraphLocal(): postsSchema → ${postsSchema}`);
 
+logger.debug('<<< Exiting generateSupergraphLocal()');
   const supergraphSchema = `\
 schema
   @link(url: "https://specs.apollo.dev/federation/v2.3")

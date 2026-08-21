@@ -11,6 +11,7 @@ import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 // ─── Test schemas ──────────────────────────────────────────────
 
@@ -75,12 +76,16 @@ class SerializerTestController {
   @Get('user')
   @SerializeOptions({ schema: safeUserSchema })
   getUser() {
+	logger.debug('>>> Entering getUser()');
+	logger.debug('<<< Exiting getUser()');
     return { id: 1, name: 'Alice', password: 'secret123' };
   }
 
   @Get('users')
   @SerializeOptions({ schema: safeUserSchema })
   getUsers() {
+	logger.debug('>>> Entering getUsers()');
+	logger.debug('<<< Exiting getUsers()');
     return [
       { id: 1, name: 'Alice', password: 'pw1' },
       { id: 2, name: 'Bob', password: 'pw2' },
@@ -90,29 +95,39 @@ class SerializerTestController {
   @Get('flagged')
   @SerializeOptions({ schema: flagSchema })
   getFlagged() {
+	logger.debug('>>> Entering getFlagged()');
+	logger.debug('<<< Exiting getFlagged()');
     return { id: 1 };
   }
 
   @Get('no-schema')
   getNoSchema() {
+	logger.debug('>>> Entering getNoSchema()');
+	logger.debug('<<< Exiting getNoSchema()');
     return { id: 1, secret: 'visible' };
   }
 
   @Get('failing')
   @SerializeOptions({ schema: failingSchema })
   getFailing() {
+	logger.debug('>>> Entering getFailing()');
+	logger.debug('<<< Exiting getFailing()');
     return { id: 1 };
   }
 
   @Get('async')
   @SerializeOptions({ schema: asyncSchema })
   getAsync() {
+	logger.debug('>>> Entering getAsync()');
+	logger.debug('<<< Exiting getAsync()');
     return { id: 1 };
   }
 
   @Get('primitive')
   @SerializeOptions({ schema: failingSchema })
   getPrimitive() {
+	logger.debug('>>> Entering getPrimitive()');
+	logger.debug('<<< Exiting getPrimitive()');
     return 'plain string';
   }
 }
@@ -132,6 +147,8 @@ class ClassLevelSerializerController {
   @Get('override')
   @SerializeOptions({ schema: flagSchema })
   getOverride() {
+	logger.debug('>>> Entering getOverride()');
+	logger.debug('<<< Exiting getOverride()');
     return { id: 1, name: 'Carol', password: 'secret' };
   }
 }
@@ -143,6 +160,8 @@ class ClassLevelSerializerController {
 class GlobalSerializerController {
   @Get('default')
   getDefault() {
+	logger.debug('>>> Entering getDefault()');
+	logger.debug('<<< Exiting getDefault()');
     return { id: 1, name: 'Dave', password: 'global-secret' };
   }
 

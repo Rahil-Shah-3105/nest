@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Body,
   Controller,
@@ -14,6 +15,9 @@ export class DisconnectedClientController {
   @Post()
   call(@Body() options): Observable<number> {
     const client = ClientProxyFactory.create(options);
+	logger.debug(`call(options=${options}): client → ${client}`);
+	logger.debug(`>>> Entering call(options=${options})`);
+	logger.debug(`<<< Exiting call(options=${options})`);
     return client.send<number, number[]>({ cmd: 'none' }, [1, 2, 3]).pipe(
       // tap(
       //   console.log.bind(console, 'data'),

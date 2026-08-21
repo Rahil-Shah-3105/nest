@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   MessageBody,
   SubscribeMessage,
@@ -20,11 +21,15 @@ export class EventsGateway {
 
   @SubscribeMessage('events')
   findAll(@MessageBody() data: any): Observable<WsResponse<number>> {
+	logger.debug(`>>> Entering findAll(data=${data})`);
+	logger.debug(`<<< Exiting findAll(data=${data})`);
     return from([1, 2, 3]).pipe(map(item => ({ event: 'events', data: item })));
   }
 
   @SubscribeMessage('identity')
   async identity(@MessageBody() data: number): Promise<number> {
+	logger.debug(`>>> Entering identity(data=${data})`);
+	logger.debug(`<<< Exiting identity(data=${data})`);
     return data;
   }
 }

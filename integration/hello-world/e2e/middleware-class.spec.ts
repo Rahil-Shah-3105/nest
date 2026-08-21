@@ -10,6 +10,7 @@ import {
 import { Test } from '@nestjs/testing';
 import { Response } from 'express';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const INCLUDED_VALUE = 'test_included';
@@ -19,7 +20,9 @@ const WILDCARD_VALUE = 'test_wildcard';
 @Injectable()
 class Middleware {
   use(req, res, next) {
+	logger.debug(`>>> Entering use(req=${req},res=${res},next=${next})`);
     res.send(WILDCARD_VALUE);
+	logger.debug(`<<< Exiting use(req=${req},res=${res},next=${next})`);
   }
 }
 
@@ -27,6 +30,8 @@ class Middleware {
 class TestController {
   @Get('test')
   test() {
+	logger.debug('>>> Entering test()');
+	logger.debug('<<< Exiting test()');
     return RETURN_VALUE;
   }
 }
@@ -37,11 +42,13 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
     consumer
       .apply((req, res: Response, next) => res.status(201).end(INCLUDED_VALUE))
       .forRoutes({ path: 'tests/included', method: RequestMethod.POST })
       .apply(Middleware)
       .forRoutes('*');
+	logger.debug(`<<< Exiting configure(consumer=${consumer})`);
   }
 }
 

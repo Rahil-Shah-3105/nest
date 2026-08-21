@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { Test } from '@nestjs/testing';
 import WebSocket from 'ws';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { ApplicationGateway } from '../src/app.gateway.js';
 import { CoreGateway } from '../src/core.gateway.js';
 import { ExamplePathGateway } from '../src/example-path.gateway.js';
@@ -10,11 +11,13 @@ import { WsPathGateway } from '../src/ws-path.gateway.js';
 import { WsPathGateway2 } from '../src/ws-path2.gateway.js';
 
 async function createNestApp(...gateways: any[]): Promise<INestApplication> {
+logger.debug(`>>> Entering createNestApp(gateways=${gateways})`);
   const testingModule = await Test.createTestingModule({
     providers: gateways,
   }).compile();
   const app = testingModule.createNestApplication();
   app.useWebSocketAdapter(new WsAdapter(app) as any);
+logger.debug(`<<< Exiting createNestApp(gateways=${gateways})`);
   return app;
 }
 
@@ -43,6 +46,7 @@ describe('WebSocketGateway (WsAdapter)', () => {
         resolve();
       }),
     );
+	logger.debug('<<< Exiting it()');
   });
 
   it(`should handle message (http)`, async () => {
@@ -94,6 +98,7 @@ describe('WebSocketGateway (WsAdapter)', () => {
         resolve();
       }),
     );
+	logger.debug('>>> Entering it()');
   });
 
   it(`should support 2 different gateways running on different paths`, async function () {
@@ -142,6 +147,7 @@ describe('WebSocketGateway (WsAdapter)', () => {
   });
 
   it(`should support 2 different gateways running on the same path (but different ports)`, async function () {
+	logger.debug('>>> Entering function()');
     app = await createNestApp(ApplicationGateway, CoreGateway);
     await app.listen(3000);
 
@@ -175,6 +181,7 @@ describe('WebSocketGateway (WsAdapter)', () => {
         ws2.close();
         resolve();
       });
+	logger.debug('<<< Exiting function()');
       ws2.send(
         JSON.stringify({
           event: 'push',
@@ -266,6 +273,7 @@ describe('WebSocketGateway (WsAdapter)', () => {
   });
 
   afterEach(async function () {
+	logger.debug('>>> Entering afterEach()');
     await app.close();
   });
 });

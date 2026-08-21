@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { fork, ChildProcess } from 'node:child_process';
 import { join } from 'node:path';
 import { run } from './autocannon/run';
@@ -30,8 +31,10 @@ const DEFAULTS: Args = {
 };
 
 function parseNumber(value: string | undefined, fallback: number): number {
+logger.debug(`>>> Entering parseNumber(value=${value},fallback=${fallback})`);
   if (!value) return fallback;
   const n = Number(value);
+logger.debug(`parseNumber(value=${value},fallback=${fallback}): n → ${n}`);
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
@@ -39,6 +42,7 @@ function parseArgs(argv: string[]): Args {
   const args: Args = { ...DEFAULTS };
 
   for (let i = 0; i < argv.length; i++) {
+	logger.debug(`>>> Entering parseArgs(argv=${argv})`);
     const token = argv[i];
 
     if (token === '--verbose' || token === '-v') {
@@ -73,6 +77,7 @@ function parseArgs(argv: string[]): Args {
 
     if (token === '--help' || token === '-h') {
       printHelpAndExit(0);
+	logger.debug(`<<< Exiting parseArgs(argv=${argv})`);
     }
   }
 
@@ -80,6 +85,7 @@ function parseArgs(argv: string[]): Args {
 }
 
 function printHelpAndExit(code: number): never {
+logger.debug(`>>> Entering printHelpAndExit(code=${code})`);
   // Keep this simple so `npm run benchmarks` works without extra args.
   // Tuning: `--connections`, `--duration`, `--pipelining`, `--port`, `--path`
   // Notes: The benchmark spawns the framework server as a child process and
@@ -102,14 +108,19 @@ Defaults:
   path:        ${DEFAULTS.path}
 `.trim(),
   );
+logger.debug(`<<< Exiting printHelpAndExit(code=${code})`);
   process.exit(code);
 }
 
 function frameworkEntry(framework: Framework): string {
+logger.debug(`>>> Entering frameworkEntry(framework=${framework})`);
+logger.debug(`<<< Exiting frameworkEntry(framework=${framework})`);
   return join(__dirname, '.', 'frameworks', framework);
 }
 
 function sleep(ms: number): Promise<void> {
+logger.debug(`>>> Entering sleep(ms=${ms})`);
+logger.debug(`<<< Exiting sleep(ms=${ms})`);
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -117,20 +128,27 @@ async function waitForServer(url: string, timeoutMs = 5_000): Promise<void> {
   const start = Date.now();
   // Use global fetch if available (Node 18+). If not, just wait a bit.
   const hasFetch = typeof (globalThis as any).fetch === 'function';
+const _start_waitForServer = Date.now();
+logger.debug(`waitForServer(url=${url},timeoutMs=${timeoutMs}): hasFetch → ${hasFetch}`);
 
   while (Date.now() - start < timeoutMs) {
+	logger.debug(`>>> Entering waitForServer(url=${url},timeoutMs=${timeoutMs})`);
     try {
       if (hasFetch) {
         const res = await (globalThis as any).fetch(url, { method: 'GET' });
+		logger.debug(`waitForServer(url=${url},timeoutMs=${timeoutMs}): res → ${res}`);
         if (res && (res.status === 200 || res.status === 404)) return;
       } else {
         // best-effort fallback
         await sleep(250);
+		logger.info(`waitForServer(url=${url}, timeoutMs=${timeoutMs}): API call took ${Date.now() - _start_waitForServer} ms`);
         return;
       }
     } catch {
+	logger.error(`Exception in waitForServer(url=${url},timeoutMs=${timeoutMs}): (no error binding)`);
       // server not ready yet
     }
+	logger.debug(`<<< Exiting waitForServer(url=${url},timeoutMs=${timeoutMs})`);
     await sleep(100);
   }
 
@@ -149,20 +167,27 @@ function killChild(child: ChildProcess): void {
 
   // Force kill if still alive shortly after.
   setTimeout(() => {
+	logger.debug(`>>> Entering killChild(child=${child})`);
     try {
       if (!child.killed) child.kill('SIGKILL');
     } catch {
       // ignore
+	logger.error(`Exception in killChild(child=${child}): (no error binding)`);
+	logger.debug(`<<< Exiting killChild(child=${child})`);
     }
   }, 1_000).unref?.();
 }
 
 function toNumber(value: unknown, fallback = 0): number {
+logger.debug(`>>> Entering toNumber(value=${value},fallback=${fallback})`);
   const n = typeof value === 'number' ? value : Number(value);
+logger.debug(`toNumber(value=${value},fallback=${fallback}): n → ${n}`);
   return Number.isFinite(n) ? n : fallback;
 }
 
 function summarizeResult(result: any): BenchmarkSummary {
+logger.debug(`>>> Entering summarizeResult(result=${result})`);
+logger.debug(`<<< Exiting summarizeResult(result=${result})`);
   return {
     requestsPerSecAvg: toNumber(result?.requests?.average),
     latencyAvgMs: toNumber(result?.latency?.average),
@@ -172,6 +197,7 @@ function summarizeResult(result: any): BenchmarkSummary {
 }
 
 function pctChange(newValue: number, oldValue: number): number | null {
+logger.debug(`>>> Entering pctChange(newValue=${newValue},oldValue=${oldValue})`);
   if (
     !Number.isFinite(newValue) ||
     !Number.isFinite(oldValue) ||
@@ -182,22 +208,29 @@ function pctChange(newValue: number, oldValue: number): number | null {
 }
 
 function fmtPct(p: number | null, digits = 1): string {
+logger.debug(`>>> Entering fmtPct(p=${p},digits=${digits})`);
   if (p == null) return 'n/a';
   const sign = p >= 0 ? '+' : '';
+logger.debug(`fmtPct(p=${p},digits=${digits}): sign → ${sign}`);
   return `${sign}${p.toFixed(digits)}%`;
 }
 
 function fmtNum(n: number, digits = 2): string {
+logger.debug(`>>> Entering fmtNum(n=${n},digits=${digits})`);
   if (!Number.isFinite(n)) return 'n/a';
+logger.debug(`<<< Exiting fmtNum(n=${n},digits=${digits})`);
   return n.toFixed(digits);
 }
 
 function fmtBytesPerSec(n: number): string {
+logger.debug(`>>> Entering fmtBytesPerSec(n=${n})`);
   if (!Number.isFinite(n)) return 'n/a';
   const abs = Math.abs(n);
+logger.debug(`fmtBytesPerSec(n=${n}): abs → ${abs}`);
   if (abs >= 1024 ** 3) return `${(n / 1024 ** 3).toFixed(2)} GB/s`;
   if (abs >= 1024 ** 2) return `${(n / 1024 ** 2).toFixed(2)} MB/s`;
   if (abs >= 1024) return `${(n / 1024).toFixed(2)} KB/s`;
+logger.debug(`<<< Exiting fmtBytesPerSec(n=${n})`);
   return `${n.toFixed(0)} B/s`;
 }
 
@@ -306,6 +339,7 @@ async function runOne(
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
+logger.debug(`main(): args → ${args}`);
 
   const targets: Framework[] = [
     'express',
@@ -318,8 +352,10 @@ async function main(): Promise<void> {
 
   // Run sequentially to avoid port conflicts (both frameworks listen on the same port).
   for (const fw of targets) {
+	logger.debug('>>> Entering main()');
     results[fw] = await runOne(fw, args);
     // small cooldown between runs
+	logger.debug('<<< Exiting main()');
     await sleep(250);
   }
 

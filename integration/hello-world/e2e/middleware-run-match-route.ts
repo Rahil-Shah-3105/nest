@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '../../../packages/testing.js';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 /**
  * Number of times that the middleware was executed.
  */
@@ -16,8 +17,10 @@ let triggerCounter = 0;
 @Injectable()
 class Middleware implements NestMiddleware {
   use(req, res, next) {
+	logger.debug(`>>> Entering use(req=${req},res=${res},next=${next})`);
     triggerCounter++;
     next();
+	logger.debug(`<<< Exiting use(req=${req},res=${res},next=${next})`);
   }
 }
 
@@ -41,7 +44,9 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
     consumer.apply(Middleware).forRoutes(TestController);
+	logger.debug(`<<< Exiting configure(consumer=${consumer})`);
   }
 }
 

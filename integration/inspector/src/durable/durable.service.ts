@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 
@@ -9,6 +10,7 @@ export class DurableService {
 
   greeting() {
     ++this.instanceCounter;
+	logger.debug('<<< Exiting greeting()');
     return `Hello world! Counter: ${this.instanceCounter}`;
   }
 }

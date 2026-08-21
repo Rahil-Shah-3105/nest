@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 const RETURN_VALUE_A = 'test_A';
 const RETURN_VALUE_B = 'test_B';
@@ -16,9 +17,11 @@ const RETURN_VALUE_GLOBAL = 'test_GLOBAL';
 @Module({})
 class GlobalModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
     consumer
       .apply((req, res, next) => res.send(RETURN_VALUE_GLOBAL))
       .forRoutes('ping');
+	logger.debug(`<<< Exiting configure(consumer=${consumer})`);
   }
 }
 

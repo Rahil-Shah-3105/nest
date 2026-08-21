@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   CanActivate,
   ExecutionContext,
@@ -10,7 +11,9 @@ import { Observable } from 'rxjs';
 export class Guard implements CanActivate {
   static COUNTER = 0;
   constructor() {
+	logger.debug('>>> Entering constructor()');
     Guard.COUNTER++;
+	logger.debug('<<< Exiting constructor()');
   }
 
   canActivate(

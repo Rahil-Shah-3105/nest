@@ -23,7 +23,9 @@ export class InternalCoreModuleFactory {
     graphInspector: GraphInspector,
     moduleOverrides?: ModuleOverride[],
   ) {
+	logger.debug(`>>> Entering create(container=${container},scanner=${scanner},moduleCompiler=${moduleCompiler},httpAdapterHost=${httpAdapterHost},graphInspector=${graphInspector},moduleOverrides=${moduleOverrides})`);
     const lazyModuleLoaderFactory = () => {
+	logger.debug('>>> Entering lazyModuleLoaderFactory()');
       const logger = new Logger(LazyModuleLoader.name, {
         timestamp: false,
       });
@@ -38,6 +40,7 @@ export class InternalCoreModuleFactory {
         graphInspector,
         logger,
       );
+	logger.debug('<<< Exiting lazyModuleLoaderFactory()');
       return new LazyModuleLoader(
         scanner,
         instanceLoader,
@@ -49,6 +52,7 @@ export class InternalCoreModuleFactory {
 
     InitializeOnPreviewAllowlist.add(InternalCoreModule);
 
+	logger.debug(`<<< Exiting create(container=${container},scanner=${scanner},moduleCompiler=${moduleCompiler},httpAdapterHost=${httpAdapterHost},graphInspector=${graphInspector},moduleOverrides=${moduleOverrides})`);
     return InternalCoreModule.register([
       {
         provide: ExternalContextCreator,

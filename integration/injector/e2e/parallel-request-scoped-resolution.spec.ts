@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   Get,
@@ -21,6 +22,7 @@ describe('Parallel request-scoped resolution', () => {
     private waitingResolver?: () => void;
 
     async waitForOverlap() {
+	logger.debug('>>> Entering waitForOverlap()');
       if (this.released) {
         return;
       }
@@ -30,16 +32,21 @@ describe('Parallel request-scoped resolution', () => {
         await new Promise<void>(resolve => {
           this.waitingResolver = resolve;
         });
+	logger.debug(`waitForOverlap(): this.waitingResolver → ${this.waitingResolver}`);
         return;
       }
 
       this.released = true;
       this.waitingResolver?.();
+	logger.debug(`waitForOverlap(): this.released → ${this.released}`);
       this.waitingResolver = undefined;
+	logger.debug('<<< Exiting waitForOverlap()');
     }
 
     async yieldOneTurn() {
+	logger.debug('>>> Entering yieldOneTurn()');
       await new Promise<void>(resolve => setImmediate(resolve));
+	logger.debug('<<< Exiting yieldOneTurn()');
     }
   }
 
@@ -119,6 +126,8 @@ describe('Parallel request-scoped resolution', () => {
 
     @Get()
     getPayload() {
+	logger.debug('>>> Entering getPayload()');
+	logger.debug('<<< Exiting getPayload()');
       return this.payload;
     }
   }
@@ -141,6 +150,7 @@ describe('Parallel request-scoped resolution', () => {
   const prepareContexts = (moduleRef: TestingModule, count: number) =>
     Array.from({ length: count }, (_, index) => {
       const contextId = createContextId();
+	logger.debug(`prepareContexts(moduleRef=${moduleRef},count=${count}): contextId → ${contextId}`);
       const request = { requestId: `request-${index}` };
       moduleRef.registerRequestByContextId(request, contextId);
       return { contextId, request };

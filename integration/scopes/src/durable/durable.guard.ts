@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   CanActivate,
   ExecutionContext,
@@ -13,9 +14,11 @@ export class DurableGuard implements CanActivate {
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     if (typeof this.durableService === 'undefined') {
+	logger.debug(`>>> Entering canActivate(context=${context})`);
       throw new Error('Durable service is undefined');
     }
     this.instanceCounter++;
+	logger.debug(`<<< Exiting canActivate(context=${context})`);
     return true;
   }
 }

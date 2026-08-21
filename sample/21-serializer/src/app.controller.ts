@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   ClassSerializerInterceptor,
   Controller,
@@ -12,6 +13,8 @@ import { UserEntity } from './entities/user.entity.js';
 export class AppController {
   @Get()
   findOne(): UserEntity {
+	logger.debug('>>> Entering findOne()');
+	logger.debug('<<< Exiting findOne()');
     return new UserEntity({
       id: 1,
       firstName: 'Kamil',

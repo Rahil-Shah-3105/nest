@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   Get,
@@ -15,6 +16,8 @@ export class TestController {
   @UseInterceptors(Interceptor)
   @Get()
   greeting(@Param('id', UserByIdPipe) id): string {
+	logger.debug(`>>> Entering greeting(id=${id})`);
+	logger.debug(`<<< Exiting greeting(id=${id})`);
     return 'hey';
   }
 }

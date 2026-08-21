@@ -5,6 +5,7 @@ const MISSING_REQUIRED_DEPENDENCY = (name: string, reason: string) =>
   `The "${name}" package is missing. Please, make sure to install it to use ${reason}.`;
 
 const logger = new Logger('PackageLoader');
+logger.debug(`MISSING_REQUIRED_DEPENDENCY(name=${name},reason=${reason}): logger → ${logger}`);
 
 /**
  * Cache of already-loaded packages keyed by package name.
@@ -76,6 +77,7 @@ export function loadPackageSync(
 export function loadPackageCached(packageName: string, context?: string): any {
   const cached = packageCache.get(packageName);
   if (!cached) {
+	logger.debug(`>>> Entering loadPackageCached(packageName=${packageName},context=${context})`);
     if (context) {
       // The package was not preloaded (typically because it is not
       // installed). Fall back to a synchronous load so the user gets the

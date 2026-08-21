@@ -2,6 +2,7 @@ import { INestApplication, Injectable, Scope } from '@nestjs/common';
 import { createContextId } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { NestedTransientModule } from '../src/nested-transient/nested-transient.module.js';
 import { Guard } from '../src/transient/guards/request-scoped.guard.js';
 import { HelloController } from '../src/transient/hello.controller.js';
@@ -13,7 +14,10 @@ import { UsersService } from '../src/transient/users/users.service.js';
 class Meta {
   static COUNTER = 0;
   constructor() {
+	logger.debug('>>> Entering constructor()');
     Meta.COUNTER++;
+	logger.debug(`>>> Entering constructor(next=${next})`);
+	logger.debug(`<<< Exiting constructor(LoggerService=${LoggerService})`);
   }
 }
 
@@ -102,7 +106,9 @@ describe('Transient scope', () => {
     @Injectable({ scope: Scope.TRANSIENT })
     class SecondService {
       constructor(public readonly loggerService: LoggerService) {
+		logger.debug(`>>> Entering constructor(LoggerService=${LoggerService})`);
         this.loggerService.context = 'SecondService';
+		logger.debug(`<<< Exiting constructor(LoggerService=${LoggerService})`);
       }
     }
 
@@ -150,6 +156,7 @@ describe('Transient scope', () => {
 
       constructor() {
         DeepNestedTransient.constructorCalled = true;
+		logger.debug(`constructor(): this.instanceId → ${this.instanceId}`);
       }
     }
 
@@ -196,6 +203,7 @@ describe('Transient scope', () => {
 
       constructor() {
         IsolatedNestedTransient.instanceCount++;
+		logger.debug(`>>> Entering constructor(IsolatedNestedTransient=${IsolatedNestedTransient})`);
         this.instanceId = IsolatedNestedTransient.instanceCount;
       }
     }
@@ -208,6 +216,7 @@ describe('Transient scope', () => {
       constructor(public readonly nested: IsolatedNestedTransient) {
         IsolatedTransientLogger.instanceCount++;
         this.instanceId = IsolatedTransientLogger.instanceCount;
+		logger.debug(`constructor(IsolatedNestedTransient=${IsolatedNestedTransient}): this.instanceId → ${this.instanceId}`);
       }
     }
 
@@ -273,7 +282,9 @@ describe('Transient scope', () => {
 
       constructor() {
         DepthSixTransient.constructorCalled = true;
+		logger.debug(`>>> Entering constructor(DepthSixTransient=${DepthSixTransient})`);
         DepthSixTransient.instanceCount++;
+		logger.debug(`>>> Entering constructor(DepthFiveTransient=${DepthFiveTransient})`);
         this.instanceId = DepthSixTransient.instanceCount;
       }
     }
@@ -285,9 +296,12 @@ describe('Transient scope', () => {
       public readonly instanceId: number;
 
       constructor(public readonly next: DepthSixTransient) {
+		logger.debug(`>>> Entering constructor(DepthFourTransient=${DepthFourTransient})`);
         DepthFiveTransient.constructorCalled = true;
         DepthFiveTransient.instanceCount++;
+		logger.debug(`constructor(DepthSixTransient=${DepthSixTransient}): DepthFiveTransient.constructorCalled → ${DepthFiveTransient.constructorCalled}`);
         this.instanceId = DepthFiveTransient.instanceCount;
+		logger.debug(`constructor(DepthSixTransient=${DepthSixTransient}): this.instanceId → ${this.instanceId}`);
       }
     }
 
@@ -296,7 +310,9 @@ describe('Transient scope', () => {
       public static constructorCalled = false;
 
       constructor(public readonly next: DepthFiveTransient) {
+		logger.debug(`>>> Entering constructor(DepthThreeTransient=${DepthThreeTransient})`);
         DepthFourTransient.constructorCalled = true;
+		logger.debug(`<<< Exiting constructor(DepthFourTransient=${DepthFourTransient})`);
       }
     }
 
@@ -305,7 +321,9 @@ describe('Transient scope', () => {
       public static constructorCalled = false;
 
       constructor(public readonly next: DepthFourTransient) {
+		logger.debug(`>>> Entering constructor(DepthTwoTransient=${DepthTwoTransient})`);
         DepthThreeTransient.constructorCalled = true;
+		logger.debug(`<<< Exiting constructor(DepthThreeTransient=${DepthThreeTransient})`);
       }
     }
 
@@ -314,7 +332,9 @@ describe('Transient scope', () => {
       public static constructorCalled = false;
 
       constructor(public readonly next: DepthThreeTransient) {
+		logger.debug(`>>> Entering constructor(chain=${chain})`);
         DepthTwoTransient.constructorCalled = true;
+		logger.debug(`<<< Exiting constructor(DepthTwoTransient=${DepthTwoTransient})`);
       }
     }
 
@@ -456,6 +476,7 @@ describe('Transient scope', () => {
 
       constructor() {
         RequestDepthSixTransient.instanceCount++;
+		logger.debug(`>>> Entering constructor(RequestDepthSixTransient=${RequestDepthSixTransient})`);
         this.instanceId = RequestDepthSixTransient.instanceCount;
       }
     }

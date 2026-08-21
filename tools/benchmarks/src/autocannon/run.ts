@@ -1,4 +1,5 @@
 import autocannon from 'autocannon';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 export type RunOptions = autocannon.Options & {
   /**
@@ -26,6 +27,7 @@ export const run = (options: RunOptions) =>
       }
     });
 
+	logger.debug(`run(options=${options}): instance → ${instance}`);
     if (verbose) {
       autocannon.track(instance);
     }

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Module, DynamicModule } from '@nestjs/common';
 
 export const DYNAMIC_TOKEN = 'DYNAMIC_TOKEN';
@@ -11,6 +12,8 @@ export const dynamicProvider = {
 @Module({})
 export class NestDynamicModule {
   static byObject(): DynamicModule {
+	logger.debug('>>> Entering byObject()');
+	logger.debug('<<< Exiting byObject()');
     return {
       module: NestDynamicModule,
       providers: [dynamicProvider],
@@ -19,6 +22,8 @@ export class NestDynamicModule {
   }
 
   static byName(): DynamicModule {
+	logger.debug('>>> Entering byName()');
+	logger.debug('<<< Exiting byName()');
     return {
       module: NestDynamicModule,
       providers: [dynamicProvider],

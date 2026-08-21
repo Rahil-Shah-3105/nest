@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Test } from '@nestjs/testing';
 import { Global, Inject, Injectable, Module, Scope } from '@nestjs/common';
 
@@ -62,11 +63,13 @@ export class Dependant {
   ) {}
 
   public checkDependencies() {
+	logger.debug('>>> Entering checkDependencies()');
     expect(this.transientProvider).toBeInstanceOf(TransientProvider);
     expect(this.foreignTransientProvider).toBeInstanceOf(
       ForeignTransientProvider,
     );
     expect(this.requestProvider).toBeInstanceOf(RequestProvider);
+	logger.debug('<<< Exiting checkDependencies()');
   }
 }
 

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { ParseIntPipe, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { PubSub } from 'graphql-subscriptions';
@@ -15,6 +16,7 @@ export class CatsResolver {
   @Query('cats')
   @UseGuards(CatsGuard)
   async getCats() {
+	logger.debug('>>> Entering getCats()');
     return this.catsService.findAll();
   }
 
@@ -23,18 +25,25 @@ export class CatsResolver {
     @Args('id', ParseIntPipe)
     id: number,
   ): Promise<Cat | undefined> {
+	logger.debug(`>>> Entering findOneById(id=${id})`);
+	logger.debug(`<<< Exiting findOneById(id=${id})`);
     return this.catsService.findOneById(id);
   }
 
   @Mutation('createCat')
   async create(@Args('createCatInput') args: CreateCatDto): Promise<Cat> {
+	logger.debug(`>>> Entering create(args=${args})`);
     const createdCat = this.catsService.create(args);
+	logger.debug(`create(args=${args}): createdCat → ${createdCat}`);
     pubSub.publish('catCreated', { catCreated: createdCat });
+	logger.debug(`<<< Exiting create(args=${args})`);
     return createdCat;
   }
 
   @Subscription('catCreated')
   catCreated() {
+	logger.debug('>>> Entering catCreated()');
+	logger.debug('<<< Exiting catCreated()');
     return pubSub.asyncIterableIterator('catCreated');
   }
 }

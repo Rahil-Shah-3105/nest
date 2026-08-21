@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { UseFilters, UseInterceptors } from '@nestjs/common';
 import {
   MessageBody,
@@ -13,6 +14,8 @@ import { RequestFilter } from './request.filter.js';
 export class ApplicationGateway {
   @SubscribeMessage('push')
   onPush(@MessageBody() data) {
+	logger.debug(`>>> Entering onPush(data=${data})`);
+	logger.debug(`<<< Exiting onPush(data=${data})`);
     return {
       event: 'pop',
       data,
@@ -22,6 +25,8 @@ export class ApplicationGateway {
   @UseInterceptors(RequestInterceptor)
   @SubscribeMessage('getClient')
   getPathCalled(client, data) {
+	logger.debug(`>>> Entering getPathCalled(client=${client},data=${data})`);
+	logger.debug(`<<< Exiting getPathCalled(client=${client},data=${data})`);
     return {
       event: 'popClient',
       data: { ...data, path: client.pattern },
@@ -31,6 +36,8 @@ export class ApplicationGateway {
   @UseFilters(RequestFilter)
   @SubscribeMessage('getClientWithError')
   getPathCalledWithError() {
+	logger.debug('>>> Entering getPathCalledWithError()');
+	logger.debug('<<< Exiting getPathCalledWithError()');
     return throwError(() => new WsException('This is an error'));
   }
 }

@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const RETURN_VALUE = 'test';
@@ -18,46 +19,64 @@ const MIDDLEWARE_VALUE = 'middleware';
 class TestController {
   @Get('test')
   test() {
+	logger.debug('>>> Entering test()');
+	logger.debug('<<< Exiting test()');
     return RETURN_VALUE;
   }
 
   @Get('test2')
   test2() {
+	logger.debug('>>> Entering test2()');
+	logger.debug('<<< Exiting test2()');
     return RETURN_VALUE;
   }
 
   @Get('middleware')
   middleware() {
+	logger.debug('>>> Entering middleware()');
+	logger.debug('<<< Exiting middleware()');
     return RETURN_VALUE;
   }
 
   @Post('middleware')
   noMiddleware() {
+	logger.debug('>>> Entering noMiddleware()');
+	logger.debug('<<< Exiting noMiddleware()');
     return RETURN_VALUE;
   }
 
   @Get('wildcard/overview')
   testOverview() {
+	logger.debug('>>> Entering testOverview()');
+	logger.debug('<<< Exiting testOverview()');
     return RETURN_VALUE;
   }
 
   @Get('legacy-wildcard/overview')
   testLegacyWildcard() {
+	logger.debug('>>> Entering testLegacyWildcard()');
+	logger.debug('<<< Exiting testLegacyWildcard()');
     return RETURN_VALUE;
   }
 
   @Get('splat-wildcard/overview')
   testSplatWildcard() {
+	logger.debug('>>> Entering testSplatWildcard()');
+	logger.debug('<<< Exiting testSplatWildcard()');
     return RETURN_VALUE;
   }
 
   @Get('overview/:id')
   overviewById() {
+	logger.debug('>>> Entering overviewById()');
+	logger.debug('<<< Exiting overviewById()');
     return RETURN_VALUE;
   }
 
   @Get('multiple/exclude')
   multipleExclude() {
+	logger.debug('>>> Entering multipleExclude()');
+	logger.debug('<<< Exiting multipleExclude()');
     return RETURN_VALUE;
   }
 }
@@ -68,6 +87,7 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
     consumer
       .apply((req, res, next) => res.send(MIDDLEWARE_VALUE))
       .exclude(
@@ -83,6 +103,7 @@ class TestModule {
       )
       .exclude('multiple/exclude')
       .forRoutes('*path');
+	logger.debug(`<<< Exiting configure(consumer=${consumer})`);
   }
 }
 

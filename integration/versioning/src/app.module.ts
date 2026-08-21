@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppV1Controller } from './app-v1.controller.js';
 import { AppV2Controller } from './app-v2.controller.js';
@@ -27,6 +28,7 @@ import { OverrideController } from './override.controller.js';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
     consumer
       .apply((req, res) => res.end('Hello from middleware function!'))
       .forRoutes(
@@ -34,5 +36,6 @@ export class AppModule {
         MultipleMiddlewareVersionController,
         VersionNeutralMiddlewareController,
       );
+	logger.debug(`<<< Exiting configure(consumer=${consumer})`);
   }
 }

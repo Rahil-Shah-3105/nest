@@ -2,14 +2,17 @@ import { INestApplication } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { Test } from '@nestjs/testing';
 import WebSocket from 'ws';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { WsErrorGateway } from '../src/ws-error.gateway.js';
 
 async function createNestApp(...gateways: any[]): Promise<INestApplication> {
+logger.debug(`>>> Entering createNestApp(gateways=${gateways})`);
   const testingModule = await Test.createTestingModule({
     providers: gateways,
   }).compile();
   const app = testingModule.createNestApplication();
   app.useWebSocketAdapter(new WsAdapter(app) as any);
+logger.debug(`<<< Exiting createNestApp(gateways=${gateways})`);
   return app;
 }
 
@@ -55,6 +58,7 @@ describe('WebSocketGateway (WsAdapter) - Error Handling', () => {
   });
 
   afterEach(async function () {
+	logger.debug('>>> Entering afterEach()');
     await app.close();
   });
 });

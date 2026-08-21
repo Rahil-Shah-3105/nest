@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Body, Controller, HttpCode, Post, Query } from '@nestjs/common';
 import {
   Client,
@@ -15,6 +16,8 @@ import { catchError, from, mergeMap, Observable, of } from 'rxjs';
 
 class ErrorHandlingProxy extends ClientGrpcProxy {
   serializeError(err) {
+	logger.debug(`>>> Entering serializeError(err=${err})`);
+	logger.debug(`<<< Exiting serializeError(err=${err})`);
     return new RpcException(err);
   }
 }
@@ -23,10 +26,12 @@ class ErrorHandlingProxy extends ClientGrpcProxy {
 export class GrpcController {
   private readonly customClient: ClientGrpc;
   constructor() {
+	logger.debug('>>> Entering constructor()');
     this.customClient = new ErrorHandlingProxy({
       package: 'math',
       protoPath: join(import.meta.dirname, 'math.proto'),
     });
+	logger.debug('<<< Exiting constructor()');
   }
 
   @Client({
@@ -53,7 +58,9 @@ export class GrpcController {
   @Post('sum')
   @HttpCode(200)
   call(@Body() data: number[]): Observable<number> {
+	logger.debug(`>>> Entering call(data=${data})`);
     const svc = this.client.getService<any>('Math');
+	logger.debug(`call(data=${data}): svc → ${svc}`);
     return svc.sum({ data });
   }
 
@@ -61,12 +68,16 @@ export class GrpcController {
   @Post('upperMethod/sum')
   @HttpCode(200)
   callWithOptions(@Body() data: number[]): Observable<number> {
+	logger.debug(`>>> Entering callWithOptions(data=${data})`);
     const svc = this.client.getService<any>('Math');
+	logger.debug(`callWithOptions(data=${data}): svc → ${svc}`);
     return svc.Sum({ data });
   }
 
   @GrpcMethod('Math')
   async sum({ data }: { data: number[] }): Promise<any> {
+	logger.debug('>>> Entering sum()');
+	logger.debug('<<< Exiting sum()');
     return of({
       result: data.reduce((a, b) => a + b),
     });
@@ -75,6 +86,7 @@ export class GrpcController {
   @GrpcStreamMethod('Math')
   async sumStream(messages: Observable<any>): Promise<any> {
     return new Promise<any>((resolve, reject) => {
+	logger.debug(`>>> Entering sumStream(messages=${messages})`);
       messages.subscribe({
         next: msg => {
           resolve({
@@ -90,14 +102,17 @@ export class GrpcController {
 
   @GrpcStreamCall('Math')
   async sumStreamPass(stream: any) {
+	logger.debug(`>>> Entering sumStreamPass(stream=${stream})`);
     stream.on('data', (msg: any) => {
       stream.write({ result: msg.data.reduce((a, b) => a + b) });
     });
+	logger.debug(`<<< Exiting sumStreamPass(stream=${stream})`);
   }
 
   @GrpcMethod('Math')
   async divide(request: { dividend: number; divisor: number }): Promise<any> {
     if (request.divisor === 0) {
+	logger.debug(`>>> Entering divide(request=${request})`);
       throw new RpcException({
         code: 3,
         message: 'dividing by 0 is not possible',
@@ -110,6 +125,8 @@ export class GrpcController {
 
   @GrpcMethod('Math')
   async alreadyExists(): Promise<any> {
+	logger.debug('>>> Entering alreadyExists()');
+	logger.debug('<<< Exiting alreadyExists()');
     throw new GrpcAlreadyExistsException('email already exists');
   }
 
@@ -126,6 +143,8 @@ export class GrpcController {
 
   @GrpcMethod('Math2')
   async sum2({ data }: { data: number[] }): Promise<any> {
+	logger.debug('>>> Entering sum2()');
+	logger.debug('<<< Exiting sum2()');
     return of({
       result: data.reduce((a, b) => a + b),
     });
@@ -134,25 +153,31 @@ export class GrpcController {
   @Post('multi/sum')
   @HttpCode(200)
   callMultiSum(@Body() data: number[]): Observable<number> {
+	logger.debug(`>>> Entering callMultiSum(data=${data})`);
     const svc = this.clientMulti.getService<any>('Math');
+	logger.debug(`callMultiSum(data=${data}): svc → ${svc}`);
     return svc.sum({ data });
   }
 
   @Post('multi/sum2')
   @HttpCode(200)
   callMultiSum2(@Body() data: number[]): Observable<number> {
+	logger.debug(`>>> Entering callMultiSum2(data=${data})`);
     const svc = this.clientMulti.getService<any>('Math2');
+	logger.debug(`callMultiSum2(data=${data}): svc → ${svc}`);
     return svc.sum2({ data });
   }
 
   @GrpcMethod('Math')
   streamLargeMessages(_req: unknown, _meta: unknown) {
+	logger.debug(`>>> Entering streamLargeMessages(_req=${_req},_meta=${_meta})`);
     // Send 1000 messages of >1MB each relatively fast
     // This should be enough to trigger backpressure issues
     // while writing to the socket.
     return new Observable(subscriber => {
       let n = 0;
       const interval = setInterval(() => {
+		logger.debug(`<<< Exiting streamLargeMessages(_req=${_req},_meta=${_meta})`);
         // We'll be checking the ids. The `data` is just to make the
         // message large enough to trigger backpressure issues.
         subscriber.next({ id: n++, data: 'a'.repeat(1024 * 1024) });
@@ -162,6 +187,7 @@ export class GrpcController {
       }, 0);
       return () => {
         clearInterval(interval);
+		logger.debug(`streamLargeMessages(_req=${_req},_meta=${_meta}): interval → ${interval}`);
       };
     });
   }

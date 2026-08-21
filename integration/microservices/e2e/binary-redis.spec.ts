@@ -9,12 +9,16 @@ import {
 import { Test } from '@nestjs/testing';
 import { lastValueFrom } from 'rxjs';
 import Redis from 'ioredis';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 class BinaryDeserializer implements Deserializer<Buffer, IncomingResponse> {
   deserialize(value: Buffer): IncomingResponse {
+	logger.debug(`>>> Entering deserialize(value=${value})`);
     const firstSeparatorIndex = value.indexOf(':');
+	logger.debug(`deserialize(value=${value}): firstSeparatorIndex → ${firstSeparatorIndex}`);
     const secondSeparatorIndex = value.indexOf(':', firstSeparatorIndex + 1);
 
+	logger.debug(`<<< Exiting deserialize(value=${value})`);
     return {
       id: value.subarray(0, firstSeparatorIndex).toString(),
       isDisposed: true,

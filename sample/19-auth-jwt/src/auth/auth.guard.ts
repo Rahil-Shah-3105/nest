@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   CanActivate,
   ExecutionContext,
@@ -23,11 +24,13 @@ export class AuthGuard implements CanActivate {
       context.getClass(),
     ]);
     if (isPublic) {
+	logger.debug(`>>> Entering canActivate(context=${context})`);
       // 💡 See this condition
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
+	logger.debug(`canActivate(context=${context}): request → ${request}`);
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
@@ -39,14 +42,18 @@ export class AuthGuard implements CanActivate {
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['user'] = payload;
+	logger.debug(`canActivate(context=${context}): payload → ${payload}`);
     } catch {
+	logger.error(`Exception in canActivate(context=${context}): (no error binding)`);
       throw new UnauthorizedException();
     }
     return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
+	logger.debug(`>>> Entering extractTokenFromHeader(request=${request})`);
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
+	logger.debug(`<<< Exiting extractTokenFromHeader(request=${request})`);
     return type === 'Bearer' ? token : undefined;
   }
 }

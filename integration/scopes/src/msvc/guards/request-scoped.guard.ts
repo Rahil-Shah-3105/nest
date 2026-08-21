@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   CanActivate,
   ExecutionContext,
@@ -13,7 +14,9 @@ export class Guard implements CanActivate {
   static REQUEST_SCOPED_DATA = [] as number[];
 
   constructor(@Inject('REQUEST_ID') private readonly requestId: number) {
+	logger.debug(`>>> Entering constructor(requestId=${requestId})`);
     Guard.COUNTER++;
+	logger.debug(`<<< Exiting constructor(requestId=${requestId})`);
   }
 
   canActivate(

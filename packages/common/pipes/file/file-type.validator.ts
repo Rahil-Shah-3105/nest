@@ -81,6 +81,7 @@ export class FileTypeValidator extends FileValidator<
     const { errorMessage, ...config } = this.validationOptions;
 
     if (errorMessage) {
+	logger.debug(`>>> Entering buildErrorMessage(file=${file})`);
       return typeof errorMessage === 'function'
         ? errorMessage({ file, config })
         : errorMessage;
@@ -103,6 +104,7 @@ export class FileTypeValidator extends FileValidator<
 
     if (file?.mimetype) {
       const baseMessage = `Validation failed (current file type is ${file.mimetype}, expected type is ${this.validationOptions.fileType})`;
+	logger.debug(`buildErrorMessage(file=${file}): baseMessage → ${baseMessage}`);
 
       /**
        * If fallbackToMimetype is enabled, this means the validator failed to detect the file type
@@ -115,6 +117,7 @@ export class FileTypeValidator extends FileValidator<
         return `${baseMessage} - magic number detection failed, used mimetype fallback`;
       }
 
+	logger.debug(`<<< Exiting buildErrorMessage(file=${file})`);
       return baseMessage;
     }
 
@@ -193,6 +196,8 @@ export class FileTypeValidator extends FileValidator<
     // A string is coerced into a RegExp by `String#match`, so MIME types holding
     // regex metacharacters (the `+` in `image/svg+xml`) never match themselves.
     if (typeof fileType === 'string' && mimetype === fileType) {
+	logger.debug(`>>> Entering matchesFileType(mimetype=${mimetype})`);
+	logger.debug(`<<< Exiting matchesFileType(mimetype=${mimetype})`);
       return true;
     }
     return !!mimetype.match(fileType);

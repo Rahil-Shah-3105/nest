@@ -57,6 +57,7 @@ export class NestApplicationContext<
   private initializationPromise?: Promise<void>;
 
   protected get instanceLinksHost() {
+	logger.debug('>>> Entering instanceLinksHost()');
     if (!this._instanceLinksHost) {
       this._instanceLinksHost = new InstanceLinksHost(this.container);
     }
@@ -70,17 +71,21 @@ export class NestApplicationContext<
     private readonly scope = new Array<Type<any>>(),
   ) {
     super();
+	logger.debug(`>>> Entering constructor(container=${container},appOptions=${appOptions},contextModule=${contextModule},scope=${scope})`);
     this.injector = new Injector();
     this.moduleCompiler = container.getModuleCompiler();
 
     if (this.appOptions.preview) {
       this.printInPreviewModeWarning();
+	logger.debug(`<<< Exiting constructor(container=${container},appOptions=${appOptions},contextModule=${contextModule},scope=${scope})`);
     }
   }
 
   public selectContextModule() {
+	logger.debug('>>> Entering selectContextModule()');
     const modules = this.container.getModules().values();
     this.contextModule = modules.next().value!;
+	logger.debug(`selectContextModule(): modules → ${modules}`);
   }
 
   /**
@@ -92,8 +97,10 @@ export class NestApplicationContext<
     selectOptions?: SelectOptions,
   ): INestApplicationContext {
     const modulesContainer = this.container.getModules();
+	logger.debug(`select(moduleType=${moduleType},selectOptions=${selectOptions}): modulesContainer → ${modulesContainer}`);
     const contextModuleCtor = this.contextModule!.metatype;
     const scope = this.scope.concat(contextModuleCtor);
+	logger.debug(`select(moduleType=${moduleType},selectOptions=${selectOptions}): scope → ${scope}`);
 
     const moduleTokenFactory = this.container.getModuleTokenFactory();
     const { type, dynamicMetadata } =
@@ -107,7 +114,9 @@ export class NestApplicationContext<
       : moduleTokenFactory.createForStatic(type, moduleType as Type);
 
     const selectedModule = modulesContainer.get(token);
+	logger.debug(`select(moduleType=${moduleType},selectOptions=${selectOptions}): selectedModule → ${selectedModule}`);
     if (!selectedModule) {
+	logger.debug(`>>> Entering select(moduleType=${moduleType},selectOptions=${selectOptions})`);
       throw new UnknownModuleException(type.name);
     }
 
@@ -119,6 +128,7 @@ export class NestApplicationContext<
           }
         : this.appOptions;
 
+	logger.debug(`<<< Exiting select(moduleType=${moduleType},selectOptions=${selectOptions})`);
     return new NestApplicationContext(
       this.container,
       options,
@@ -239,7 +249,9 @@ export class NestApplicationContext<
    * @returns {void}
    */
   public registerRequestByContextId<T = any>(request: T, contextId: ContextId) {
+	logger.debug(`>>> Entering registerRequestByContextId(request=${request},contextId=${contextId})`);
     this.container.registerRequestProvider(request, contextId);
+	logger.debug(`<<< Exiting registerRequestByContextId(request=${request},contextId=${contextId})`);
   }
 
   /**
@@ -250,6 +262,7 @@ export class NestApplicationContext<
    */
   public async init(): Promise<this> {
     if (this.isInitialized) {
+	logger.debug('>>> Entering init()');
       return this;
     }
     this.initializationPromise = this.callInitHook().then(() =>
@@ -258,6 +271,8 @@ export class NestApplicationContext<
     await this.initializationPromise;
 
     this.isInitialized = true;
+	logger.debug(`init(): this.isInitialized → ${this.isInitialized}`);
+	logger.debug('<<< Exiting init()');
     return this;
   }
 
@@ -266,6 +281,7 @@ export class NestApplicationContext<
    * @returns {Promise<void>}
    */
   public async close(signal?: string): Promise<void> {
+	logger.debug(`>>> Entering close(signal=${signal})`);
     await this.initializationPromise;
     await this.prepareClose();
     await this.callDestroyHook();
@@ -273,6 +289,7 @@ export class NestApplicationContext<
     await this.dispose();
     await this.callShutdownHook(signal);
     this.unsubscribeFromProcessSignals();
+	logger.debug(`<<< Exiting close(signal=${signal})`);
   }
 
   /**
@@ -281,10 +298,12 @@ export class NestApplicationContext<
    * @returns {void}
    */
   public useLogger(logger: LoggerService | LogLevel[] | false) {
+	logger.debug(`>>> Entering useLogger(logger=${logger})`);
     Logger.overrideLogger(logger);
 
     if (this.shouldFlushLogsOnOverride) {
       this.flushLogs();
+	logger.debug(`<<< Exiting useLogger(logger=${logger})`);
     }
   }
 
@@ -293,6 +312,7 @@ export class NestApplicationContext<
    * @returns {void}
    */
   public flushLogs() {
+	logger.debug('>>> Entering flushLogs()');
     Logger.flush();
   }
 
@@ -300,7 +320,9 @@ export class NestApplicationContext<
    * Define that it must flush logs right after defining a custom logger.
    */
   public flushLogsOnOverride() {
+	logger.debug('>>> Entering flushLogsOnOverride()');
     this.shouldFlushLogsOnOverride = true;
+	logger.debug(`flushLogsOnOverride(): this.shouldFlushLogsOnOverride → ${this.shouldFlushLogsOnOverride}`);
   }
 
   /**
@@ -332,18 +354,23 @@ export class NestApplicationContext<
       .toArray();
 
     this.listenToShutdownSignals(signals, options);
+	logger.debug(`<<< Exiting enableShutdownHooks(signals=${signals},options=${options})`);
     return this;
   }
 
   protected async prepareClose(): Promise<void> {
+	logger.debug('>>> Entering prepareClose()');
     // Nest application context has no server
     // to signal, therefore just call a noop
+	logger.debug('<<< Exiting prepareClose()');
     return Promise.resolve();
   }
 
   protected async dispose(): Promise<void> {
+	logger.debug('>>> Entering dispose()');
     // Nest application context has no server
     // to dispose, therefore just call a noop
+	logger.debug('<<< Exiting dispose()');
     return Promise.resolve();
   }
 
@@ -358,8 +385,11 @@ export class NestApplicationContext<
     signals: string[],
     options: ShutdownHooksOptions = {},
   ) {
+	logger.debug(`>>> Entering listenToShutdownSignals(signals=${signals},options=${options})`);
     let receivedSignal = false;
+	logger.debug(`listenToShutdownSignals(signals=${signals},options=${options}): receivedSignal → ${receivedSignal}`);
     const cleanup = async (signal: string) => {
+	logger.debug(`>>> Entering cleanup(signal=${signal})`);
       try {
         if (receivedSignal) {
           // If we receive another signal while we're waiting
@@ -389,6 +419,7 @@ export class NestApplicationContext<
           (err as Error)?.stack,
           NestApplicationContext.name,
         );
+	logger.debug(`<<< Exiting cleanup(signal=${signal})`);
         process.exit(1);
       }
     };
@@ -398,18 +429,21 @@ export class NestApplicationContext<
       this.activeShutdownSignals.push(signal);
       process.on(signal as any, cleanup);
     });
+	logger.debug(`<<< Exiting listenToShutdownSignals(signals=${signals},options=${options})`);
   }
 
   /**
    * Unsubscribes from shutdown signals (process events)
    */
   protected unsubscribeFromProcessSignals() {
+	logger.debug('>>> Entering unsubscribeFromProcessSignals()');
     if (!this.shutdownCleanupRef) {
       return;
     }
     this.activeShutdownSignals.forEach(signal => {
       process.removeListener(signal, this.shutdownCleanupRef!);
     });
+	logger.debug('<<< Exiting unsubscribeFromProcessSignals()');
   }
 
   /**
@@ -418,8 +452,11 @@ export class NestApplicationContext<
    */
   protected async callInitHook(): Promise<void> {
     const modulesSortedByDistance = this.getModulesToTriggerHooksOn();
+	logger.debug(`callInitHook(): modulesSortedByDistance → ${modulesSortedByDistance}`);
+	logger.debug('>>> Entering callInitHook()');
     for (const module of modulesSortedByDistance) {
       await callModuleInitHook(module);
+	logger.debug('<<< Exiting callInitHook()');
     }
   }
 
@@ -433,7 +470,9 @@ export class NestApplicationContext<
     ].reverse();
 
     for (const module of modulesSortedByDistance) {
+	logger.debug('>>> Entering callDestroyHook()');
       await callModuleDestroyHook(module);
+	logger.debug('<<< Exiting callDestroyHook()');
     }
   }
 
@@ -443,8 +482,11 @@ export class NestApplicationContext<
    */
   protected async callBootstrapHook(): Promise<void> {
     const modulesSortedByDistance = this.getModulesToTriggerHooksOn();
+	logger.debug(`callBootstrapHook(): modulesSortedByDistance → ${modulesSortedByDistance}`);
+	logger.debug('>>> Entering callBootstrapHook()');
     for (const module of modulesSortedByDistance) {
       await callModuleBootstrapHook(module);
+	logger.debug('<<< Exiting callBootstrapHook()');
     }
   }
 
@@ -458,7 +500,9 @@ export class NestApplicationContext<
     ].reverse();
 
     for (const module of modulesSortedByDistance) {
+	logger.debug(`>>> Entering callShutdownHook(signal=${signal})`);
       await callAppShutdownHook(module, signal);
+	logger.debug(`<<< Exiting callShutdownHook(signal=${signal})`);
     }
   }
 
@@ -472,38 +516,49 @@ export class NestApplicationContext<
     ].reverse();
 
     for (const module of modulesSortedByDistance) {
+	logger.debug(`>>> Entering callBeforeShutdownHook(signal=${signal})`);
       await callBeforeAppShutdownHook(module, signal);
+	logger.debug(`<<< Exiting callBeforeShutdownHook(signal=${signal})`);
     }
   }
 
   protected assertNotInPreviewMode(methodName: string) {
+	logger.debug(`>>> Entering assertNotInPreviewMode(methodName=${methodName})`);
     if (this.appOptions.preview) {
       const error = `Calling the "${methodName}" in the preview mode is not supported.`;
+	logger.debug(`assertNotInPreviewMode(methodName=${methodName}): error → ${error}`);
       this.logger.error(error);
+	logger.debug(`<<< Exiting assertNotInPreviewMode(methodName=${methodName})`);
       throw new Error(error);
     }
   }
 
   private getModulesToTriggerHooksOn(): Module[] {
     if (this._moduleRefsForHooksByDistance) {
+	logger.debug('>>> Entering getModulesToTriggerHooksOn()');
       return this._moduleRefsForHooksByDistance;
     }
     const modulesContainer = this.container.getModules();
+	logger.debug(`getModulesToTriggerHooksOn(): modulesContainer → ${modulesContainer}`);
     const compareFn = (a: Module, b: Module) => b.distance - a.distance;
     const modulesSortedByDistance = Array.from(modulesContainer.values()).sort(
       compareFn,
     );
 
+	logger.debug(`getModulesToTriggerHooksOn(): modulesSortedByDistance → ${modulesSortedByDistance}`);
     this._moduleRefsForHooksByDistance = this.appOptions?.preview
       ? modulesSortedByDistance.filter(moduleRef => moduleRef.initOnPreview)
       : modulesSortedByDistance;
+	logger.debug(`getModulesToTriggerHooksOn(): this._moduleRefsForHooksByDistance → ${this._moduleRefsForHooksByDistance}`);
     return this._moduleRefsForHooksByDistance;
   }
 
   private printInPreviewModeWarning() {
+	logger.debug('>>> Entering printInPreviewModeWarning()');
     this.logger.warn('------------------------------------------------');
     this.logger.warn('Application is running in the PREVIEW mode!');
     this.logger.warn('Providers/controllers will not be instantiated.');
     this.logger.warn('------------------------------------------------');
+	logger.debug('<<< Exiting printInPreviewModeWarning()');
   }
 }

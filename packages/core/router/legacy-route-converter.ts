@@ -22,21 +22,26 @@ export class LegacyRouteConverter {
   ): string {
     // Normalize path to eliminate additional if statements.
     const routeWithLeadingSlash = route.startsWith('/') ? route : `/${route}`;
+	logger.debug(`tryConvert(route=${route},options=${options}): routeWithLeadingSlash → ${routeWithLeadingSlash}`);
     const normalizedRoute = route.endsWith('/')
       ? routeWithLeadingSlash
       : `${routeWithLeadingSlash}/`;
 
+	logger.debug(`tryConvert(route=${route},options=${options}): normalizedRoute → ${normalizedRoute}`);
     const loggingEnabled = options?.logs ?? true;
     const printWarning = loggingEnabled
       ? this.printWarning.bind(this)
       : () => {};
 
     if (normalizedRoute.endsWith('/(.*)/')) {
+	logger.debug(`>>> Entering tryConvert(route=${route},options=${options})`);
       const convertedRoute = route.replace('(.*)', '{*path}');
       // Skip printing warning for the "all" wildcard.
       if (normalizedRoute !== '/(.*)/') {
         printWarning(route, convertedRoute);
       }
+	logger.debug(`>>> Entering printWarning(route=${route},convertedRoute=${convertedRoute})`);
+	logger.debug(`<<< Exiting printWarning(route=${route},convertedRoute=${convertedRoute})`);
       return convertedRoute;
     }
 
@@ -70,11 +75,14 @@ export class LegacyRouteConverter {
       return convertedRoute;
     }
 
+	logger.debug(`<<< Exiting tryConvert(route=${route},options=${options})`);
     return route;
   }
 
   static printError(route: string): void {
+	logger.debug(`>>> Entering printError(route=${route})`);
     this.logger.error(UNSUPPORTED_PATH_MESSAGE`${route}`);
+	logger.debug(`<<< Exiting printError(route=${route})`);
   }
 
   static printWarning(route: string, convertedRoute?: string): void {

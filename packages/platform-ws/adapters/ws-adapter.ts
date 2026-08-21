@@ -77,6 +77,7 @@ export class WsAdapter extends AbstractWsAdapter {
       path?: string;
     },
   ) {
+	logger.debug(`>>> Entering create(port=${port},options=${options})`);
     const { server, path, ...wsOptions } = options as {
       namespace?: string;
       server?: any;
@@ -87,6 +88,7 @@ export class WsAdapter extends AbstractWsAdapter {
         '"WsAdapter" does not support namespaces. If you need namespaces in your project, consider using the "@nestjs/platform-socket.io" package instead.',
       );
       this.logger.error(error);
+	logger.debug(`create(port=${port},options=${options}): error → ${error}`);
       throw error;
     }
 
@@ -100,6 +102,8 @@ export class WsAdapter extends AbstractWsAdapter {
       );
 
       this.addWsServerToRegistry(wsServer, port, path!);
+	logger.debug(`>>> Entering bindErrorHandler(server=${server})`);
+	logger.debug(`<<< Exiting bindErrorHandler(server=${server})`);
       return wsServer;
     }
 
@@ -111,6 +115,7 @@ export class WsAdapter extends AbstractWsAdapter {
       // sharing a single HTTP/S server running on different port
       // than a regular HTTP application
       const httpServer = this.ensureHttpServerExists(port);
+	logger.debug(`create(port=${port},options=${options}): httpServer → ${httpServer}`);
       httpServer?.listen(port);
 
       const wsServer = this.bindErrorHandler(
@@ -129,6 +134,7 @@ export class WsAdapter extends AbstractWsAdapter {
         ...wsOptions,
       }),
     );
+	logger.debug(`<<< Exiting create(port=${port},options=${options})`);
     return wsServer;
   }
 
@@ -137,8 +143,10 @@ export class WsAdapter extends AbstractWsAdapter {
     handlers: MessageMappingProperties[],
     transform: (data: any) => Observable<any>,
   ) {
+	logger.debug(`>>> Entering bindMessageHandlers(client=${client},handlers=${handlers},transform=${transform})`);
     const handlersMap = new Map<string, MessageMappingProperties>();
     handlers.forEach(handler => handlersMap.set(handler.message, handler));
+	logger.debug(`bindMessageHandlers(client=${client},handlers=${handlers},transform=${transform}): handlersMap → ${handlersMap}`);
 
     const close$ = fromEvent(client, CLOSE_EVENT).pipe(share(), first());
     const source$ = fromEvent(client, 'message').pipe(
@@ -150,12 +158,15 @@ export class WsAdapter extends AbstractWsAdapter {
       takeUntil(close$),
     );
     const onMessage = (response: any) => {
+	logger.debug(`>>> Entering onMessage(response=${response})`);
       if (client.readyState !== READY_STATE.OPEN_STATE) {
         return;
       }
       client.send(JSON.stringify(response));
+	logger.debug(`<<< Exiting onMessage(response=${response})`);
     };
     source$.subscribe(onMessage);
+	logger.debug(`<<< Exiting bindMessageHandlers(client=${client},handlers=${handlers},transform=${transform})`);
   }
 
   public bindMessageHandler(
@@ -165,10 +176,15 @@ export class WsAdapter extends AbstractWsAdapter {
   ): Observable<any> {
     try {
       const message = this.messageParser(buffer.data);
+	logger.debug(`bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform}): message → ${message}`);
       if (!message) {
+		logger.debug(`>>> Entering bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform})`);
+		logger.debug(`<<< Exiting bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform})`);
+		logger.error(`Exception in bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform}): (no error binding)`);
         return EMPTY;
       }
       const messageHandler = handlersMap.get(message.event)!;
+	logger.debug(`bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform}): messageHandler → ${messageHandler}`);
       const { callback } = messageHandler;
       return transform(callback(message.data, message.event));
     } catch {
@@ -185,14 +201,17 @@ export class WsAdapter extends AbstractWsAdapter {
   }
 
   public bindClientDisconnect(client: any, callback: Function) {
+	logger.debug(`>>> Entering bindClientDisconnect(client=${client},callback=${callback})`);
     if (typeof client.once === 'function') {
       client.once(CLOSE_EVENT, callback);
       return;
     }
     client.on(CLOSE_EVENT, callback);
+	logger.debug(`<<< Exiting bindClientDisconnect(client=${client},callback=${callback})`);
   }
 
   public async close(server: any) {
+	logger.debug(`>>> Entering close(server=${server})`);
     const closeEventSignal = new Promise((resolve, reject) =>
       server.close((err: Error) => (err ? reject(err) : resolve(undefined))),
     );
@@ -205,23 +224,29 @@ export class WsAdapter extends AbstractWsAdapter {
   }
 
   public async dispose() {
+	logger.debug('>>> Entering dispose()');
     const closeEventSignals = Array.from(this.httpServersRegistry)
       .filter(([port]) => port !== UNDERLYING_HTTP_SERVER_PORT)
       .map(([_, server]) => new Promise(resolve => server.close(resolve)));
 
+	logger.debug(`dispose(): closeEventSignals → ${closeEventSignals}`);
     await Promise.all(closeEventSignals);
     this.httpServersRegistry.clear();
     this.wsServersRegistry.clear();
+	logger.debug('<<< Exiting dispose()');
   }
 
   public setMessageParser(parser: WsMessageParser) {
+	logger.debug(`>>> Entering setMessageParser(parser=${parser})`);
     this.messageParser = parser;
+	logger.debug(`<<< Exiting setMessageParser(parser=${parser})`);
   }
 
   protected ensureHttpServerExists(
     port: number,
     httpServer = http.createServer(),
   ) {
+	logger.debug(`>>> Entering ensureHttpServerExists(port=${port},httpServer=${httpServer})`);
     if (this.httpServersRegistry.has(port)) {
       return;
     }
@@ -230,10 +255,14 @@ export class WsAdapter extends AbstractWsAdapter {
     httpServer.on('upgrade', (request, socket, head) => {
       try {
         const baseUrl = 'ws://' + request.headers.host + '/';
+		logger.debug(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): baseUrl → ${baseUrl}`);
         const pathname = new URL(request.url!, baseUrl).pathname;
+		logger.debug(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): pathname → ${pathname}`);
         const wsServersCollection = this.wsServersRegistry.get(port)!;
+		logger.debug(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): wsServersCollection → ${wsServersCollection}`);
 
         let isRequestDelegated = false;
+		logger.debug(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): isRequestDelegated → ${isRequestDelegated}`);
         for (const wsServer of wsServersCollection) {
           if (pathname === wsServer.path) {
             wsServer.handleUpgrade(request, socket, head, (ws: unknown) => {
@@ -247,9 +276,11 @@ export class WsAdapter extends AbstractWsAdapter {
           socket.destroy();
         }
       } catch (err) {
+		logger.error(`Exception in ensureHttpServerExists(port=${port},httpServer=${httpServer}): ${(err as Error).message}`, err);
         socket.end(`HTTP/1.1 400\r\n${err.message}`);
       }
     });
+	logger.debug(`<<< Exiting ensureHttpServerExists(port=${port},httpServer=${httpServer})`);
     return httpServer;
   }
 
@@ -258,10 +289,13 @@ export class WsAdapter extends AbstractWsAdapter {
     port: number,
     path: string,
   ) {
+	logger.debug(`>>> Entering addWsServerToRegistry(wsServer=${wsServer},port=${port},path=${path})`);
     const entries = this.wsServersRegistry.get(port) ?? [];
     entries.push(wsServer);
+	logger.debug(`addWsServerToRegistry(wsServer=${wsServer},port=${port},path=${path}): entries → ${entries}`);
 
     wsServer.path = normalizePath(path);
     this.wsServersRegistry.set(port, entries);
+	logger.debug(`<<< Exiting addWsServerToRegistry(wsServer=${wsServer},port=${port},path=${path})`);
   }
 }

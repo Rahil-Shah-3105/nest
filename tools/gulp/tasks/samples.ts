@@ -2,6 +2,7 @@ import { blue, magenta } from 'ansis';
 import log from 'fancy-log';
 import { task } from 'gulp';
 import * as childProcess from 'node:child_process';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { execFile as execFileCb } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,6 +56,7 @@ async function executeNpmScriptInSamples(
   };
 
   for await (const dir of directories) {
+	logger.debug(`>>> Entering await(directories=${directories})`);
     const sampleIdentifier = dir.match(/\d+/)?.[0];
     const minNodejsVersionForDir =
       sampleIdentifier && sampleIdentifier in minNodejsVersionBySampleNumber
@@ -72,15 +74,18 @@ async function executeNpmScriptInSamples(
 
     // Check if the sample is a multi-application sample
     const isSingleApplicationSample = containsPackageJson(dir);
+	logger.debug(`await(directories=${directories}): isSingleApplicationSample → ${isSingleApplicationSample}`);
     if (!isSingleApplicationSample) {
       // Application is a multi-application sample
       // Go down into the sub-directories
       const subDirs = getDirs(dir);
+	logger.debug(`await(directories=${directories}): subDirs → ${subDirs}`);
       for (const subDir of subDirs) {
         await executeNPMScriptInDirectory(subDir, script, appendScript);
       }
     } else {
       await executeNPMScriptInDirectory(dir, script, appendScript);
+	logger.debug(`<<< Exiting await(directories=${directories})`);
     }
   }
 }

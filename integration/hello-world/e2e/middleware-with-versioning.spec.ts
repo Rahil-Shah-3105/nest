@@ -13,6 +13,7 @@ import {
 import { CustomVersioningOptions } from '@nestjs/common/interfaces/index.js';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const RETURN_VALUE = 'test';
@@ -23,6 +24,8 @@ class TestController {
   @Version('1')
   @Get('versioned')
   versionedTest() {
+	logger.debug('>>> Entering versionedTest()');
+	logger.debug('<<< Exiting versionedTest()');
     return RETURN_VALUE;
   }
 }
@@ -33,6 +36,7 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
     consumer
       .apply((req, res, next) => res.send(VERSIONED_VALUE))
       .forRoutes({
@@ -40,6 +44,7 @@ class TestModule {
         version: '1',
         method: RequestMethod.ALL,
       });
+	logger.debug(`<<< Exiting configure(consumer=${consumer})`);
   }
 }
 

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
@@ -14,11 +15,14 @@ export class CatsController {
   @Post()
   @Roles(['admin'])
   async create(@Body() createCatDto: CreateCatDto) {
+	logger.debug(`>>> Entering create(createCatDto=${createCatDto})`);
     this.catsService.create(createCatDto);
+	logger.debug(`<<< Exiting create(createCatDto=${createCatDto})`);
   }
 
   @Get()
   async findAll(): Promise<Cat[]> {
+	logger.debug('>>> Entering findAll()');
     return this.catsService.findAll();
   }
 

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   CallHandler,
   ExecutionContext,
@@ -14,11 +15,15 @@ export class Interceptor implements NestInterceptor {
   static REQUEST_SCOPED_DATA = [] as number[];
 
   constructor(@Inject('REQUEST_ID') private readonly requestId: number) {
+	logger.debug(`>>> Entering constructor(requestId=${requestId})`);
     Interceptor.COUNTER++;
+	logger.debug(`<<< Exiting constructor(requestId=${requestId})`);
   }
 
   intercept(context: ExecutionContext, call: CallHandler): Observable<any> {
+	logger.debug(`>>> Entering intercept(context=${context},call=${call})`);
     Interceptor.REQUEST_SCOPED_DATA.push(this.requestId);
+	logger.debug(`<<< Exiting intercept(context=${context},call=${call})`);
     return call.handle();
   }
 }

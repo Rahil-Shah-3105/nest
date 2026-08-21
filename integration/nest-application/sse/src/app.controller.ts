@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Body,
   CallHandler,
@@ -29,6 +30,8 @@ class SseQueryDto {
 @Injectable()
 class PassthroughInterceptor implements NestInterceptor {
   intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
+	logger.debug(`>>> Entering intercept(_context=${_context},next=${next})`);
+	logger.debug(`<<< Exiting intercept(_context=${_context},next=${next})`);
     return next.handle();
   }
 }
@@ -64,6 +67,8 @@ export class AppController {
 
   @Sse('sse')
   sse(): Observable<MessageEvent> {
+	logger.debug('>>> Entering sse()');
+	logger.debug('<<< Exiting sse()');
     return interval(1000).pipe(
       map(() => ({ data: { hello: 'world' } }) as MessageEvent),
     );
@@ -71,6 +76,8 @@ export class AppController {
 
   @Sse('sse/validated')
   sseWithValidatedQuery(@Query() query: SseQueryDto): Observable<MessageEvent> {
+	logger.debug(`>>> Entering sseWithValidatedQuery(query=${query})`);
+	logger.debug(`<<< Exiting sseWithValidatedQuery(query=${query})`);
     return of({ data: { limit: query.limit } });
   }
 
@@ -80,7 +87,9 @@ export class AppController {
     @Query('size') size = '65536',
   ): Observable<MessageEvent> {
     const count = parseInt(n, 10);
+	logger.debug(`sseBurst(n=${n},size=${size}): count → ${count}`);
     const payload = 'X'.repeat(parseInt(size, 10));
+	logger.debug(`sseBurst(n=${n},size=${size}): payload → ${payload}`);
 
     return new Observable(subscriber => {
       for (let i = 0; i < count; i++) {
@@ -92,6 +101,8 @@ export class AppController {
 
   @Sse('sse/post', { method: RequestMethod.POST })
   ssePost(@Body() body: { content?: string }): Observable<MessageEvent> {
+	logger.debug(`>>> Entering ssePost(body=${body})`);
+	logger.debug(`<<< Exiting ssePost(body=${body})`);
     return of({ data: { content: body.content ?? 'default' } });
   }
 
@@ -118,13 +129,19 @@ export class AppController {
     const rawRequest = request.socket ?? request;
 
     let subscribed = false;
+	logger.debug(`createPromiseDelayedSse(request=${request}): subscribed → ${subscribed}`);
     let released = false;
+	logger.debug(`createPromiseDelayedSse(request=${request}): released → ${released}`);
     const releaseStream = () => {
+	logger.debug(`>>> Entering createPromiseDelayedSse(request=${request})`);
       if (released) {
         return;
       }
+	logger.debug('>>> Entering releaseStream()');
       released = true;
       this.promiseDelayedRunningStreams -= 1;
+	logger.debug(`releaseStream(): released → ${released}`);
+	logger.debug('<<< Exiting releaseStream()');
     };
 
     rawRequest.once('close', () => {
@@ -153,6 +170,7 @@ export class AppController {
               clearInterval(intervalId);
               this.promiseDelayedTeardownsObserved += 1;
               releaseStream();
+			logger.debug(`<<< Exiting createPromiseDelayedSse(request=${request})`);
             };
           }),
         ),
@@ -162,9 +180,11 @@ export class AppController {
 
   @Post('sse/promise-delayed/release')
   releaseSsePromiseDelayed() {
+	logger.debug('>>> Entering releaseSsePromiseDelayed()');
     const pendingResolvers = this.promiseDelayedResolvers.splice(0);
     pendingResolvers.forEach(resolve => resolve());
 
+	logger.debug('<<< Exiting releaseSsePromiseDelayed()');
     return {
       released: pendingResolvers.length,
     };
@@ -172,6 +192,8 @@ export class AppController {
 
   @Get('sse/promise-delayed/stats')
   getSsePromiseDelayedStats() {
+	logger.debug('>>> Entering getSsePromiseDelayedStats()');
+	logger.debug('<<< Exiting getSsePromiseDelayedStats()');
     return {
       closeEventsObserved: this.promiseDelayedCloseEventsObserved,
       requestsStarted: this.promiseDelayedRequestsStarted,
@@ -206,8 +228,11 @@ export class AppController {
     const rawRequest = request.socket ?? request;
 
     let subscribed = false;
+	logger.debug(`createInterceptorDelayedSse(request=${request}): subscribed → ${subscribed}`);
     let released = false;
+	logger.debug(`createInterceptorDelayedSse(request=${request}): released → ${released}`);
     const releaseStream = () => {
+	logger.debug(`>>> Entering createInterceptorDelayedSse(request=${request})`);
       if (released) {
         return;
       }
@@ -241,6 +266,7 @@ export class AppController {
               clearInterval(intervalId);
               this.interceptorDelayedTeardownsObserved += 1;
               releaseStream();
+			logger.debug(`<<< Exiting createInterceptorDelayedSse(request=${request})`);
             };
           }),
         ),
@@ -250,9 +276,11 @@ export class AppController {
 
   @Post('sse/interceptor/promise-delayed/release')
   releaseInterceptorDelayedSse() {
+	logger.debug('>>> Entering releaseInterceptorDelayedSse()');
     const pendingResolvers = this.interceptorDelayedResolvers.splice(0);
     pendingResolvers.forEach(resolve => resolve());
 
+	logger.debug('<<< Exiting releaseInterceptorDelayedSse()');
     return {
       released: pendingResolvers.length,
     };
@@ -260,6 +288,8 @@ export class AppController {
 
   @Get('sse/interceptor/promise-delayed/stats')
   getInterceptorDelayedSseStats() {
+	logger.debug('>>> Entering getInterceptorDelayedSseStats()');
+	logger.debug('<<< Exiting getInterceptorDelayedSseStats()');
     return {
       closeEventsObserved: this.interceptorDelayedCloseEventsObserved,
       requestsStarted: this.interceptorDelayedRequestsStarted,
@@ -284,6 +314,7 @@ export class AppController {
     await new Promise(resolve => setTimeout(resolve, 80));
 
     if (signal.aborted) {
+	logger.debug(`>>> Entering sseSignalPromiseDelayed(signal=${signal})`);
       // The client disconnected during setup: clean up the resource ourselves
       // because the producer Observable below will never be subscribed.
       resource.closed = true;
@@ -299,6 +330,7 @@ export class AppController {
       const onAbort = () => subscriber.complete();
       signal.addEventListener('abort', onAbort, { once: true });
 
+	logger.debug(`sseSignalPromiseDelayed(signal=${signal}): intervalId → ${intervalId}`);
       return () => {
         clearInterval(intervalId);
         signal.removeEventListener('abort', onAbort);
@@ -337,6 +369,8 @@ export class AppController {
 
   @Get('sse/signal/completing/stats')
   getSignalCompletingSseStats() {
+	logger.debug('>>> Entering getSignalCompletingSseStats()');
+	logger.debug('<<< Exiting getSignalCompletingSseStats()');
     return {
       abortsObserved: this.completingAbortsObserved,
       subscriptionsStarted: this.completingSubscriptionsStarted,
@@ -358,8 +392,11 @@ export class AppController {
       }, 50);
 
       const onAbort = () => {
+		logger.debug('>>> Entering onAbort()');
         this.streamingAbortsObserved += 1;
+		logger.debug(`sseSignalStreaming(signal=${signal}): intervalId → ${intervalId}`);
         subscriber.complete();
+		logger.debug('<<< Exiting onAbort()');
       };
       signal.addEventListener('abort', onAbort, { once: true });
 
@@ -373,6 +410,8 @@ export class AppController {
 
   @Get('sse/signal/streaming/stats')
   getSignalStreamingSseStats() {
+	logger.debug('>>> Entering getSignalStreamingSseStats()');
+	logger.debug('<<< Exiting getSignalStreamingSseStats()');
     return {
       abortsObserved: this.streamingAbortsObserved,
       subscriptionsStarted: this.streamingSubscriptionsStarted,
@@ -382,6 +421,8 @@ export class AppController {
 
   @Get('sse/signal/promise-delayed/stats')
   getSignalDelayedSseStats() {
+	logger.debug('>>> Entering getSignalDelayedSseStats()');
+	logger.debug('<<< Exiting getSignalDelayedSseStats()');
     return {
       requestsStarted: this.signalRequestsStarted,
       resourcesAllocated: this.signalResourcesAllocated,

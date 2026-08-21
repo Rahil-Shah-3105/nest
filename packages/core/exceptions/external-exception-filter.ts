@@ -8,9 +8,11 @@ export class ExternalExceptionFilter<T = any, R = any> {
       exception instanceof Error &&
       !(exception instanceof IntrinsicException)
     ) {
+	logger.debug(`>>> Entering catch(exception=${exception},host=${host})`);
       ExternalExceptionFilter.logger.error(exception);
     }
 
+	logger.debug(`<<< Exiting catch(exception=${exception},host=${host})`);
     throw exception;
   }
 }

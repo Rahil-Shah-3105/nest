@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, UseGuards, UseInterceptors } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { Guard } from './guards/request-scoped.guard.js';
@@ -19,6 +20,8 @@ export class HelloController {
   @UseInterceptors(Interceptor)
   @MessagePattern('test')
   greeting(): string {
+	logger.debug('>>> Entering greeting()');
+	logger.debug('<<< Exiting greeting()');
     return this.helloService.greeting();
   }
 }

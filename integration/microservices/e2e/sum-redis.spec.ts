@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { RedisController } from '../src/redis/redis.controller.js';
 
 describe('REDIS transport', () => {
@@ -50,6 +51,7 @@ describe('REDIS transport', () => {
   });
 
   it(`/POST (concurrent)`, function () {
+	logger.debug('>>> Entering function()');
     return request(server)
       .post('/concurrent')
       .send([

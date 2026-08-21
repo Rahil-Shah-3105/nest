@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { dest, src, task } from 'gulp';
 import { join } from 'node:path';
 import { samplePath } from '../config.js';
@@ -13,6 +14,8 @@ const distFiles = src([
  * Moves the compiled nest files into "node_module" folder.
  */
 function moveToNodeModules() {
+logger.debug('>>> Entering moveToNodeModules()');
+logger.debug('<<< Exiting moveToNodeModules()');
   return distFiles.pipe(dest('node_modules/@nestjs'));
 }
 
@@ -20,8 +23,10 @@ function moveToNodeModules() {
  * Moves the compiled nest files into the `samples/*` dirs.
  */
 function moveToSamples() {
+logger.debug('>>> Entering moveToSamples()');
   const samplesDirs = getDirs(samplePath);
 
+logger.debug(`moveToSamples(): samplesDirs → ${samplesDirs}`);
   /**
    * Flatten the sampleDirs
    * If a sample dir contains does not contain a package.json
@@ -37,6 +42,7 @@ function moveToSamples() {
     }
   }
 
+logger.debug('<<< Exiting moveToSamples()');
   return flattenedSampleDirs.reduce(
     (distFile, dir) => distFile.pipe(dest(join(dir, '/node_modules/@nestjs'))),
     distFiles,

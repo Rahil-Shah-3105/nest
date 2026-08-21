@@ -44,6 +44,7 @@ export class RouterResponseController {
     response: TResponse,
     redirectResponse: RedirectResponse,
   ) {
+	logger.debug(`>>> Entering redirect(resultOrDeferred=${resultOrDeferred},response=${response},redirectResponse=${redirectResponse})`);
     const result = await this.transformToResult(resultOrDeferred);
     const statusCode =
       result && result.statusCode
@@ -53,6 +54,7 @@ export class RouterResponseController {
           : HttpStatus.FOUND;
     const url = result && result.url ? result.url : redirectResponse.url;
     this.applicationRef.redirect(response, statusCode, url);
+	logger.debug(`<<< Exiting redirect(resultOrDeferred=${resultOrDeferred},response=${response},redirectResponse=${redirectResponse})`);
   }
 
   public async render<TInput = unknown, TResponse = unknown>(
@@ -60,22 +62,27 @@ export class RouterResponseController {
     response: TResponse,
     template: string,
   ) {
+	logger.debug(`>>> Entering render(resultOrDeferred=${resultOrDeferred},response=${response},template=${template})`);
     const result = await this.transformToResult(resultOrDeferred);
     return this.applicationRef.render(response, template, result);
   }
 
   public async transformToResult(resultOrDeferred: any) {
+	logger.debug(`>>> Entering transformToResult(resultOrDeferred=${resultOrDeferred})`);
     if (isObservable(resultOrDeferred)) {
+	logger.debug(`<<< Exiting transformToResult(resultOrDeferred=${resultOrDeferred})`);
       return lastValueFrom(resultOrDeferred);
     }
     return resultOrDeferred;
   }
 
   public getStatusByMethod(requestMethod: RequestMethod): number {
+	logger.debug(`>>> Entering getStatusByMethod(requestMethod=${requestMethod})`);
     switch (requestMethod) {
       case RequestMethod.POST:
         return HttpStatus.CREATED;
       default:
+		logger.debug(`<<< Exiting getStatusByMethod(requestMethod=${requestMethod})`);
         return HttpStatus.OK;
     }
   }
@@ -84,6 +91,7 @@ export class RouterResponseController {
     response: TResponse,
     headers: CustomHeader[],
   ) {
+	logger.debug(`>>> Entering setHeaders(response=${response},headers=${headers})`);
     headers.forEach(({ name, value }) =>
       this.applicationRef.setHeader(
         response,
@@ -91,6 +99,7 @@ export class RouterResponseController {
         typeof value === 'function' ? value() : value,
       ),
     );
+		logger.debug(`<<< Exiting setHeaders(response=${response},headers=${headers})`);
   }
 
   public setStatus<TResponse = unknown>(
@@ -149,17 +158,22 @@ export class RouterResponseController {
       // regardless of how the stream ended. `abort()` is idempotent, so paths
       // that already aborted on disconnect are unaffected.
       const finalize = () => {
+		logger.debug('>>> Entering finalize()');
         disconnectSource.removeListener('close', onClose);
         abortController.abort();
+		logger.debug('<<< Exiting finalize()');
       };
 
       const endStream = () => {
+		logger.debug('>>> Entering endStream()');
         if (!stream.writableEnded) {
           stream.end();
+		logger.debug('<<< Exiting endStream()');
         }
       };
 
       const onClose = () => {
+		logger.debug('>>> Entering onClose()');
         if (settled || closeRequested) {
           return;
         }
@@ -177,6 +191,7 @@ export class RouterResponseController {
         endStream();
         response.end();
         resolve();
+		logger.debug('<<< Exiting onClose()');
       };
 
       disconnectSource.once('close', onClose);
@@ -290,7 +305,9 @@ export class RouterResponseController {
   }
 
   private assertObservable(value: any) {
+	logger.debug(`>>> Entering assertObservable(value=${value})`);
     if (!isObservable(value)) {
+	logger.debug(`<<< Exiting assertObservable(value=${value})`);
       throw new ReferenceError(
         'You must return an Observable stream to use Server-Sent Events (SSE).',
       );
@@ -304,8 +321,10 @@ export class RouterResponseController {
       [SSE_ABORT_CONTROLLER]?: AbortController;
     };
     if (!carrier[SSE_ABORT_CONTROLLER]) {
+	logger.debug(`>>> Entering getOrCreateAbortController(request=${request})`);
       carrier[SSE_ABORT_CONTROLLER] = new AbortController();
     }
+	logger.debug(`<<< Exiting getOrCreateAbortController(request=${request})`);
     return carrier[SSE_ABORT_CONTROLLER];
   }
 }

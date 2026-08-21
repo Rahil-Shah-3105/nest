@@ -45,6 +45,7 @@ export class ClientGrpcProxy
 
   constructor(protected readonly options: Required<GrpcOptions>['options']) {
     super();
+	logger.debug('>>> Entering constructor()');
     this.url = this.getOptionsProp(options, 'url') || GRPC_DEFAULT_URL;
 
     const protoLoader =
@@ -61,31 +62,41 @@ export class ClientGrpcProxy
     );
 
     this.grpcClients = this.createClients();
+	logger.debug('<<< Exiting constructor()');
   }
 
   public getService<T extends object>(name: string): T {
     const grpcClient = this.getClientByServiceName(name);
+	logger.debug(`getService(name=${name}): grpcClient → ${grpcClient}`);
     const clientRef = this.getClient(name);
+	logger.debug(`getService(name=${name}): clientRef → ${clientRef}`);
     if (!clientRef) {
+	logger.debug(`>>> Entering getService(name=${name})`);
       throw new InvalidGrpcServiceException(name);
     }
 
     const protoMethods = Object.keys(clientRef[name].prototype);
+	logger.debug(`getService(name=${name}): protoMethods → ${protoMethods}`);
     const grpcService = {} as T;
 
     protoMethods.forEach(m => {
       grpcService[m] = this.createServiceMethod(grpcClient, m);
     });
+	logger.debug(`<<< Exiting getService(name=${name})`);
     return grpcService;
   }
 
   public getClientByServiceName<T = unknown>(name: string): T {
+	logger.debug(`>>> Entering getClientByServiceName(name=${name})`);
+	logger.debug(`<<< Exiting getClientByServiceName(name=${name})`);
     return this.clients.get(name) || this.createClientByServiceName(name);
   }
 
   public createClientByServiceName(name: string) {
+	logger.debug(`>>> Entering createClientByServiceName(name=${name})`);
     const clientRef = this.getClient(name);
     if (!clientRef) {
+	logger.debug(`createClientByServiceName(name=${name}): clientRef → ${clientRef}`);
       throw new InvalidGrpcServiceException(name);
     }
 
@@ -106,6 +117,7 @@ export class ClientGrpcProxy
     }
 
     const keepaliveOptions = this.getKeepaliveOptions();
+	logger.debug(`createClientByServiceName(name=${name}): keepaliveOptions → ${keepaliveOptions}`);
     const options: Record<string, string | number> = {
       ...channelOptions,
       ...keepaliveOptions,
@@ -115,11 +127,14 @@ export class ClientGrpcProxy
       this.options.credentials || grpcPackage.credentials.createInsecure();
 
     const grpcClient = new clientRef[name](this.url, credentials, options);
+	logger.debug(`createClientByServiceName(name=${name}): grpcClient → ${grpcClient}`);
     this.clients.set(name, grpcClient);
+	logger.debug(`<<< Exiting createClientByServiceName(name=${name})`);
     return grpcClient;
   }
 
   public getKeepaliveOptions() {
+	logger.debug('>>> Entering getKeepaliveOptions()');
     if (!isObject(this.options.keepalive)) {
       return {};
     }
@@ -142,11 +157,13 @@ export class ClientGrpcProxy
       this.options.keepalive,
     )) {
       const key = keepaliveKeys[optionKey];
+	logger.warn(`getKeepaliveOptions(): key → ${key}`);
       if (key === undefined) {
         continue;
       }
       keepaliveOptions[key] = optionValue;
     }
+	logger.debug('<<< Exiting getKeepaliveOptions()');
     return keepaliveOptions;
   }
 
@@ -154,9 +171,11 @@ export class ClientGrpcProxy
     client: any,
     methodName: string,
   ): (...args: unknown[]) => Observable<unknown> {
+	logger.debug(`>>> Entering createServiceMethod(client=${client},methodName=${methodName})`);
     return client[methodName].responseStream
       ? this.createStreamServiceMethod(client, methodName)
       : this.createUnaryServiceMethod(client, methodName);
+	logger.debug(`<<< Exiting createServiceMethod(client=${client},methodName=${methodName})`);
   }
 
   public createStreamServiceMethod(
@@ -164,6 +183,7 @@ export class ClientGrpcProxy
     methodName: string,
   ): (...args: any[]) => Observable<any> {
     return (...args: any[]) => {
+	logger.debug(`>>> Entering createStreamServiceMethod(client=${client},methodName=${methodName})`);
       const isRequestStream = client![methodName].requestStream;
       const stream = new Observable(observer => {
         let isClientCanceled = false;
@@ -181,6 +201,7 @@ export class ClientGrpcProxy
             : client![methodName](...args);
 
         if (isRequestStream && isUpstreamSubject) {
+		logger.debug(`createStreamServiceMethod(client=${client},methodName=${methodName}): stream → ${stream}`);
           upstreamSubscription = upstreamSubjectOrData.subscribe(
             (val: unknown) => call.write(val),
             (err: unknown) => call.emit('error', err),
@@ -216,8 +237,11 @@ export class ClientGrpcProxy
           }
           isClientCanceled = true;
           call.cancel();
+		logger.debug(`<<< Exiting createStreamServiceMethod(client=${client},methodName=${methodName})`);
         };
       });
+	logger.debug(`>>> Entering on(event=${event},callback=${callback})`);
+	logger.debug(`<<< Exiting on(event=${event},callback=${callback})`);
       return stream;
     };
   }
@@ -227,6 +251,7 @@ export class ClientGrpcProxy
     methodName: string,
   ): (...args: any[]) => Observable<any> {
     return (...args: any[]) => {
+	logger.debug(`>>> Entering createUnaryServiceMethod(client=${client},methodName=${methodName})`);
       const isRequestStream = client[methodName].requestStream;
       const upstreamSubjectOrData = args[0];
       const isUpstreamSubject =
@@ -284,6 +309,7 @@ export class ClientGrpcProxy
         return () => {
           if (!call.finished) {
             call.cancel();
+			logger.debug(`<<< Exiting createUnaryServiceMethod(client=${client},methodName=${methodName})`);
           }
         };
       });
@@ -292,15 +318,20 @@ export class ClientGrpcProxy
 
   public createClients(): any[] {
     const grpcContext = this.loadProto();
+	logger.debug(`createClients(): grpcContext → ${grpcContext}`);
     const packageOption = this.getOptionsProp(this.options, 'package');
+	logger.debug(`createClients(): packageOption → ${packageOption}`);
     const grpcPackages: any[] = [];
     const packageNames = Array.isArray(packageOption)
       ? packageOption
       : [packageOption];
 
+	logger.debug(`createClients(): packageNames → ${packageNames}`);
+	logger.debug('>>> Entering createClients()');
     for (const packageName of packageNames) {
       const grpcPkg = this.lookupPackage(grpcContext, packageName);
 
+	logger.debug(`createClients(): grpcPkg → ${grpcPkg}`);
       if (!grpcPkg) {
         const invalidPackageError = new InvalidGrpcPackageException(
           packageName,
@@ -309,10 +340,12 @@ export class ClientGrpcProxy
           invalidPackageError.message,
           invalidPackageError.stack,
         );
+		logger.debug(`createClients(): invalidPackageError → ${invalidPackageError}`);
         throw invalidPackageError;
       }
       grpcPackages.push(grpcPkg);
     }
+	logger.debug('<<< Exiting createClients()');
     return grpcPackages;
   }
 
@@ -322,6 +355,8 @@ export class ClientGrpcProxy
         this.options,
         grpcProtoLoaderPackage,
       );
+	logger.debug('>>> Entering loadProto()');
+	logger.debug('<<< Exiting loadProto()');
       return grpcPackage.loadPackageDefinition(packageDefinition);
     } catch (err) {
       const invalidProtoError = new InvalidProtoDefinitionException(err.path);
@@ -334,8 +369,10 @@ export class ClientGrpcProxy
   }
 
   public lookupPackage(root: any, packageName: string) {
+	logger.debug(`>>> Entering lookupPackage(root=${root},packageName=${packageName})`);
     /** Reference: https://github.com/kondi/rxjs-grpc */
     let pkg = root;
+	logger.debug(`lookupPackage(root=${root},packageName=${packageName}): pkg → ${pkg}`);
 
     if (packageName) {
       for (const name of packageName.split('.')) {
@@ -343,10 +380,12 @@ export class ClientGrpcProxy
       }
     }
 
+	logger.debug(`<<< Exiting lookupPackage(root=${root},packageName=${packageName})`);
     return pkg;
   }
 
   public close() {
+	logger.debug('>>> Entering close()');
     this.clients.forEach(client => {
       if (client && isFunction(client.close)) {
         client.close();
@@ -354,9 +393,12 @@ export class ClientGrpcProxy
     });
     this.clients.clear();
     this.grpcClients = [];
+	logger.debug(`close(): this.grpcClients → ${this.grpcClients}`);
   }
 
   public async connect(): Promise<any> {
+	logger.debug('>>> Entering connect()');
+	logger.debug('<<< Exiting connect()');
     throw new Error('The "connect()" method is not supported in gRPC mode.');
   }
 
@@ -364,12 +406,16 @@ export class ClientGrpcProxy
     pattern: any,
     data: TInput,
   ): Observable<TResult> {
+	logger.debug(`>>> Entering send(pattern=${pattern},data=${data})`);
+	logger.debug(`<<< Exiting send(pattern=${pattern},data=${data})`);
     throw new Error(
       'Method is not supported in gRPC mode. Use ClientGrpc instead (learn more in the documentation).',
     );
   }
 
   protected getClient(name: string): any {
+	logger.debug(`>>> Entering getClient(name=${name})`);
+	logger.debug(`<<< Exiting getClient(name=${name})`);
     return this.grpcClients.find(client =>
       Object.hasOwnProperty.call(client, name),
     );
@@ -382,6 +428,8 @@ export class ClientGrpcProxy
   }
 
   protected async dispatchEvent(packet: any): Promise<any> {
+	logger.debug(`>>> Entering dispatchEvent(packet=${packet})`);
+	logger.debug(`<<< Exiting dispatchEvent(packet=${packet})`);
     throw new Error(
       'Method is not supported in gRPC mode. Use ClientGrpc instead (learn more in the documentation).',
     );
@@ -395,6 +443,8 @@ export class ClientGrpcProxy
   }
 
   public unwrap<T>(): T {
+	logger.debug('>>> Entering unwrap()');
+	logger.debug('<<< Exiting unwrap()');
     throw new Error('Method is not supported in gRPC mode.');
   }
 }

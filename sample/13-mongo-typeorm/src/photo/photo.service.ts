@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MongoRepository } from 'typeorm';
@@ -11,6 +12,8 @@ export class PhotoService {
   ) {}
 
   async findAll(): Promise<Photo[]> {
+	logger.debug('>>> Entering findAll()');
+	logger.debug('<<< Exiting findAll()');
     return this.photoRepository.find();
   }
 }

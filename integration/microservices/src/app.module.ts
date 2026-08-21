@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Module, Injectable } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 import {
@@ -11,6 +12,8 @@ import {
 
 class ErrorHandlingProxy extends ClientTCP {
   serializeError(err) {
+	logger.debug(`>>> Entering serializeError(err=${err})`);
+	logger.debug(`<<< Exiting serializeError(err=${err})`);
     return new RpcException(err);
   }
 }
@@ -21,6 +24,8 @@ class ConfigService {
     transport: Transport.TCP,
   };
   get(key: string) {
+	logger.debug(`>>> Entering get(key=${key})`);
+	logger.debug(`<<< Exiting get(key=${key})`);
     return this.config[key];
   }
 }
@@ -35,6 +40,8 @@ class ConfigModule {}
 class ClientOptionService implements ClientsModuleOptionsFactory {
   constructor(private readonly configService: ConfigService) {}
   createClientOptions(): Promise<ClientOptions> | ClientOptions {
+	logger.debug('>>> Entering createClientOptions()');
+	logger.debug('<<< Exiting createClientOptions()');
     return {
       transport: this.configService.get('transport'),
       options: {},
