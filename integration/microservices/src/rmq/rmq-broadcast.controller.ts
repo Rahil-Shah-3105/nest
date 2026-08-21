@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get } from '@nestjs/common';
 import {
   ClientProxy,
@@ -13,6 +14,7 @@ export class RMQBroadcastController {
   client: ClientProxy;
 
   constructor() {
+	logger.debug('>>> Entering constructor()');
     this.client = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
@@ -22,10 +24,13 @@ export class RMQBroadcastController {
         socketOptions: { noDelay: true },
       },
     });
+	logger.debug('<<< Exiting constructor()');
   }
 
   @Get('broadcast')
   multicats() {
+	logger.debug('>>> Entering multicats()');
+	logger.debug('<<< Exiting multicats()');
     return this.client.send<number>({ cmd: 'broadcast' }, {}).pipe(
       scan((a, b) => a + b),
       take(2),
@@ -34,6 +39,8 @@ export class RMQBroadcastController {
 
   @MessagePattern({ cmd: 'broadcast' })
   replyBroadcast(): Observable<number> {
+	logger.debug('>>> Entering replyBroadcast()');
+	logger.debug('<<< Exiting replyBroadcast()');
     return new Observable(observer => observer.next(1));
   }
 }

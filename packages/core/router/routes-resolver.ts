@@ -52,6 +52,7 @@ export class RoutesResolver implements Resolver {
       httpAdapterRef,
     );
     this.routePathFactory = new RoutePathFactory(this.applicationConfig);
+	logger.debug(`constructor(container=${container},applicationConfig=${applicationConfig},injector=${injector},graphInspector=${graphInspector}): httpAdapterRef → ${httpAdapterRef}`);
 
     const metadataScanner = new MetadataScanner();
     this.routerExplorer = new RouterExplorer(
@@ -89,7 +90,9 @@ export class RoutesResolver implements Resolver {
     applicationRef: T,
     route: ResolvedRoute,
   ): void {
+	logger.debug(`>>> Entering registerResolvedRoute(applicationRef=${applicationRef},route=${route})`);
     this.routerExplorer.registerResolvedRoute(applicationRef, route);
+	logger.debug(`<<< Exiting registerResolvedRoute(applicationRef=${applicationRef},route=${route})`);
   }
 
   public registerRouters(
@@ -150,23 +153,32 @@ export class RoutesResolver implements Resolver {
         );
       });
     });
+	logger.debug(`<<< Exiting registerRouters(routes=${routes},moduleName=${moduleName},globalPrefix=${globalPrefix},modulePath=${modulePath},applicationRef=${applicationRef},options=${options})`);
   }
 
   public registerNotFoundHandler() {
+	logger.debug('>>> Entering registerNotFoundHandler()');
     const applicationRef = this.container.getHttpAdapterRef();
     const callback = <TRequest, TResponse>(req: TRequest, res: TResponse) => {
+	logger.debug(`registerNotFoundHandler(): applicationRef → ${applicationRef}`);
       const method = applicationRef.getRequestMethod(req);
+	logger.debug(`registerNotFoundHandler(): method → ${method}`);
       const url = applicationRef.getRequestUrl(req);
+	logger.debug(`registerNotFoundHandler(): url → ${url}`);
       throw new NotFoundException(`Cannot ${method} ${url}`);
     };
     const handler = this.routerExceptionsFilter.create({}, callback, undefined);
+	logger.debug(`registerNotFoundHandler(): callback → ${callback}`);
+	logger.debug(`registerNotFoundHandler(): handler → ${handler}`);
     const proxy = this.routerProxy.createProxy(callback, handler);
     const prefix = this.applicationConfig.getGlobalPrefix();
     applicationRef.setNotFoundHandler &&
       applicationRef.setNotFoundHandler(proxy, prefix);
+	logger.debug(`registerNotFoundHandler(): proxy → ${proxy}`);
   }
 
   public registerExceptionHandler() {
+	logger.debug('>>> Entering registerExceptionHandler()');
     const callback = <TError, TRequest, TResponse>(
       err: TError,
       req: TRequest,
@@ -181,24 +193,30 @@ export class RoutesResolver implements Resolver {
       undefined,
     );
     const proxy = this.routerProxy.createExceptionLayerProxy(callback, handler);
+	logger.debug(`registerExceptionHandler(): proxy → ${proxy}`);
     const applicationRef = this.container.getHttpAdapterRef();
     const prefix = this.applicationConfig.getGlobalPrefix();
     applicationRef.setErrorHandler &&
       applicationRef.setErrorHandler(proxy, prefix);
+	logger.debug(`registerExceptionHandler(): applicationRef → ${applicationRef}`);
   }
 
   private getModulePathMetadata(metatype: Type<unknown>): string | undefined {
+	logger.debug(`>>> Entering getModulePathMetadata(metatype=${metatype})`);
     const modulesContainer = this.container.getModules();
     const modulePath = Reflect.getMetadata(
       MODULE_PATH + modulesContainer.applicationId,
       metatype,
     );
+	logger.debug(`getModulePathMetadata(metatype=${metatype}): modulesContainer → ${modulesContainer}`);
     return modulePath ?? Reflect.getMetadata(MODULE_PATH, metatype);
   }
 
   private getHostMetadata(
     metatype: Type<unknown> | Function,
   ): string | string[] | undefined {
+	logger.debug(`>>> Entering getHostMetadata(metatype=${metatype})`);
+	logger.debug(`<<< Exiting getHostMetadata(metatype=${metatype})`);
     return Reflect.getMetadata(HOST_METADATA, metatype);
   }
 
@@ -206,7 +224,10 @@ export class RoutesResolver implements Resolver {
     metatype: Type<unknown> | Function,
   ): VersionValue | undefined {
     const versioningConfig = this.applicationConfig.getVersioning();
+	logger.debug(`getVersionMetadata(metatype=${metatype}): versioningConfig → ${versioningConfig}`);
     if (versioningConfig) {
+	logger.debug(`>>> Entering getVersionMetadata(metatype=${metatype})`);
+	logger.debug(`<<< Exiting getVersionMetadata(metatype=${metatype})`);
       return (
         Reflect.getMetadata(VERSION_METADATA, metatype) ??
         versioningConfig.defaultVersion

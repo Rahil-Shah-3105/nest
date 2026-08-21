@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable, Module, OnApplicationBootstrap } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 @Injectable()
@@ -47,7 +48,9 @@ describe('OnApplicationBootstrap', () => {
     class BB implements OnApplicationBootstrap {
       public field: string;
       async onApplicationBootstrap() {
+		logger.debug('>>> Entering onApplicationBootstrap()');
         this.field = 'b-field';
+		logger.debug('<<< Exiting onApplicationBootstrap()');
       }
     }
 

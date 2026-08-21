@@ -8,19 +8,24 @@ import { KafkaConcurrentController } from '../src/kafka-concurrent/kafka-concurr
 import { KafkaConcurrentMessagesController } from '../src/kafka-concurrent/kafka-concurrent.messages.controller.js';
 
 describe.skip('Kafka concurrent', function () {
+logger.debug('>>> Entering skip()');
   const numbersOfServers = 3;
 
   const requestTopic = 'math.sum.sync.number.wait';
+logger.debug(`skip(): requestTopic → ${requestTopic}`);
   const responseTopic = 'math.sum.sync.number.wait.reply';
+logger.debug(`skip(): responseTopic → ${responseTopic}`);
 
   let admin: Admin;
   const servers: any[] = [];
   const apps: INestApplication[] = [];
 
   const logger = new Logger('concurrent-kafka.spec.ts');
+logger.debug(`skip(): logger → ${logger}`);
 
   // set timeout to be longer (especially for the after hook)
   const startServer = async () => {
+	logger.debug('>>> Entering startServer()');
     const module = await Test.createTestingModule({
       controllers: [
         KafkaConcurrentController,
@@ -32,6 +37,7 @@ describe.skip('Kafka concurrent', function () {
     // Logger.overrideLogger(new Logger());
 
     const app = module.createNestApplication();
+	logger.debug(`startServer(): app → ${app}`);
 
     const server = app.getHttpAdapter().getInstance();
 
@@ -47,6 +53,7 @@ describe.skip('Kafka concurrent', function () {
       },
     });
 
+	logger.debug(`startServer(): server → ${server}`);
     // enable these for clean shutdown
     app.enableShutdownHooks();
 
@@ -57,6 +64,7 @@ describe.skip('Kafka concurrent', function () {
     // await the start
     await app.startAllMicroservices();
     await app.init();
+	logger.debug('<<< Exiting startServer()');
   };
 
   it(`Create kafka topics/partitions`, async () => {
@@ -77,6 +85,7 @@ describe.skip('Kafka concurrent', function () {
         topics: [requestTopic, responseTopic],
       });
     } catch (e) {
+	logger.error('Exception in skip():', (e as Error).message, e);
       // create with number of servers
       try {
         await admin.createTopics({
@@ -279,6 +288,7 @@ describe.skip('Kafka concurrent', function () {
   });
 
   afterAll(async () => {
+	logger.debug('<<< Exiting skip()');
     // close all concurrently
     return Promise.all(
       apps.map(async app => {

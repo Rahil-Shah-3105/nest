@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   Get,
@@ -18,6 +19,8 @@ describe('Middleware before init (FastifyAdapter)', () => {
   @Injectable()
   class TestService {
     getData(): string {
+	logger.debug('>>> Entering getData()');
+	logger.debug('<<< Exiting getData()');
       return 'test_data';
     }
   }
@@ -28,11 +31,15 @@ describe('Middleware before init (FastifyAdapter)', () => {
 
     @Get('test')
     test() {
+	logger.debug('>>> Entering test()');
+	logger.debug('<<< Exiting test()');
       return { data: this.testService.getData() };
     }
 
     @Get('health')
     health() {
+	logger.debug('>>> Entering health()');
+	logger.debug('<<< Exiting health()');
       return { status: 'ok' };
     }
   }
@@ -43,12 +50,14 @@ describe('Middleware before init (FastifyAdapter)', () => {
   })
   class TestModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
       consumer
         .apply((req, res, next) => {
           res.setHeader('x-middleware', 'applied');
           next();
         })
         .forRoutes('*');
+		logger.debug(`<<< Exiting configure(consumer=${consumer})`);
     }
   }
 

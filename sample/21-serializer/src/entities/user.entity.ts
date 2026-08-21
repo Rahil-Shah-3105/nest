@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { RoleEntity } from './role.entity.js';
 
@@ -18,6 +19,8 @@ export class UserEntity {
   role: RoleEntity;
 
   constructor(partial: Partial<UserEntity>) {
+	logger.debug(`>>> Entering constructor(partial=${partial})`);
     Object.assign(this, partial);
+	logger.debug(`<<< Exiting constructor(partial=${partial})`);
   }
 }

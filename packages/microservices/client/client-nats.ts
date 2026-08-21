@@ -46,6 +46,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
 
   constructor(protected readonly options: Required<NatsOptions>['options']) {
     super();
+	logger.debug('>>> Entering constructor()');
     natsPackage = loadPackageSync(
       '@nats-io/transport-node',
       ClientNats.name,
@@ -54,18 +55,22 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+	logger.debug('<<< Exiting constructor()');
   }
 
   public async close() {
+	logger.debug('>>> Entering close()');
     await this.natsClient?.close();
     this.statusEventEmitter.removeAllListeners();
 
     this.natsClient = null;
     this.connectionPromise = null;
+	logger.debug(`close(): this.connectionPromise → ${this.connectionPromise}`);
   }
 
   public async connect(): Promise<any> {
     if (this.connectionPromise) {
+	logger.debug('>>> Entering connect()');
       return this.connectionPromise;
     }
     this.connectionPromise = this.createClient();
@@ -73,9 +78,12 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
       this.connectionPromise = null;
       throw err;
     });
+	logger.error('Exception in connect()');
+	logger.debug(`connect(): this.connectionPromise → ${this.connectionPromise}`);
 
     this._status$.next(NatsStatus.CONNECTED);
     void this.handleStatusUpdates(this.natsClient);
+	logger.debug('<<< Exiting connect()');
     return this.natsClient;
   }
 
@@ -85,6 +93,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
       this.serializer &&
       typeof (this.serializer as any).init === 'function'
     ) {
+	logger.debug('>>> Entering createClient()');
       await (this.serializer as any).init();
     }
     if (
@@ -95,6 +104,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
     }
 
     const options = this.options || ({} as NatsOptions);
+	logger.debug('<<< Exiting createClient()');
     return natsPackage.connect({
       servers: NATS_DEFAULT_URL,
       ...options,
@@ -102,6 +112,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
   }
 
   public async handleStatusUpdates(client: Client) {
+	logger.debug(`>>> Entering handleStatusUpdates(client=${client})`);
     for await (const status of client.status()) {
       switch (status.type) {
         case 'error':
@@ -160,6 +171,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
           break;
 
         default: {
+		logger.debug(`<<< Exiting handleStatusUpdates(client=${client})`);
           const data =
             'data' in status && isObject(status.data)
               ? JSON.stringify(status.data)
@@ -179,11 +191,15 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
     EventKey extends keyof NatsEvents = keyof NatsEvents,
     EventCallback extends NatsEvents[EventKey] = NatsEvents[EventKey],
   >(event: EventKey, callback: EventCallback) {
+	logger.debug(`>>> Entering on(event=${event},callback=${callback})`);
     this.statusEventEmitter.on(event as string | symbol, callback as any);
+	logger.debug(`<<< Exiting on(event=${event},callback=${callback})`);
   }
 
   public unwrap<T>(): T {
     if (!this.natsClient) {
+	logger.debug('>>> Entering unwrap()');
+	logger.debug('<<< Exiting unwrap()');
       throw new Error(
         'Not initialized. Please call the "connect" method first.',
       );
@@ -227,6 +243,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
         response,
       });
     };
+	logger.debug(`<<< Exiting createSubscriptionHandler(packet=${packet},callback=${callback})`);
   }
 
   protected publish(
@@ -235,10 +252,12 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
   ): () => void {
     try {
       const packet = this.assignPacketId(partialPacket);
+	logger.debug(`publish(partialPacket=${partialPacket},callback=${callback}): packet → ${packet}`);
       const channel = this.normalizePattern(partialPacket.pattern);
       const serializedPacket: NatsRecord = this.serializer.serialize(
         packet,
       ) as NatsRecord;
+	logger.debug(`publish(partialPacket=${partialPacket},callback=${callback}): channel → ${channel}`);
       const inbox = natsPackage.createInbox(this.options.inboxPrefix);
 
       const subscriptionHandler = this.createSubscriptionHandler(
@@ -253,12 +272,15 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
         ) => Promise<never>,
       });
 
+	logger.debug(`publish(partialPacket=${partialPacket},callback=${callback}): inbox → ${inbox}`);
       const headers = this.mergeHeaders(serializedPacket.headers);
       this.natsClient!.publish(channel, serializedPacket.data, {
         reply: inbox,
         headers,
       });
 
+	logger.debug(`>>> Entering publish(partialPacket=${partialPacket},callback=${callback})`);
+	logger.debug(`<<< Exiting publish(partialPacket=${partialPacket},callback=${callback})`);
       return () => subscription.unsubscribe();
     } catch (err) {
       callback({ err });
@@ -268,37 +290,48 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
 
   protected async dispatchEvent(packet: ReadPacket): Promise<any> {
     const pattern = this.normalizePattern(packet.pattern);
+	logger.debug(`dispatchEvent(packet=${packet}): pattern → ${pattern}`);
     const serializedPacket: NatsRecord =
       await this.serializer.serialize(packet);
     const headers = this.mergeHeaders(serializedPacket.headers);
+	logger.debug(`dispatchEvent(packet=${packet}): headers → ${headers}`);
 
     return new Promise<void>((resolve, reject) => {
+	logger.debug(`>>> Entering dispatchEvent(packet=${packet})`);
       try {
+		logger.debug(`<<< Exiting dispatchEvent(packet=${packet})`);
         this.natsClient!.publish(pattern, serializedPacket.data, {
           headers,
         });
         resolve();
       } catch (err) {
+		logger.error(`Exception in dispatchEvent(packet=${packet}): ${(err as Error).message}`, err);
         reject(err);
       }
     });
   }
 
   protected initializeSerializer(options: NatsOptions['options']) {
+	logger.debug(`>>> Entering initializeSerializer(options=${options})`);
     this.serializer = options?.serializer ?? new NatsRecordSerializer();
+	logger.debug(`<<< Exiting initializeSerializer(options=${options})`);
   }
 
   protected initializeDeserializer(options: NatsOptions['options']) {
+	logger.debug(`>>> Entering initializeDeserializer(options=${options})`);
     this.deserializer =
       options?.deserializer ?? new NatsResponseJSONDeserializer();
+	logger.debug(`<<< Exiting initializeDeserializer(options=${options})`);
   }
 
   protected mergeHeaders<THeaders = any>(requestHeaders?: THeaders) {
+	logger.debug(`>>> Entering mergeHeaders(requestHeaders=${requestHeaders})`);
     if (!requestHeaders && !this.options?.headers) {
       return undefined;
     }
 
     const headers = requestHeaders ?? natsPackage.headers();
+	logger.debug(`mergeHeaders(requestHeaders=${requestHeaders}): headers → ${headers}`);
 
     for (const [key, value] of Object.entries(this.options?.headers || {})) {
       if (!headers.has(key)) {
@@ -306,6 +339,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
       }
     }
 
+	logger.debug(`<<< Exiting mergeHeaders(requestHeaders=${requestHeaders})`);
     return headers;
   }
 }

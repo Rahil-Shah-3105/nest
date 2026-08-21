@@ -126,11 +126,14 @@ export class RouterExplorer {
 
   public extractRouterPath(metatype: Type<Controller>): string[] {
     const path = Reflect.getMetadata(PATH_METADATA, metatype);
+	logger.debug(`extractRouterPath(metatype=${metatype}): path → ${path}`);
 
     if (isUndefined(path)) {
+	logger.debug(`>>> Entering extractRouterPath(metatype=${metatype})`);
       throw new UnknownRequestMappingException(metatype);
     }
     if (Array.isArray(path)) {
+	logger.debug(`<<< Exiting extractRouterPath(metatype=${metatype})`);
       return path.map(p => addLeadingSlash(p));
     }
     return [addLeadingSlash(path)];

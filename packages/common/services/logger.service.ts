@@ -100,6 +100,7 @@ export class Logger implements LoggerService {
   ) => {
     const originalFn = descriptor.value;
     descriptor.value = function (...args: unknown[]) {
+	DEFAULT_LOGGER.debug(`>>> Entering function(args=${args})`);
       if (Logger.isBufferAttached) {
         Logger.logBuffer.push({
           methodRef: originalFn.bind(this),
@@ -107,6 +108,7 @@ export class Logger implements LoggerService {
         });
         return;
       }
+	DEFAULT_LOGGER.debug(`<<< Exiting function(args=${args})`);
       return originalFn.call(this, ...args);
     };
   };
@@ -138,6 +140,7 @@ export class Logger implements LoggerService {
   error(message: any, ...optionalParams: [...any, string?, string?]): void;
   @Logger.WrapBuffer
   error(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.debug(`>>> Entering error(message=${message},optionalParams=${optionalParams})`);
     optionalParams = this.context
       ? (optionalParams.length ? optionalParams : [undefined]).concat(
           this.context,
@@ -145,6 +148,7 @@ export class Logger implements LoggerService {
       : optionalParams;
 
     this.localInstance?.error(message, ...optionalParams);
+	DEFAULT_LOGGER.debug(`<<< Exiting error(message=${message},optionalParams=${optionalParams})`);
   }
 
   /**
@@ -154,10 +158,12 @@ export class Logger implements LoggerService {
   log(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   log(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.debug(`>>> Entering log(message=${message},optionalParams=${optionalParams})`);
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.log(message, ...optionalParams);
+	DEFAULT_LOGGER.debug(`<<< Exiting log(message=${message},optionalParams=${optionalParams})`);
   }
 
   /**
@@ -167,10 +173,12 @@ export class Logger implements LoggerService {
   warn(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   warn(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.debug(`>>> Entering warn(message=${message},optionalParams=${optionalParams})`);
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.warn(message, ...optionalParams);
+	DEFAULT_LOGGER.debug(`<<< Exiting warn(message=${message},optionalParams=${optionalParams})`);
   }
 
   /**
@@ -180,10 +188,12 @@ export class Logger implements LoggerService {
   debug(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   debug(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.debug(`>>> Entering debug(message=${message},optionalParams=${optionalParams})`);
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.debug?.(message, ...optionalParams);
+	DEFAULT_LOGGER.debug(`<<< Exiting debug(message=${message},optionalParams=${optionalParams})`);
   }
 
   /**
@@ -193,10 +203,12 @@ export class Logger implements LoggerService {
   verbose(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   verbose(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.debug(`>>> Entering verbose(message=${message},optionalParams=${optionalParams})`);
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.verbose?.(message, ...optionalParams);
+	DEFAULT_LOGGER.debug(`<<< Exiting verbose(message=${message},optionalParams=${optionalParams})`);
   }
 
   /**
@@ -206,10 +218,12 @@ export class Logger implements LoggerService {
   fatal(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   fatal(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.debug(`>>> Entering fatal(message=${message},optionalParams=${optionalParams})`);
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.fatal?.(message, ...optionalParams);
+	DEFAULT_LOGGER.debug(`<<< Exiting fatal(message=${message},optionalParams=${optionalParams})`);
   }
 
   /**
@@ -282,10 +296,12 @@ export class Logger implements LoggerService {
    * Print buffered logs and detach buffer.
    */
   static flush() {
+	DEFAULT_LOGGER.debug('>>> Entering flush()');
     this.isBufferAttached = false;
     this.logBuffer.forEach(item =>
       item.methodRef(...(item.arguments as [string])),
     );
+	DEFAULT_LOGGER.debug(`flush(): this.isBufferAttached → ${this.isBufferAttached}`);
     this.logBuffer = [];
   }
 
@@ -294,6 +310,8 @@ export class Logger implements LoggerService {
    * Turns on initialization logs buffering.
    */
   static attachBuffer() {
+	DEFAULT_LOGGER.debug('>>> Entering attachBuffer()');
+	DEFAULT_LOGGER.debug(`attachBuffer(): this.isBufferAttached → ${this.isBufferAttached}`);
     this.isBufferAttached = true;
   }
 
@@ -302,36 +320,48 @@ export class Logger implements LoggerService {
    * Turns off initialization logs buffering.
    */
   static detachBuffer() {
+	DEFAULT_LOGGER.debug('>>> Entering detachBuffer()');
+	DEFAULT_LOGGER.debug(`detachBuffer(): this.isBufferAttached → ${this.isBufferAttached}`);
     this.isBufferAttached = false;
   }
 
   static getTimestamp() {
+	DEFAULT_LOGGER.debug('>>> Entering getTimestamp()');
+	DEFAULT_LOGGER.debug('<<< Exiting getTimestamp()');
     return dateTimeFormatter.format(Date.now());
   }
 
   static overrideLogger(logger: LoggerService | LogLevel[] | boolean) {
+	DEFAULT_LOGGER.debug(`>>> Entering overrideLogger(logger=${logger})`);
     if (Array.isArray(logger)) {
       Logger.logLevels = logger;
+	DEFAULT_LOGGER.debug(`overrideLogger(logger=${logger}): Logger.logLevels → ${Logger.logLevels}`);
       return this.staticInstanceRef?.setLogLevels?.(logger);
     }
     if (isObject(logger)) {
       if (logger instanceof Logger && logger.constructor !== Logger) {
         const errorMessage = `Using the "extends Logger" instruction is not allowed in Nest v9. Please, use "extends ConsoleLogger" instead.`;
+		DEFAULT_LOGGER.debug(`overrideLogger(logger=${logger}): errorMessage → ${errorMessage}`);
         this.staticInstanceRef?.error(errorMessage);
         throw new Error(errorMessage);
       }
       this.staticInstanceRef = logger as LoggerService;
     } else {
+	DEFAULT_LOGGER.debug(`overrideLogger(logger=${logger}): this.staticInstanceRef → ${this.staticInstanceRef}`);
       this.staticInstanceRef = undefined;
     }
+	DEFAULT_LOGGER.debug(`<<< Exiting overrideLogger(logger=${logger})`);
   }
 
   static isLevelEnabled(level: LogLevel): boolean {
+	DEFAULT_LOGGER.debug(`>>> Entering isLevelEnabled(level=${level})`);
     const logLevels = Logger.logLevels;
+	DEFAULT_LOGGER.debug(`<<< Exiting isLevelEnabled(level=${level})`);
     return isLogLevelEnabled(level, logLevels);
   }
 
   private registerLocalInstanceRef() {
+	DEFAULT_LOGGER.debug('>>> Entering registerLocalInstanceRef()');
     if (this.localInstanceRef) {
       return this.localInstanceRef;
     }
@@ -339,6 +369,7 @@ export class Logger implements LoggerService {
       timestamp: this.options?.timestamp,
       logLevels: Logger.logLevels,
     });
+	DEFAULT_LOGGER.debug('<<< Exiting registerLocalInstanceRef()');
     return this.localInstanceRef;
   }
 }

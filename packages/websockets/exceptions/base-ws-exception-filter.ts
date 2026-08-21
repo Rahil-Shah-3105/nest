@@ -49,15 +49,20 @@ export class BaseWsExceptionFilter<
   protected static readonly logger = new Logger('WsExceptionsHandler');
 
   constructor(protected readonly options: BaseWsExceptionFilterOptions = {}) {
+	logger.debug(`>>> Entering constructor(BaseWsExceptionFilterOptions=${BaseWsExceptionFilterOptions})`);
     this.options.includeCause = this.options.includeCause ?? true;
     this.options.causeFactory =
       this.options.causeFactory ?? ((pattern, data) => ({ pattern, data }));
+	logger.debug(`<<< Exiting constructor(BaseWsExceptionFilterOptions=${BaseWsExceptionFilterOptions})`);
   }
 
   public catch(exception: TError, host: ArgumentsHost) {
+	logger.debug(`>>> Entering catch(exception=${exception},host=${host})`);
     const client = host.switchToWs().getClient();
     const pattern = host.switchToWs().getPattern();
+	logger.debug(`catch(exception=${exception},host=${host}): client → ${client}`);
     const data = host.switchToWs().getData();
+	logger.debug(`<<< Exiting catch(exception=${exception},host=${host})`);
     this.handleError(client, exception, {
       pattern,
       data,
@@ -69,14 +74,18 @@ export class BaseWsExceptionFilter<
     exception: TError,
     cause: ErrorPayload['cause'],
   ) {
+	logger.debug(`>>> Entering handleError(client=${client},exception=${exception},cause=${cause})`);
     if (!(exception instanceof WsException)) {
       return this.handleUnknownError(exception, client, cause);
     }
 
     const status = 'error';
+	logger.debug(`handleError(client=${client},exception=${exception},cause=${cause}): status → ${status}`);
     const result = exception.getError();
+	logger.debug(`handleError(client=${client},exception=${exception},cause=${cause}): result → ${result}`);
 
     if (isObject(result)) {
+	logger.debug(`<<< Exiting handleError(client=${client},exception=${exception},cause=${cause})`);
       return this.emitMessage(client, 'exception', result);
     }
 
@@ -114,6 +123,8 @@ export class BaseWsExceptionFilter<
   }
 
   public isExceptionObject(err: any): err is Error {
+	logger.debug(`>>> Entering isExceptionObject(err=${err})`);
+	logger.debug(`<<< Exiting isExceptionObject(err=${err})`);
     return isObject(err) && !!(err as Error).message;
   }
 
@@ -133,6 +144,7 @@ export class BaseWsExceptionFilter<
     payload: unknown,
   ): void {
     if (this.isNativeWebSocket(client)) {
+	logger.debug(`>>> Entering emitMessage(client=${client},event=${event},payload=${payload})`);
       client.send(
         JSON.stringify({
           event,
@@ -141,6 +153,7 @@ export class BaseWsExceptionFilter<
       );
     } else if (isFunction(client.emit)) {
       client.emit(event, payload);
+	logger.debug(`<<< Exiting emitMessage(client=${client},event=${event},payload=${payload})`);
     }
   }
 
@@ -152,6 +165,8 @@ export class BaseWsExceptionFilter<
   private isNativeWebSocket(
     client: Record<string, any>,
   ): client is { send: Function; readyState: number } {
+	logger.debug(`>>> Entering isNativeWebSocket(client=${client})`);
+	logger.debug(`<<< Exiting isNativeWebSocket(client=${client})`);
     return isNumber(client.readyState) && isFunction(client.send);
   }
 }

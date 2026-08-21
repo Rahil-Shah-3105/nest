@@ -24,6 +24,7 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
   constructor(protected readonly applicationRef?: HttpServer) {}
 
   catch(exception: T, host: ArgumentsHost) {
+	logger.debug(`>>> Entering catch(exception=${exception},host=${host})`);
     const applicationRef =
       this.applicationRef ||
       (this.httpAdapterHost && this.httpAdapterHost.httpAdapter)!;
@@ -32,6 +33,7 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
       return this.handleUnknownError(exception, host, applicationRef);
     }
     const res = exception.getResponse();
+	logger.debug(`catch(exception=${exception},host=${host}): res → ${res}`);
     const message = isObject(res)
       ? res
       : {
@@ -39,11 +41,14 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
           message: res,
         };
 
+	logger.debug(`catch(exception=${exception},host=${host}): message → ${message}`);
     const response = host.getArgByIndex(1);
+	logger.debug(`catch(exception=${exception},host=${host}): response → ${response}`);
     if (!applicationRef.isHeadersSent(response)) {
       applicationRef.reply(response, message, exception.getStatus());
     } else {
       applicationRef.end(response);
+	logger.debug(`<<< Exiting catch(exception=${exception},host=${host})`);
     }
   }
 
@@ -72,9 +77,12 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
     if (!(exception instanceof IntrinsicException)) {
       BaseExceptionFilter.logger.error(exception);
     }
+	logger.debug(`<<< Exiting handleUnknownError(exception=${exception},host=${host},applicationRef=${applicationRef})`);
   }
 
   public isExceptionObject(err: any): err is Error {
+	logger.debug(`>>> Entering isExceptionObject(err=${err})`);
+	logger.debug(`<<< Exiting isExceptionObject(err=${err})`);
     return isObject(err) && !!(err as Error).message;
   }
 
@@ -84,6 +92,7 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
    */
   public isHttpError(err: any): err is { statusCode: number; message: string } {
     if (!err || typeof err !== 'object') {
+	logger.debug(`>>> Entering isHttpError(err=${err})`);
       return false;
     }
 
@@ -102,6 +111,7 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
       err.status === err.statusCode &&
       err instanceof Error
     ) {
+	logger.debug(`<<< Exiting isHttpError(err=${err})`);
       return true;
     }
 

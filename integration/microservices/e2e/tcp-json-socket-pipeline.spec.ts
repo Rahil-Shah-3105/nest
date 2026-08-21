@@ -13,17 +13,22 @@ import {
 } from '@nestjs/microservices';
 import { Test } from '@nestjs/testing';
 import * as net from 'net';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 @Controller()
 class PingController {
   @MessagePattern({ cmd: 'ping' })
   ping(): string {
+	logger.debug('>>> Entering ping()');
+	logger.debug('<<< Exiting ping()');
     return 'pong';
   }
 }
 
 function frame(obj: unknown): string {
+logger.debug(`>>> Entering frame(obj=${obj})`);
   const json = JSON.stringify(obj);
+logger.debug(`frame(obj=${obj}): json → ${json}`);
   return `${json.length}#${json}`;
 }
 
@@ -37,20 +42,26 @@ function parseFrames(raw: string): {
 } {
   const frames: Record<string, unknown>[] = [];
   let buf = raw;
+logger.debug(`parseFrames(raw=${raw}): buf → ${buf}`);
 
   while (true) {
+	logger.debug(`>>> Entering parseFrames(raw=${raw})`);
     const delim = buf.indexOf('#');
     if (delim === -1) break;
+	logger.debug(`parseFrames(raw=${raw}): delim → ${delim}`);
 
     const len = parseInt(buf.substring(0, delim), 10);
+	logger.debug(`parseFrames(raw=${raw}): len → ${len}`);
     if (isNaN(len)) break;
 
     const payload = buf.substring(delim + 1);
+	logger.debug(`parseFrames(raw=${raw}): payload → ${payload}`);
     if (payload.length < len) break;
 
     frames.push(
       JSON.parse(payload.substring(0, len)) as Record<string, unknown>,
     );
+	logger.debug(`<<< Exiting parseFrames(raw=${raw})`);
     buf = payload.substring(len);
   }
 
@@ -106,8 +117,10 @@ describe('TCP pipelined frames – stack-overflow regression (CVE fix)', () => {
       const socket = new net.Socket();
 
       const done = (err?: Error) => {
+		logger.debug(`>>> Entering done(err=${err})`);
         socket.destroy();
         err ? reject(err) : resolve();
+		logger.debug(`<<< Exiting done(err=${err})`);
       };
 
       const timeout = setTimeout(

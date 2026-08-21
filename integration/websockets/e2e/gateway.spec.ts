@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { EventSource } from 'eventsource';
@@ -8,10 +9,12 @@ import { NamespaceGateway } from '../src/namespace.gateway.js';
 import { ServerGateway } from '../src/server.gateway.js';
 
 async function createNestApp(...gateways): Promise<INestApplication> {
+logger.debug(`>>> Entering createNestApp(gateways=${gateways})`);
   const testingModule = await Test.createTestingModule({
     providers: gateways,
   }).compile();
   const app = testingModule.createNestApplication();
+logger.debug(`createNestApp(gateways=${gateways}): app → ${app}`);
   return app;
 }
 

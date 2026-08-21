@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { ServerNats } from '@nestjs/microservices';
 
 export interface NatsSubscriber {
@@ -10,6 +11,7 @@ export interface NatsSubscriber {
 
 export class NatsStrategy extends ServerNats {
   bindEvents(client: any) {
+	logger.debug(`>>> Entering bindEvents(client=${client})`);
     const patterns = [...this.messageHandlers.keys()];
     const handlers = patterns.map(item => ({
       key: item,
@@ -23,5 +25,6 @@ export class NatsStrategy extends ServerNats {
         this.getMessageHandler(key).bind(this),
       ),
     );
+	logger.debug(`<<< Exiting bindEvents(client=${client})`);
   }
 }

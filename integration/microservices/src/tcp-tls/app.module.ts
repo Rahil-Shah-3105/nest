@@ -11,6 +11,7 @@ import { AppController } from './app.controller.js';
 
 import * as fs from 'fs';
 import * as path from 'path';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 const caCert = fs
   .readFileSync(path.join(import.meta.dirname, 'ca.cert.pem'))
@@ -21,9 +22,12 @@ class ErrorHandlingProxy extends ClientTCP {
     super({
       tlsOptions: { ca: caCert },
     });
+	logger.debug('<<< Exiting constructor()');
   }
 
   serializeError(err) {
+	logger.debug(`>>> Entering serializeError(err=${err})`);
+	logger.debug(`<<< Exiting serializeError(err=${err})`);
     return new RpcException(err);
   }
 }
@@ -34,6 +38,8 @@ class ConfigService {
     transport: Transport.TCP,
   };
   get(key: string, defaultValue?: any) {
+	logger.debug(`>>> Entering get(key=${key},defaultValue=${defaultValue})`);
+	logger.debug(`<<< Exiting get(key=${key},defaultValue=${defaultValue})`);
     return this.config[key] || defaultValue;
   }
 }
@@ -48,6 +54,8 @@ class ConfigModule {}
 class ClientOptionService implements ClientsModuleOptionsFactory {
   constructor(private readonly configService: ConfigService) {}
   createClientOptions(): Promise<ClientOptions> | ClientOptions {
+	logger.debug('>>> Entering createClientOptions()');
+	logger.debug('<<< Exiting createClientOptions()');
     return {
       transport: this.configService.get('transport'),
       options: {

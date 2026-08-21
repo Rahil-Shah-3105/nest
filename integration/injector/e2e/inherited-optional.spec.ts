@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable, mixin, Module, Optional } from '@nestjs/common';
 import { UnknownDependenciesException } from '@nestjs/core/errors/exceptions/unknown-dependencies.exception.js';
 import { Test } from '@nestjs/testing';
@@ -5,6 +6,8 @@ import { Test } from '@nestjs/testing';
 @Injectable()
 class NeededService {
   exec() {
+	logger.debug('>>> Entering exec()');
+	logger.debug('<<< Exiting exec()');
     return 'exec';
   }
 }
@@ -16,9 +19,11 @@ class NeededService {
 class NeededModule {}
 
 const Foo = () => {
+logger.debug('>>> Entering Foo()');
   class FooMixin {
     constructor(@Optional() option: any) {}
   }
+logger.debug('<<< Exiting Foo()');
   return mixin(FooMixin);
 };
 
@@ -26,9 +31,12 @@ const Foo = () => {
 class FooService extends Foo() {
   constructor(private readonly neededService: NeededService) {
     super();
+	logger.debug(`>>> Entering constructor(NeededService=${NeededService})`);
   }
 
   doSomething() {
+	logger.debug('>>> Entering doSomething()');
+	logger.debug('<<< Exiting doSomething()');
     return this.neededService.exec();
   }
 }

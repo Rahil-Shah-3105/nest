@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable } from '@nestjs/common';
 import { Post } from './models/post.model.js';
 
@@ -11,14 +12,20 @@ export class PostsService {
   ];
 
   findAllByAuthorId(authorId: number): Post[] {
+	logger.debug(`>>> Entering findAllByAuthorId(authorId=${authorId})`);
+	logger.debug(`<<< Exiting findAllByAuthorId(authorId=${authorId})`);
     return this.posts.filter((post) => post.authorId === Number(authorId));
   }
 
   findOne(postId: number): Post {
+	logger.debug(`>>> Entering findOne(postId=${postId})`);
+	logger.debug(`<<< Exiting findOne(postId=${postId})`);
     return this.posts.find((post) => post.id === postId);
   }
 
   findAll(): Post[] {
+	logger.debug('>>> Entering findAll()');
+	logger.debug('<<< Exiting findAll()');
     return this.posts;
   }
 }

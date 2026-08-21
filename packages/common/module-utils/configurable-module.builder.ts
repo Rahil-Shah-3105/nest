@@ -109,6 +109,7 @@ export class ConfigurableModuleBuilder<
       extras: ExtraModuleDefinitionOptions,
     ) => DynamicModule = def => def,
   ) {
+	logger.debug(`>>> Entering setExtras(extras=${extras},transformDefinition=${transformDefinition})`);
     const builder = new ConfigurableModuleBuilder<
       ModuleOptions,
       StaticMethodKey,
@@ -116,7 +117,10 @@ export class ConfigurableModuleBuilder<
       ExtraModuleDefinitionOptions
     >(this.options, this as any);
     builder.extras = extras;
+	logger.debug(`setExtras(extras=${extras},transformDefinition=${transformDefinition}): builder.extras → ${builder.extras}`);
     builder.transformModuleDefinition = transformDefinition;
+	logger.debug(`setExtras(extras=${extras},transformDefinition=${transformDefinition}): builder.transformModuleDefinition → ${builder.transformModuleDefinition}`);
+	logger.debug(`<<< Exiting setExtras(extras=${extras},transformDefinition=${transformDefinition})`);
     return builder;
   }
 
@@ -132,6 +136,7 @@ export class ConfigurableModuleBuilder<
    * @param key name of the method
    */
   setClassMethodName<StaticMethodKey extends string>(key: StaticMethodKey) {
+	logger.debug(`>>> Entering setClassMethodName(key=${key})`);
     const builder = new ConfigurableModuleBuilder<
       ModuleOptions,
       StaticMethodKey,
@@ -139,6 +144,8 @@ export class ConfigurableModuleBuilder<
       ExtraModuleDefinitionOptions
     >(this.options, this as any);
     builder.staticMethodKey = key;
+	logger.debug(`setClassMethodName(key=${key}): builder.staticMethodKey → ${builder.staticMethodKey}`);
+	logger.debug(`<<< Exiting setClassMethodName(key=${key})`);
     return builder;
   }
 
@@ -156,6 +163,7 @@ export class ConfigurableModuleBuilder<
   setFactoryMethodName<FactoryClassMethodKey extends string>(
     key: FactoryClassMethodKey,
   ) {
+	logger.debug(`>>> Entering setFactoryMethodName(key=${key})`);
     const builder = new ConfigurableModuleBuilder<
       ModuleOptions,
       StaticMethodKey,
@@ -163,6 +171,8 @@ export class ConfigurableModuleBuilder<
       ExtraModuleDefinitionOptions
     >(this.options, this as any);
     builder.factoryClassMethodKey = key;
+	logger.debug(`setFactoryMethodName(key=${key}): builder.factoryClassMethodKey → ${builder.factoryClassMethodKey}`);
+	logger.debug(`<<< Exiting setFactoryMethodName(key=${key})`);
     return builder;
   }
 
@@ -194,11 +204,13 @@ export class ConfigurableModuleBuilder<
   }
 
   private constructInjectionTokenString(): string {
+	logger.debug('>>> Entering constructInjectionTokenString()');
     const moduleNameInSnakeCase = this.options
       .moduleName!.trim()
       .split(/(?=[A-Z])/)
       .join('_')
       .toUpperCase();
+	logger.debug('<<< Exiting constructInjectionTokenString()');
     return `${moduleNameInSnakeCase}_MODULE_OPTIONS`;
   }
 
@@ -222,6 +234,7 @@ export class ConfigurableModuleBuilder<
           },
         ];
         if (self.options.alwaysTransient) {
+		logger.debug('>>> Entering createConfigurableModuleCls()');
           providers.push({
             provide: CONFIGURABLE_MODULE_ID,
             useValue: randomStringGenerator(),
@@ -244,11 +257,14 @@ export class ConfigurableModuleBuilder<
           ExtraModuleDefinitionOptions,
       ): DynamicModule {
         const providers = this.createAsyncProviders(options);
+		logger.debug(`asyncMethodKey(options=${options}): providers → ${providers}`);
         if (self.options.alwaysTransient) {
+		logger.debug(`>>> Entering asyncMethodKey(options=${options})`);
           providers.push({
             provide: CONFIGURABLE_MODULE_ID,
             useValue: randomStringGenerator(),
           });
+			logger.debug(`<<< Exiting asyncMethodKey(options=${options})`);
         }
         return self.transformModuleDefinition(
           {
@@ -268,16 +284,19 @@ export class ConfigurableModuleBuilder<
         extras: ExtraModuleDefinitionOptions | undefined,
       ): ModuleOptions {
         if (!extras) {
+		logger.debug(`>>> Entering omitExtras(input=${input},extras=${extras})`);
           return input;
         }
         const moduleOptions = {};
         const extrasKeys = Object.keys(extras);
+		logger.debug(`omitExtras(input=${input},extras=${extras}): extrasKeys → ${extrasKeys}`);
 
         Object.keys(input as object)
           .filter(key => !extrasKeys.includes(key))
           .forEach(key => {
             moduleOptions[key] = input[key];
           });
+		logger.debug(`<<< Exiting omitExtras(input=${input},extras=${extras})`);
         return moduleOptions as ModuleOptions;
       }
 
@@ -287,6 +306,7 @@ export class ConfigurableModuleBuilder<
         extras: ExtraModuleDefinitionOptions | undefined,
       ): Partial<ExtraModuleDefinitionOptions> {
         if (!extras) {
+		logger.debug(`>>> Entering extractExtrasFromAsyncOptions(input=${input},extras=${extras})`);
           return {};
         }
         const extrasOptions = {};
@@ -297,6 +317,7 @@ export class ConfigurableModuleBuilder<
             extrasOptions[key] = input[key];
           });
 
+		logger.debug(`<<< Exiting extractExtrasFromAsyncOptions(input=${input},extras=${extras})`);
         return extrasOptions;
       }
 
@@ -305,7 +326,9 @@ export class ConfigurableModuleBuilder<
           ExtraModuleDefinitionOptions,
       ): Provider[] {
         if (options.useExisting || options.useFactory) {
+		logger.debug(`>>> Entering createAsyncProviders(options=${options})`);
           if (options.inject && options.provideInjectionTokensFrom) {
+			logger.debug(`<<< Exiting createAsyncProviders(options=${options})`);
             return [
               this.createAsyncOptionsProvider(options),
               ...getInjectionProviders(
@@ -329,6 +352,7 @@ export class ConfigurableModuleBuilder<
         options: ConfigurableModuleAsyncOptions<ModuleOptions>,
       ): Provider {
         if (options.useFactory) {
+		logger.debug(`>>> Entering createAsyncOptionsProvider(options=${options})`);
           return {
             provide: self.options.optionsInjectionToken!,
             useFactory: options.useFactory,
@@ -360,6 +384,7 @@ export class ConfigurableModuleBuilder<
   private createTypeProxy(
     typeName: 'OPTIONS_TYPE' | 'ASYNC_OPTIONS_TYPE' | 'OptionsFactoryInterface',
   ) {
+	logger.debug(`>>> Entering createTypeProxy(typeName=${typeName})`);
     const proxy = new Proxy(
       {},
       {
@@ -370,6 +395,7 @@ export class ConfigurableModuleBuilder<
         },
       },
     );
+	logger.debug(`createTypeProxy(typeName=${typeName}): proxy → ${proxy}`);
     return proxy as any;
   }
 }

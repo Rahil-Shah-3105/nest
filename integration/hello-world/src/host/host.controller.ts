@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get, Header, HostParam, Param } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { HostService } from './host.service.js';
@@ -13,16 +14,22 @@ export class HostController {
   @Get()
   @Header('Authorization', 'Bearer')
   greeting(@HostParam('tenant') tenant: string): string {
+	logger.debug(`>>> Entering greeting(tenant=${tenant})`);
+	logger.debug(`<<< Exiting greeting(tenant=${tenant})`);
     return `${this.hostService.greeting()} tenant=${tenant}`;
   }
 
   @Get('async')
   async asyncGreeting(@HostParam('tenant') tenant: string): Promise<string> {
+	logger.debug(`>>> Entering asyncGreeting(tenant=${tenant})`);
+	logger.debug(`<<< Exiting asyncGreeting(tenant=${tenant})`);
     return `${this.hostService.greeting()} tenant=${tenant}`;
   }
 
   @Get('stream')
   streamGreeting(@HostParam('tenant') tenant: string): Observable<string> {
+	logger.debug(`>>> Entering streamGreeting(tenant=${tenant})`);
+	logger.debug(`<<< Exiting streamGreeting(tenant=${tenant})`);
     return of(`${this.hostService.greeting()} tenant=${tenant}`);
   }
 

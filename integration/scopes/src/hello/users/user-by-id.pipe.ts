@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   ArgumentMetadata,
   Inject,
@@ -19,7 +20,9 @@ export class UserByIdPipe implements PipeTransform<string> {
   }
 
   transform(value: string, metadata: ArgumentMetadata) {
+	logger.debug(`>>> Entering transform(value=${value},metadata=${metadata})`);
     UserByIdPipe.REQUEST_SCOPED_DATA.push(this.requestId);
+	logger.debug(`<<< Exiting transform(value=${value},metadata=${metadata})`);
     return this.usersService.findById(value);
   }
 }

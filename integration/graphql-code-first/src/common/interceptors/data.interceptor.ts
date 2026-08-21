@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   CallHandler,
   ExecutionContext,
@@ -10,6 +11,8 @@ import { tap } from 'rxjs/operators';
 @Injectable()
 export class DataInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+	logger.debug(`>>> Entering intercept(context=${context},next=${next})`);
+	logger.debug(`<<< Exiting intercept(context=${context},next=${next})`);
     return next.handle().pipe(tap(data => data));
   }
 }

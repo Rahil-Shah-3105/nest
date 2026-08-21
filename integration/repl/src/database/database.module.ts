@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { DynamicModule, Module } from '@nestjs/common';
 import { DatabaseConnection } from './database.connection.js';
 
@@ -7,6 +8,8 @@ export class DatabaseModule {
     const connectionProvider = {
       provide: DatabaseConnection,
       useFactory: () => {
+		logger.debug('>>> Entering forRoot()');
+		logger.debug('<<< Exiting forRoot()');
         return DatabaseConnection.connect();
       },
     };

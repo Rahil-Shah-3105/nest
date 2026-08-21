@@ -82,15 +82,19 @@ export class MiddlewareModule<
     middlewareContainer: MiddlewareContainer,
     modules: Map<string, Module>,
   ) {
+	logger.debug(`>>> Entering resolveMiddleware(middlewareContainer=${middlewareContainer},modules=${modules})`);
     const moduleEntries = [...modules.entries()];
     const loadMiddlewareConfiguration = async ([moduleName, moduleRef]: [
       string,
       Module,
     ]) => {
+	logger.debug('>>> Entering loadMiddlewareConfiguration()');
       await this.loadConfiguration(middlewareContainer, moduleRef, moduleName);
       await this.resolver.resolveInstances(moduleRef, moduleName);
+	logger.debug('<<< Exiting loadMiddlewareConfiguration()');
     };
     await Promise.all(moduleEntries.map(loadMiddlewareConfiguration));
+	logger.debug(`resolveMiddleware(middlewareContainer=${middlewareContainer},modules=${modules}): moduleEntries → ${moduleEntries}`);
   }
 
   public async loadConfiguration(
@@ -98,6 +102,7 @@ export class MiddlewareModule<
     moduleRef: Module,
     moduleKey: string,
   ) {
+	logger.debug(`>>> Entering loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey})`);
     const { instance } = moduleRef;
     if (!instance.configure) {
       return;
@@ -108,6 +113,7 @@ export class MiddlewareModule<
       this.routeInfoPathExtractor,
     );
     try {
+	logger.debug(`loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey}): middlewareBuilder → ${middlewareBuilder}`);
       await instance.configure(middlewareBuilder);
     } catch (err) {
       if (!this.appOptions.preview) {
@@ -124,18 +130,22 @@ export class MiddlewareModule<
     }
     const config = middlewareBuilder.build();
     middlewareContainer.insertConfig(config, moduleKey);
+	logger.debug(`loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey}): config → ${config}`);
   }
 
   public async registerMiddleware(
     middlewareContainer: MiddlewareContainer,
     applicationRef: any,
   ) {
+	logger.debug(`>>> Entering registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef})`);
     const configs = middlewareContainer.getConfigurations();
     const registerAllConfigs = async (
       moduleKey: string,
       middlewareConfig: MiddlewareConfiguration[],
     ) => {
+	logger.debug(`>>> Entering registerAllConfigs(moduleKey=${moduleKey},middlewareConfig=${middlewareConfig})`);
       for (const config of middlewareConfig) {
+		logger.debug(`<<< Exiting registerAllConfigs(moduleKey=${moduleKey},middlewareConfig=${middlewareConfig})`);
         await this.registerMiddlewareConfig(
           middlewareContainer,
           config,
@@ -148,8 +158,11 @@ export class MiddlewareModule<
     const entriesSortedByDistance = [...configs.entries()].sort(
       ([moduleA], [moduleB]) => {
         const moduleARef = this.container.getModuleByKey(moduleA)!;
+		logger.debug(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): configs → ${configs}`);
+		logger.debug(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): moduleARef → ${moduleARef}`);
         const moduleBRef = this.container.getModuleByKey(moduleB)!;
         const isModuleAGlobal = moduleARef.distance === Number.MAX_VALUE;
+		logger.debug(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): moduleBRef → ${moduleBRef}`);
         const isModuleBGlobal = moduleBRef.distance === Number.MAX_VALUE;
         if (isModuleAGlobal && isModuleBGlobal) {
           return 0;
@@ -164,7 +177,9 @@ export class MiddlewareModule<
       },
     );
     for (const [moduleRef, moduleConfigurations] of entriesSortedByDistance) {
+	logger.debug(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): entriesSortedByDistance → ${entriesSortedByDistance}`);
       await registerAllConfigs(moduleRef, [...moduleConfigurations]);
+	logger.debug(`<<< Exiting registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef})`);
     }
   }
 
@@ -184,6 +199,7 @@ export class MiddlewareModule<
         applicationRef,
       );
     }
+	logger.debug(`<<< Exiting registerMiddlewareConfig(middlewareContainer=${middlewareContainer},config=${config},moduleKey=${moduleKey},applicationRef=${applicationRef})`);
   }
 
   public async registerRouteMiddleware(
@@ -297,12 +313,14 @@ export class MiddlewareModule<
         }
       },
     );
+	logger.debug(`<<< Exiting bindHandler(wrapper=${wrapper},applicationRef=${applicationRef},routeInfo=${routeInfo},moduleRef=${moduleRef},collection=${collection})`);
   }
 
   private async createProxy<TRequest = unknown, TResponse = unknown>(
     instance: NestMiddleware,
     contextId = STATIC_CONTEXT,
   ): Promise<(req: TRequest, res: TResponse, next: () => void) => void> {
+	logger.debug(`>>> Entering createProxy(instance=${instance},contextId=${contextId})`);
     const exceptionsHandler = this.routerExceptionFilter.create(
       instance,
       instance.use,
@@ -310,6 +328,7 @@ export class MiddlewareModule<
       contextId,
     );
     const middleware = instance.use.bind(instance);
+	logger.debug(`createProxy(instance=${instance},contextId=${contextId}): middleware → ${middleware}`);
     return this.routerProxy.createProxy(middleware, exceptionsHandler);
   }
 
@@ -353,7 +372,9 @@ export class MiddlewareModule<
 
   private getContextId(request: unknown, isTreeDurable: boolean): ContextId {
     const contextId = ContextIdFactory.getByRequest(request as object);
+	logger.debug(`getContextId(request=${request},isTreeDurable=${isTreeDurable}): contextId → ${contextId}`);
     if (!request![REQUEST_CONTEXT_ID]) {
+	logger.debug(`>>> Entering getContextId(request=${request},isTreeDurable=${isTreeDurable})`);
       Object.defineProperty(request, REQUEST_CONTEXT_ID, {
         value: contextId,
         enumerable: false,
@@ -366,6 +387,7 @@ export class MiddlewareModule<
         : Object.assign(request as object, contextId.payload);
       this.container.registerRequestProvider(requestProviderValue, contextId);
     }
+	logger.debug(`<<< Exiting getContextId(request=${request},isTreeDurable=${isTreeDurable})`);
     return contextId;
   }
 }

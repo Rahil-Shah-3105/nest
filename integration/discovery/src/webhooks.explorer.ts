@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable } from '@nestjs/common';
 import { DiscoveryService, MetadataScanner } from '@nestjs/core';
 import { Webhook, WebhookHandler } from './decorators/webhook.decorators.js';
@@ -10,6 +11,7 @@ export class WebhooksExplorer {
   ) {}
 
   getWebhooks() {
+	logger.debug('>>> Entering getWebhooks()');
     const webhooks = this.discoveryService.getProviders({
       metadataKey: Webhook.KEY,
     });
@@ -23,6 +25,7 @@ export class WebhooksExplorer {
         handlers: this.metadataScanner
           .getAllMethodNames(wrapper.metatype!.prototype)
           .map(methodName => {
+			logger.debug('<<< Exiting getWebhooks()');
             const { event } = this.discoveryService.getMetadataByDecorator(
               WebhookHandler,
               wrapper,

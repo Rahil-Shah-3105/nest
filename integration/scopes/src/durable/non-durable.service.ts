@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { TenantContext } from './durable-context-id.strategy.js';
@@ -9,6 +10,8 @@ export class NonDurableService {
   ) {}
 
   getTenantId() {
+	logger.debug('>>> Entering getTenantId()');
+	logger.debug('<<< Exiting getTenantId()');
     return this.requestPayload.tenantId;
   }
 }

@@ -1,5 +1,6 @@
 import type { NestContainer } from '@nestjs/core';
 import type { ContextId } from '@nestjs/core/injector/instance-wrapper.js';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { MockFactory } from './interfaces/index.js';
 import {
   STATIC_CONTEXT,
@@ -23,11 +24,14 @@ export class TestingInjector extends Injector {
   protected container: NestContainer;
 
   public setMocker(mocker: MockFactory) {
+	logger.debug(`>>> Entering setMocker(mocker=${mocker})`);
     this.mocker = mocker;
   }
 
   public setContainer(container: NestContainer) {
+	logger.debug(`>>> Entering setContainer(container=${container})`);
     this.container = container;
+	logger.debug(`<<< Exiting setContainer(container=${container})`);
   }
 
   public async resolveComponentWrapper<T>(
@@ -49,6 +53,8 @@ export class TestingInjector extends Injector {
       );
       return existingProviderWrapper;
     } catch (err) {
+	logger.debug(`>>> Entering resolveComponentWrapper(moduleRef=${moduleRef},name=${name},dependencyContext=${dependencyContext},wrapper=${wrapper},resolutionContext=${resolutionContext},keyOrIndex=${keyOrIndex})`);
+	logger.debug(`<<< Exiting resolveComponentWrapper(moduleRef=${moduleRef},name=${name},dependencyContext=${dependencyContext},wrapper=${wrapper},resolutionContext=${resolutionContext},keyOrIndex=${keyOrIndex})`);
       return this.mockWrapper(err, moduleRef, name, wrapper);
     }
   }
@@ -66,6 +72,8 @@ export class TestingInjector extends Injector {
       );
       return existingProviderWrapper;
     } catch (err) {
+	logger.debug(`>>> Entering resolveComponentHost(moduleRef=${moduleRef},instanceWrapper=${instanceWrapper},resolutionContext=${resolutionContext})`);
+		logger.debug(`<<< Exiting resolveComponentHost(moduleRef=${moduleRef},instanceWrapper=${instanceWrapper},resolutionContext=${resolutionContext})`);
       return this.mockWrapper(
         err,
         moduleRef,
@@ -82,10 +90,12 @@ export class TestingInjector extends Injector {
     wrapper: InstanceWrapper<T>,
   ): Promise<InstanceWrapper> {
     if (!this.mocker) {
+	logger.debug(`>>> Entering mockWrapper(err=${err},moduleRef=${moduleRef},name=${name},wrapper=${wrapper})`);
       throw err;
     }
 
     const mockedInstance = this.mocker(name);
+	logger.debug(`mockWrapper(err=${err},moduleRef=${moduleRef},name=${name},wrapper=${wrapper}): mockedInstance → ${mockedInstance}`);
     if (!mockedInstance) {
       throw err;
     }
@@ -99,6 +109,8 @@ export class TestingInjector extends Injector {
       metatype: wrapper.metatype,
     });
     const internalCoreModule = this.container.getInternalCoreModuleRef();
+	logger.debug(`mockWrapper(err=${err},moduleRef=${moduleRef},name=${name},wrapper=${wrapper}): newWrapper → ${newWrapper}`);
+	logger.debug(`mockWrapper(err=${err},moduleRef=${moduleRef},name=${name},wrapper=${wrapper}): internalCoreModule → ${internalCoreModule}`);
     if (!internalCoreModule) {
       throw new Error(
         'Expected to have internal core module reference at this point.',
@@ -113,6 +125,7 @@ export class TestingInjector extends Injector {
       internalCoreModule.providers,
     );
     internalCoreModule.addExportedProviderOrModule(name);
+	logger.debug(`<<< Exiting mockWrapper(err=${err},moduleRef=${moduleRef},name=${name},wrapper=${wrapper})`);
     return newWrapper;
   }
 }

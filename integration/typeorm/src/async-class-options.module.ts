@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Module } from '@nestjs/common';
 import {
   TypeOrmModule,
@@ -9,6 +10,8 @@ import { PhotoModule } from './photo/photo.module.js';
 
 class ConfigService implements TypeOrmOptionsFactory {
   createTypeOrmOptions(): TypeOrmModuleOptions {
+	logger.debug('>>> Entering createTypeOrmOptions()');
+	logger.debug('<<< Exiting createTypeOrmOptions()');
     return {
       type: 'mysql',
       host: '127.0.0.1',

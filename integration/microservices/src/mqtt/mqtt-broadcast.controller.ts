@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get } from '@nestjs/common';
 import {
   Client,
@@ -15,6 +16,8 @@ export class MqttBroadcastController {
 
   @Get('broadcast')
   multicats() {
+	logger.debug('>>> Entering multicats()');
+	logger.debug('<<< Exiting multicats()');
     return this.client.send<number>({ cmd: 'broadcast' }, {}).pipe(
       scan((a, b) => a + b),
       take(2),
@@ -23,6 +26,8 @@ export class MqttBroadcastController {
 
   @MessagePattern({ cmd: 'broadcast' })
   replyBroadcast(): Observable<number> {
+	logger.debug('>>> Entering replyBroadcast()');
+	logger.debug('<<< Exiting replyBroadcast()');
     return new Observable(observer => observer.next(1));
   }
 }

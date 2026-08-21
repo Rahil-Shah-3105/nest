@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get, Inject, OnModuleInit, Param } from '@nestjs/common';
 import {
   ClientGrpc,
@@ -25,27 +26,35 @@ export class HeroController implements OnModuleInit {
   constructor(@Inject('HERO_PACKAGE') private readonly client: ClientGrpc) {}
 
   onModuleInit() {
+	logger.debug('>>> Entering onModuleInit()');
     this.heroesService = this.client.getService<HeroesService>('HeroesService');
+	logger.debug('<<< Exiting onModuleInit()');
   }
 
   @Get()
   getMany(): Observable<Hero[]> {
+	logger.debug('>>> Entering getMany()');
     const ids$ = new ReplaySubject<HeroById>();
     ids$.next({ id: 1 });
     ids$.next({ id: 2 });
     ids$.complete();
+	const startTime: number = Date.now();
 
     const stream = this.heroesService.findMany(ids$.asObservable());
+	logger.debug(`getMany(): stream → ${stream}`);
     return stream.pipe(toArray());
   }
 
   @Get(':id')
   getById(@Param('id') id: string): Observable<Hero> {
+	logger.debug(`>>> Entering getById(id=${id})`);
     return this.heroesService.findOne({ id: +id });
   }
 
   @GrpcMethod('HeroesService')
   findOne(data: HeroById): Hero {
+	logger.debug(`>>> Entering findOne(data=${data})`);
+	logger.debug(`<<< Exiting findOne(data=${data})`);
     return this.items.find(({ id }) => id === data.id)!;
   }
 
@@ -54,7 +63,9 @@ export class HeroController implements OnModuleInit {
     const hero$ = new Subject<Hero>();
 
     const onNext = (heroById: HeroById) => {
+	logger.debug(`>>> Entering findMany(data$=${data$})`);
       const item = this.items.find(({ id }) => id === heroById.id)!;
+	logger.debug(`>>> Entering onNext(heroById=${heroById})`);
       hero$.next(item);
     };
     const onComplete = () => hero$.complete();
@@ -63,6 +74,7 @@ export class HeroController implements OnModuleInit {
       complete: onComplete,
     });
 
+	logger.debug(`<<< Exiting findMany(data$=${data$})`);
     return hero$.asObservable();
   }
 }

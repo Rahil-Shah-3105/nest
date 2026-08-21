@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Body,
   Controller,
@@ -17,6 +18,8 @@ export class AppController {
 
   @Get()
   sayHello() {
+	logger.debug('>>> Entering sayHello()');
+	logger.debug('<<< Exiting sayHello()');
     return this.appService.getHello();
   }
 

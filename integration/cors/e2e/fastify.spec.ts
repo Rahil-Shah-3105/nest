@@ -4,6 +4,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 describe.skip('Fastify Cors', () => {
@@ -40,9 +41,12 @@ describe.skip('Fastify Cors', () => {
         let requestId = 0;
         const configDelegation = {
           delegator: function (req, cb) {
+			logger.debug(`>>> Entering delegator(req=${req},cb=${cb})`);
             const config = configs[requestId];
             requestId++;
+			logger.debug(`delegator(req=${req},cb=${cb}): config → ${config}`);
             cb(null, config);
+			logger.debug(`<<< Exiting delegator(req=${req},cb=${cb})`);
           },
         };
         app.enableCors(configDelegation);
@@ -88,6 +92,7 @@ describe.skip('Fastify Cors', () => {
         const configDelegation = function (req, cb) {
           const config = configs[requestId];
           requestId++;
+		logger.debug(`configDelegation(req=${req},cb=${cb}): config → ${config}`);
           cb(null, config);
         };
 

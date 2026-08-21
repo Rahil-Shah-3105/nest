@@ -1,11 +1,15 @@
 import * as net from 'net';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 export let port: number;
 
 export async function randomPort(): Promise<number> {
   const server = net.createServer();
+logger.debug(`randomPort(): server → ${server}`);
+logger.debug('>>> Entering randomPort()');
   return new Promise((resolve, reject) => {
     if (port) {
+	logger.debug('<<< Exiting randomPort()');
       resolve(port);
     }
     server.listen(0, () => {

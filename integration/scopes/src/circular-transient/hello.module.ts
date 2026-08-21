@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { DynamicModule, Inject, Module, Provider } from '@nestjs/common';
 import { HelloController } from './hello.controller.js';
 import { HelloService } from './hello.service.js';
@@ -12,6 +13,8 @@ export class HelloModule {
   constructor(@Inject('META') private readonly meta) {}
 
   static forRoot(meta: Provider): DynamicModule {
+	logger.debug(`>>> Entering forRoot(meta=${meta})`);
+	logger.debug(`<<< Exiting forRoot(meta=${meta})`);
     return {
       module: HelloModule,
       providers: [meta],

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Args,
   ID,
@@ -17,16 +18,20 @@ export class PostsResolver {
 
   @Query((returns) => Post)
   post(@Args({ name: 'id', type: () => ID }, ParseIntPipe) id: number): Post {
+	const startTime: number = Date.now();
     return this.postsService.findOne(id);
   }
 
   @Query((returns) => [Post])
   posts(): Post[] {
+	logger.debug('>>> Entering posts()');
     return this.postsService.findAll();
   }
 
   @ResolveField((of) => User)
   user(@Parent() post: Post): any {
+	logger.debug(`>>> Entering user(post=${post})`);
+	logger.debug(`<<< Exiting user(post=${post})`);
     return { __typename: 'User', id: post.authorId };
   }
 }

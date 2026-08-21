@@ -75,6 +75,7 @@ export class WebSocketsController {
     moduleKey?: string,
     instanceWrapperId?: string,
   ) {
+	logger.debug(`>>> Entering connectGatewayToServer(instanceOrWrapper=${instanceOrWrapper},metatypeOrModuleKey=${metatypeOrModuleKey},moduleKey=${moduleKey},instanceWrapperId=${instanceWrapperId})`);
     const isInstanceWrapper =
       typeof metatypeOrModuleKey === 'string' &&
       'instance' in (instanceOrWrapper as InstanceWrapper<NestGateway>);
@@ -104,6 +105,7 @@ export class WebSocketsController {
     const port = Reflect.getMetadata(PORT_METADATA, gatewayMetatype) || 0;
 
     if (!Number.isInteger(port)) {
+	logger.debug(`<<< Exiting connectGatewayToServer(instanceOrWrapper=${instanceOrWrapper},metatypeOrModuleKey=${metatypeOrModuleKey},moduleKey=${moduleKey},instanceWrapperId=${instanceWrapperId})`);
       throw new InvalidSocketPortException(port, gatewayMetatype);
     }
     this.subscribeToServerEvents(
@@ -236,6 +238,7 @@ export class WebSocketsController {
     );
     adapter.bindClientConnect(server, handler);
     this.printSubscriptionLogs(instance, subscribersMap);
+	logger.debug(`<<< Exiting subscribeEvents(instanceWrapper=${instanceWrapper},subscribersMap=${subscribersMap},observableServer=${observableServer},connectionHandler=${connectionHandler},disconnectHandler=${disconnectHandler})`);
   }
 
   public getConnectionHandler(
@@ -257,11 +260,14 @@ export class WebSocketsController {
           disconnect.next({ client, reason }),
         );
     };
+	logger.debug(`<<< Exiting getConnectionHandler(context=${context},instance=${instance},subscribersMap=${subscribersMap},disconnect=${disconnect},connection=${connection})`);
   }
 
   public subscribeInitEvent(instance: NestGateway, event: Subject<any>) {
+	logger.debug(`>>> Entering subscribeInitEvent(instance=${instance},event=${event})`);
     if (instance.afterInit) {
       event.subscribe(instance.afterInit.bind(instance));
+	logger.debug(`<<< Exiting subscribeInitEvent(instance=${instance},event=${event})`);
     }
   }
 
@@ -269,11 +275,13 @@ export class WebSocketsController {
     handlerOrGateway: Function | NestGateway | undefined,
     event: Subject<any>,
   ) {
+	logger.debug(`>>> Entering subscribeConnectionEvent(handlerOrGateway=${handlerOrGateway},event=${event})`);
     const handler =
       typeof handlerOrGateway === 'function'
         ? handlerOrGateway
         : handlerOrGateway?.handleConnection?.bind(handlerOrGateway);
     if (handler) {
+	logger.debug(`<<< Exiting subscribeConnectionEvent(handlerOrGateway=${handlerOrGateway},event=${event})`);
       event
         .pipe(
           distinctUntilChanged((prev, curr) => compareElementAt(prev, curr, 0)),
@@ -286,6 +294,7 @@ export class WebSocketsController {
     handlerOrGateway: Function | NestGateway | undefined,
     event: Subject<any>,
   ) {
+	logger.debug(`>>> Entering subscribeDisconnectEvent(handlerOrGateway=${handlerOrGateway},event=${event})`);
     const handler =
       typeof handlerOrGateway === 'function'
         ? handlerOrGateway
@@ -305,6 +314,7 @@ export class WebSocketsController {
           } else {
             // Backward compatibility: if it's just the client
             handler(data);
+			logger.debug(`<<< Exiting subscribeDisconnectEvent(handlerOrGateway=${handlerOrGateway},event=${event})`);
           }
         });
     }
@@ -315,6 +325,7 @@ export class WebSocketsController {
     client: T,
     instance: NestGateway,
   ) {
+	logger.debug(`>>> Entering subscribeMessages(subscribersMap=${subscribersMap},client=${client},instance=${instance})`);
     const adapter = this.config.getIoAdapter();
     const handlers = subscribersMap.map(
       ({ callback, message, isAckHandledManually }) => ({
@@ -326,6 +337,7 @@ export class WebSocketsController {
     adapter.bindMessageHandlers(client, handlers, data =>
       fromPromise(this.pickResult(data)).pipe(mergeAll()),
     );
+	logger.debug(`subscribeMessages(subscribersMap=${subscribersMap},client=${client},instance=${instance}): adapter → ${adapter}`);
   }
 
   public async pickResult(
@@ -333,6 +345,7 @@ export class WebSocketsController {
   ): Promise<Observable<any>> {
     const result = await deferredResult;
     if (isObservable(result)) {
+	logger.debug(`>>> Entering pickResult(deferredResult=${deferredResult})`);
       return result;
     }
     if (result instanceof Promise) {
@@ -363,6 +376,7 @@ export class WebSocketsController {
         instanceWrapperId,
       );
     });
+	logger.debug(`<<< Exiting inspectEntrypointDefinitions(instance=${instance},port=${port},messageHandlers=${messageHandlers},instanceWrapperId=${instanceWrapperId})`);
   }
 
   public createRequestScopedHandler(
@@ -414,6 +428,7 @@ export class WebSocketsController {
         exceptionFilter.handle(err as Error, host);
       }
     };
+	logger.debug(`<<< Exiting createRequestScopedHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName})`);
   }
 
   public createRequestScopedEventHandler(
@@ -474,6 +489,7 @@ export class WebSocketsController {
         }
       }
     };
+	logger.debug(`<<< Exiting createRequestScopedEventHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName},server=${server})`);
   }
 
   public getContextId<T extends Record<any, unknown> = any>(
@@ -502,17 +518,21 @@ export class WebSocketsController {
     _contextId: ContextId,
     request: Record<any, any>,
   ) {
+	logger.debug(`>>> Entering cleanupRequestScopedContext(_instanceWrapper=${_instanceWrapper},_contextId=${_contextId},request=${request})`);
     Reflect.deleteProperty(request, REQUEST_CONTEXT_ID as any);
+	logger.debug(`<<< Exiting cleanupRequestScopedContext(_instanceWrapper=${_instanceWrapper},_contextId=${_contextId},request=${request})`);
   }
 
   private assignServerToProperties<T = any>(
     instance: NestGateway,
     server: object,
   ) {
+	logger.debug(`>>> Entering assignServerToProperties(instance=${instance},server=${server})`);
     for (const propertyKey of this.metadataExplorer.scanForServerHooks(
       instance,
     )) {
       Reflect.set(instance, propertyKey, server);
+	logger.debug(`<<< Exiting assignServerToProperties(instance=${instance},server=${server})`);
     }
   }
 
@@ -520,8 +540,10 @@ export class WebSocketsController {
     instance: NestGateway,
     subscribersMap: MessageMappingProperties[],
   ) {
+	logger.debug(`>>> Entering printSubscriptionLogs(instance=${instance},subscribersMap=${subscribersMap})`);
     const gatewayClassName = (instance as object)?.constructor?.name;
     if (!gatewayClassName) {
+	logger.debug(`<<< Exiting printSubscriptionLogs(instance=${instance},subscribersMap=${subscribersMap})`);
       return;
     }
     subscribersMap.forEach(({ message }) =>

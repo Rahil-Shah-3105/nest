@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { DynamicModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Photo } from './photo/photo.entity.js';
@@ -5,7 +6,9 @@ import { Photo } from './photo/photo.entity.js';
 @Module({})
 export class DatabaseModule {
   static async forRoot(): Promise<DynamicModule> {
+	logger.debug('>>> Entering forRoot()');
     await new Promise(resolve => setTimeout(resolve, 1000));
+	logger.debug('<<< Exiting forRoot()');
     return {
       module: DatabaseModule,
       imports: [

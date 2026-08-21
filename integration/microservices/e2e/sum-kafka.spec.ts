@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { BusinessDto } from '../src/kafka/dtos/business.dto.js';
 import { UserDto } from '../src/kafka/dtos/user.dto.js';
 import { UserEntity } from '../src/kafka/entities/user.entity.js';
@@ -13,6 +14,7 @@ import { KafkaMessagesController } from '../src/kafka/kafka.messages.controller.
  * fails to connect to Kafka container in the cloud.
  */
 describe.skip('Kafka transport', function () {
+logger.debug('>>> Entering skip()');
   let server: any;
   let app: INestApplication;
 
@@ -39,6 +41,7 @@ describe.skip('Kafka transport', function () {
   });
 
   it(`/POST (sync sum kafka message)`, function () {
+	logger.debug('>>> Entering function()');
     return request(server)
       .post('/mathSumSyncKafkaMessage')
       .send([1, 2, 3, 4, 5])

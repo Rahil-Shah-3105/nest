@@ -89,6 +89,7 @@ export class ClientKafka
 
   constructor(protected readonly options: Required<KafkaOptions>['options']) {
     super();
+	logger.debug('>>> Entering constructor()');
 
     const clientOptions = this.getOptionsProp(
       this.options,
@@ -107,8 +108,10 @@ export class ClientKafka
       false,
     );
 
+	logger.debug(`constructor(): postfixId → ${postfixId}`);
     this.brokers = clientOptions.brokers || [KAFKA_DEFAULT_BROKER];
 
+	logger.debug(`constructor(): this.brokers → ${this.brokers}`);
     // Append a unique id to the clientId and groupId
     // so they don't collide with a microservices client
     this.clientId =
@@ -118,24 +121,32 @@ export class ClientKafka
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+	logger.debug('<<< Exiting constructor()');
   }
 
   public subscribeToResponseOf(pattern: unknown): void {
+	logger.debug(`>>> Entering subscribeToResponseOf(pattern=${pattern})`);
     const request = this.normalizePattern(pattern as MsPattern);
+	logger.debug(`subscribeToResponseOf(pattern=${pattern}): request → ${request}`);
     this.responsePatterns.push(this.getResponsePatternName(request));
+	logger.debug(`<<< Exiting subscribeToResponseOf(pattern=${pattern})`);
   }
 
   public async close(): Promise<void> {
+	logger.debug('>>> Entering close()');
     this._producer && (await this._producer.disconnect());
     this._consumer && (await this._consumer.disconnect());
     this._producer = null;
     this._consumer = null;
+	logger.debug(`close(): this._producer → ${this._producer}`);
     this.initialized = null;
     this.client = null;
+	logger.debug(`close(): this._consumer → ${this._consumer}`);
   }
 
   public async connect(): Promise<Producer> {
     if (this.initialized) {
+	logger.debug('>>> Entering connect()');
       return this.initialized.then(() => this._producer!);
     }
     this.initialized = this.initializeClientAndConnections();
@@ -145,6 +156,7 @@ export class ClientKafka
   private async initializeClientAndConnections(): Promise<void> {
     this.client = await this.createClient();
     if (!this.producerOnlyMode) {
+	logger.debug('>>> Entering initializeClientAndConnections()');
       const partitionAssigners = [
         (
           config: ConstructorParameters<typeof KafkaReplyPartitionAssigner>[1],
@@ -172,16 +184,19 @@ export class ClientKafka
     this._producer = this.client!.producer(this.options.producer || {});
     this.registerProducerEventListeners();
     await this._producer.connect();
+	logger.debug('<<< Exiting initializeClientAndConnections()');
   }
 
   public async bindTopics(): Promise<void> {
     if (!this._consumer) {
+	logger.debug('>>> Entering bindTopics()');
       throw Error('No consumer initialized');
     }
 
     const consumerSubscribeOptions = this.options.subscribe || {};
 
     if (this.responsePatterns.length > 0) {
+	logger.debug('<<< Exiting bindTopics()');
       await this._consumer.subscribe({
         ...consumerSubscribeOptions,
         topics: this.responsePatterns,
@@ -195,6 +210,7 @@ export class ClientKafka
   }
 
   public async createClient<T = any>(): Promise<T> {
+	logger.debug('>>> Entering createClient()');
     const kafkaPackage = await loadPackage(
       'kafkajs',
       ClientKafka.name,
@@ -208,6 +224,7 @@ export class ClientKafka
       clientId: this.clientId,
     };
 
+	logger.debug('<<< Exiting createClient()');
     return new kafkaPackage.Kafka(kafkaConfig);
   }
 
@@ -225,6 +242,7 @@ export class ClientKafka
       const { err, response, isDisposed, id } =
         await this.deserializer.deserialize(rawMessage);
       const callback = this.routingMap.get(id);
+	logger.debug(`createResponseCallback(): callback → ${callback}`);
       if (!callback) {
         return;
       }
@@ -243,6 +261,8 @@ export class ClientKafka
   }
 
   public getConsumerAssignments() {
+	logger.debug('>>> Entering getConsumerAssignments()');
+	logger.debug('<<< Exiting getConsumerAssignments()');
     return this.consumerAssignments;
   }
 
@@ -261,6 +281,9 @@ export class ClientKafka
       resetOnDisconnect: false,
     });
     connectableSource.connect();
+	logger.debug(`>>> Entering dispatchBatchEvent(packets=${packets})`);
+	logger.debug(`dispatchBatchEvent(packets=${packets}): pattern → ${pattern}`);
+	logger.debug(`<<< Exiting dispatchBatchEvent(packets=${packets})`);
     return connectableSource;
   }
 
@@ -268,6 +291,7 @@ export class ClientKafka
     topicPartitions: TopicPartitionOffsetAndMetadata[],
   ): Promise<void> {
     if (this._consumer) {
+	logger.debug(`>>> Entering commitOffsets(topicPartitions=${topicPartitions})`);
       return this._consumer.commitOffsets(topicPartitions);
     } else {
       throw new Error('No consumer initialized');
@@ -276,6 +300,8 @@ export class ClientKafka
 
   public unwrap<T>(): T {
     if (!this.client) {
+	logger.debug('>>> Entering unwrap()');
+	logger.debug('<<< Exiting unwrap()');
       throw new Error(
         'Not initialized. Please call the "connect" method first.',
       );
@@ -291,6 +317,7 @@ export class ClientKafka
   }
 
   protected registerConsumerEventListeners() {
+	logger.debug('>>> Entering registerConsumerEventListeners()');
     if (!this._consumer) {
       return;
     }
@@ -309,9 +336,11 @@ export class ClientKafka
     this._consumer.on(this._consumer.events.CRASH, () =>
       this._status$.next(KafkaStatus.CRASHED),
     );
+	logger.debug('<<< Exiting registerConsumerEventListeners()');
   }
 
   protected registerProducerEventListeners() {
+	logger.debug('>>> Entering registerProducerEventListeners()');
     if (!this._producer) {
       return;
     }
@@ -321,6 +350,7 @@ export class ClientKafka
     this._producer.on(this._producer.events.DISCONNECT, () =>
       this._status$.next(KafkaStatus.DISCONNECTED),
     );
+	logger.debug('<<< Exiting registerProducerEventListeners()');
   }
 
   protected async dispatchBatchEvent<TInput = any>(
@@ -346,6 +376,7 @@ export class ClientKafka
   }
 
   protected async dispatchEvent(packet: OutgoingEvent): Promise<any> {
+	logger.debug(`>>> Entering dispatchEvent(packet=${packet})`);
     const pattern = this.normalizePattern(packet.pattern);
     const outgoingEvent = await this.serializer.serialize(packet.data, {
       pattern,
@@ -356,12 +387,16 @@ export class ClientKafka
       ...(this.options.send || {}),
     };
 
+	logger.debug(`dispatchEvent(packet=${packet}): pattern → ${pattern}`);
+	logger.debug(`<<< Exiting dispatchEvent(packet=${packet})`);
     return this._producer!.send(message);
   }
 
   protected getReplyTopicPartition(topic: string): string {
     const minimumPartition = this.consumerAssignments[topic];
     if (isUndefined(minimumPartition)) {
+	logger.debug(`>>> Entering getReplyTopicPartition(topic=${topic})`);
+	logger.debug(`<<< Exiting getReplyTopicPartition(topic=${topic})`);
       throw new InvalidKafkaClientTopicException(topic);
     }
 
@@ -379,7 +414,9 @@ export class ClientKafka
     const cleanup = () => this.routingMap.delete(packet.id);
     const errorCallback = (err: unknown) => {
       cleanup();
+	logger.debug(`>>> Entering errorCallback(err=${err})`);
       callback({ err });
+	logger.debug(`<<< Exiting errorCallback(err=${err})`);
     };
 
     try {
@@ -412,6 +449,8 @@ export class ClientKafka
   }
 
   protected getResponsePatternName(pattern: string): string {
+	logger.debug(`>>> Entering getResponsePatternName(pattern=${pattern})`);
+	logger.debug(`<<< Exiting getResponsePatternName(pattern=${pattern})`);
     return `${pattern}.reply`;
   }
 
@@ -422,21 +461,27 @@ export class ClientKafka
     for (const [topic, memberPartitions] of Object.entries(
       data.payload.memberAssignment,
     )) {
+	logger.debug(`>>> Entering setConsumerAssignments(data=${data})`);
       if (memberPartitions.length) {
         consumerAssignments[topic] = Math.min(...memberPartitions);
       }
     }
 
     this.consumerAssignments = consumerAssignments;
+	logger.debug(`setConsumerAssignments(data=${data}): this.consumerAssignments → ${this.consumerAssignments}`);
   }
 
   protected initializeSerializer(options: KafkaOptions['options']) {
+	logger.debug(`>>> Entering initializeSerializer(options=${options})`);
     this.serializer =
       (options && options.serializer) || new KafkaRequestSerializer();
+	logger.debug(`<<< Exiting initializeSerializer(options=${options})`);
   }
 
   protected initializeDeserializer(options: KafkaOptions['options']) {
+	logger.debug(`>>> Entering initializeDeserializer(options=${options})`);
     this.deserializer =
       (options && options.deserializer) || new KafkaResponseDeserializer();
+	logger.debug(`<<< Exiting initializeDeserializer(options=${options})`);
   }
 }

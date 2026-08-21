@@ -16,6 +16,7 @@ import {
 import { Test } from '@nestjs/testing';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 const testSchema: StandardSchemaV1 = {
   '~standard': {
@@ -34,7 +35,9 @@ class SchemaCaptorPipe implements PipeTransform {
   static lastMetadata: ArgumentMetadata | undefined;
 
   transform(value: any, metadata: ArgumentMetadata) {
+	logger.debug(`>>> Entering transform(value=${value},metadata=${metadata})`);
     SchemaCaptorPipe.lastMetadata = metadata;
+	logger.debug(`<<< Exiting transform(value=${value},metadata=${metadata})`);
     return value;
   }
 }

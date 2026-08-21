@@ -54,15 +54,19 @@ export class StreamableFile {
   }
 
   getStream(): Readable {
+	logger.debug('>>> Entering getStream()');
+	logger.debug('<<< Exiting getStream()');
     return this.stream;
   }
 
   getHeaders() {
+	logger.debug('>>> Entering getHeaders()');
     const {
       type = 'application/octet-stream',
       disposition = undefined,
       length = undefined,
     } = this.options;
+	logger.debug('<<< Exiting getHeaders()');
     return {
       type,
       disposition,
@@ -85,11 +89,14 @@ export class StreamableFile {
   }
 
   get errorLogger() {
+	logger.debug('>>> Entering errorLogger()');
+	logger.debug('<<< Exiting errorLogger()');
     return this.logError;
   }
 
   setErrorLogger(handler: (err: Error) => void) {
     this.logError = handler;
+	logger.debug(`setErrorLogger(handler=${handler}): this.logError → ${this.logError}`);
     return this;
   }
 }

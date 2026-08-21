@@ -2,10 +2,12 @@ import { INestApplication, VersioningType } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Request } from 'express';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 describe('Custom Versioning', () => {
   const extractor = (request: Request): string | string[] => {
+	logger.debug(`>>> Entering extractor(request=${request})`);
     const versions = request
       .header('Accept')
       ?.split(',')
@@ -15,6 +17,7 @@ describe('Custom Versioning', () => {
       .sort()
       .reverse();
 
+	logger.debug(`<<< Exiting extractor(request=${request})`);
     return versions!;
   };
   let app: INestApplication;

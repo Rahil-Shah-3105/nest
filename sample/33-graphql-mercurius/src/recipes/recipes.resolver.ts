@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { NotFoundException } from '@nestjs/common';
 import {
   Args,
@@ -21,6 +22,8 @@ export class RecipesResolver {
   async recipe(@Args('id') id: string): Promise<Recipe> {
     const recipe = await this.recipesService.findOneById(id);
     if (!recipe) {
+	logger.debug(`>>> Entering recipe(id=${id})`);
+	logger.debug(`<<< Exiting recipe(id=${id})`);
       throw new NotFoundException(id);
     }
     return recipe;
@@ -28,6 +31,7 @@ export class RecipesResolver {
 
   @Query(returns => [Recipe])
   recipes(@Args() recipesArgs: RecipesArgs): Promise<Recipe[]> {
+	logger.debug(`>>> Entering recipes(recipesArgs=${recipesArgs})`);
     return this.recipesService.findAll(recipesArgs);
   }
 
@@ -36,18 +40,24 @@ export class RecipesResolver {
     @Args('newRecipeData') newRecipeData: NewRecipeInput,
     @Context('pubsub') pubSub: PubSub,
   ): Promise<Recipe> {
+	logger.debug(`>>> Entering addRecipe(newRecipeData=${newRecipeData},pubSub=${pubSub})`);
     const recipe = await this.recipesService.create(newRecipeData);
     pubSub.publish({ topic: 'recipeAdded', payload: { recipeAdded: recipe } });
+	logger.debug(`<<< Exiting addRecipe(newRecipeData=${newRecipeData},pubSub=${pubSub})`);
     return recipe;
   }
 
   @Mutation(returns => Boolean)
   async removeRecipe(@Args('id') id: string) {
+	logger.debug(`>>> Entering removeRecipe(id=${id})`);
+	logger.debug(`<<< Exiting removeRecipe(id=${id})`);
     return this.recipesService.remove(id);
   }
 
   @Subscription(returns => Recipe)
   recipeAdded(@Context('pubsub') pubSub: PubSub) {
+	logger.debug(`>>> Entering recipeAdded(pubSub=${pubSub})`);
+	logger.debug(`<<< Exiting recipeAdded(pubSub=${pubSub})`);
     return pubSub.subscribe('recipeAdded');
   }
 }

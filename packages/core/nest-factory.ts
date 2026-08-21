@@ -91,13 +91,17 @@ export class NestFactoryStatic {
     serverOrOptions?: AbstractHttpAdapter | NestApplicationOptions,
     options?: NestApplicationOptions,
   ): Promise<T> {
+	logger.debug(`>>> Entering create(moduleCls=${moduleCls},serverOrOptions=${serverOrOptions},options=${options})`);
     const [httpServer, appOptions] = this.isHttpServer(serverOrOptions!)
       ? [serverOrOptions, options]
       : [await this.createHttpAdapter(), serverOrOptions];
 
     const applicationConfig = new ApplicationConfig();
+	logger.debug(`create(moduleCls=${moduleCls},serverOrOptions=${serverOrOptions},options=${options}): applicationConfig → ${applicationConfig}`);
     const container = new NestContainer(applicationConfig, appOptions);
+	logger.debug(`create(moduleCls=${moduleCls},serverOrOptions=${serverOrOptions},options=${options}): container → ${container}`);
     const graphInspector = this.createGraphInspector(appOptions!, container);
+	logger.debug(`create(moduleCls=${moduleCls},serverOrOptions=${serverOrOptions},options=${options}): graphInspector → ${graphInspector}`);
 
     this.setAbortOnError(serverOrOptions, options);
     this.registerLoggerConfiguration(appOptions);
@@ -119,7 +123,9 @@ export class NestFactoryStatic {
       appOptions,
     );
     await instance.preloadLazyPackages();
+	logger.debug(`create(moduleCls=${moduleCls},serverOrOptions=${serverOrOptions},options=${options}): instance → ${instance}`);
     const target = this.createNestInstance(instance);
+	logger.debug(`create(moduleCls=${moduleCls},serverOrOptions=${serverOrOptions},options=${options}): target → ${target}`);
     return this.createAdapterProxy<T>(target, httpServer);
   }
 
@@ -136,14 +142,18 @@ export class NestFactoryStatic {
     moduleCls: IEntryNestModule,
     options?: NestMicroserviceOptions & T,
   ): Promise<INestMicroservice> {
+	logger.debug(`>>> Entering createMicroservice(moduleCls=${moduleCls},options=${options})`);
     const { NestMicroservice } = await loadPackage(
       '@nestjs/microservices',
       'NestFactory',
       () => import('@nestjs/microservices'),
     );
     const applicationConfig = new ApplicationConfig();
+	logger.debug(`createMicroservice(moduleCls=${moduleCls},options=${options}): applicationConfig → ${applicationConfig}`);
     const container = new NestContainer(applicationConfig, options);
+	logger.debug(`createMicroservice(moduleCls=${moduleCls},options=${options}): container → ${container}`);
     const graphInspector = this.createGraphInspector(options!, container);
+	logger.debug(`createMicroservice(moduleCls=${moduleCls},options=${options}): graphInspector → ${graphInspector}`);
 
     this.setAbortOnError(options);
     this.registerLoggerConfiguration(options);
@@ -155,6 +165,7 @@ export class NestFactoryStatic {
       applicationConfig,
       options,
     );
+	logger.debug(`<<< Exiting createMicroservice(moduleCls=${moduleCls},options=${options})`);
     return this.createNestInstance<INestMicroservice>(
       new NestMicroservice(
         container,
@@ -179,8 +190,11 @@ export class NestFactoryStatic {
     options?: NestApplicationContextOptions,
   ): Promise<INestApplicationContext> {
     const applicationConfig = new ApplicationConfig();
+	logger.debug(`createApplicationContext(moduleCls=${moduleCls},options=${options}): applicationConfig → ${applicationConfig}`);
     const container = new NestContainer(applicationConfig, options);
+	logger.debug(`createApplicationContext(moduleCls=${moduleCls},options=${options}): container → ${container}`);
     const graphInspector = this.createGraphInspector(options!, container);
+	logger.debug(`createApplicationContext(moduleCls=${moduleCls},options=${options}): graphInspector → ${graphInspector}`);
 
     this.setAbortOnError(options);
     this.registerLoggerConfiguration(options);
@@ -194,18 +208,23 @@ export class NestFactoryStatic {
     );
 
     const modules = container.getModules().values();
+	logger.debug(`createApplicationContext(moduleCls=${moduleCls},options=${options}): modules → ${modules}`);
     const root = modules.next().value;
 
     const context = this.createNestInstance<NestApplicationContext>(
       new NestApplicationContext(container, options, root),
     );
     if (this.autoFlushLogs) {
+	logger.debug(`>>> Entering createApplicationContext(moduleCls=${moduleCls},options=${options})`);
       context.flushLogsOnOverride();
     }
+	logger.debug(`<<< Exiting createApplicationContext(moduleCls=${moduleCls},options=${options})`);
     return context.init();
   }
 
   private createNestInstance<T>(instance: T): T {
+	logger.debug(`>>> Entering createNestInstance(instance=${instance})`);
+	logger.debug(`<<< Exiting createNestInstance(instance=${instance})`);
     return this.createProxy(instance);
   }
 
@@ -260,14 +279,18 @@ export class NestFactoryStatic {
   }
 
   private handleInitializationError(err: unknown) {
+	logger.debug(`>>> Entering handleInitializationError(err=${err})`);
     if (this.abortOnError) {
       process.abort();
     }
     rethrow(err);
+	logger.debug(`<<< Exiting handleInitializationError(err=${err})`);
   }
 
   private createProxy(target: any) {
+	logger.debug(`>>> Entering createProxy(target=${target})`);
     const proxy = this.createExceptionProxy();
+	logger.debug(`<<< Exiting createProxy(target=${target})`);
     return new Proxy(target, {
       get: proxy,
       set: proxy,
@@ -275,6 +298,8 @@ export class NestFactoryStatic {
   }
 
   private createExceptionProxy() {
+	logger.debug('>>> Entering createExceptionProxy()');
+	logger.debug('<<< Exiting createExceptionProxy()');
     return (receiver: Record<string, any>, prop: string) => {
       if (!(prop in receiver)) {
         return;
@@ -293,6 +318,7 @@ export class NestFactoryStatic {
     const teardown = this.abortOnError === false ? rethrow : undefined;
 
     return (...args: unknown[]) => {
+	logger.debug(`>>> Entering createExceptionZone(receiver=${receiver},prop=${prop})`);
       let result: unknown;
       ExceptionsZone.run(
         () => {
@@ -302,6 +328,7 @@ export class NestFactoryStatic {
         this.autoFlushLogs,
       );
 
+	logger.debug(`<<< Exiting createExceptionZone(receiver=${receiver},prop=${prop})`);
       return result;
     };
   }
@@ -309,6 +336,7 @@ export class NestFactoryStatic {
   private registerLoggerConfiguration(
     options: NestApplicationContextOptions | undefined,
   ) {
+	logger.debug(`>>> Entering registerLoggerConfiguration(options=${options})`);
     if (!options) {
       return;
     }
@@ -319,28 +347,34 @@ export class NestFactoryStatic {
       // If no custom logger is provided but forceConsole is true,
       // create a ConsoleLogger with forceConsole option
       const consoleLogger = new ConsoleLogger({ forceConsole: true });
+	logger.debug(`registerLoggerConfiguration(options=${options}): consoleLogger → ${consoleLogger}`);
       Logger.overrideLogger(consoleLogger);
     }
     if (bufferLogs) {
       Logger.attachBuffer();
     }
     this.autoFlushLogs = autoFlushLogs ?? true;
+	logger.debug(`registerLoggerConfiguration(options=${options}): this.autoFlushLogs → ${this.autoFlushLogs}`);
   }
 
   private async createHttpAdapter<T = any>(
     httpServer?: T,
   ): Promise<AbstractHttpAdapter> {
+	logger.debug(`>>> Entering createHttpAdapter(httpServer=${httpServer})`);
     const { ExpressAdapter } = await loadAdapter(
       '@nestjs/platform-express',
       'HTTP',
       () => import('@nestjs/platform-express'),
     );
+	logger.debug(`<<< Exiting createHttpAdapter(httpServer=${httpServer})`);
     return new ExpressAdapter(httpServer);
   }
 
   private isHttpServer(
     serverOrOptions: AbstractHttpAdapter | NestApplicationOptions,
   ): serverOrOptions is AbstractHttpAdapter {
+	logger.debug(`>>> Entering isHttpServer(serverOrOptions=${serverOrOptions})`);
+	logger.debug(`<<< Exiting isHttpServer(serverOrOptions=${serverOrOptions})`);
     return !!(
       serverOrOptions && (serverOrOptions as AbstractHttpAdapter).patch
     );
@@ -350,14 +384,17 @@ export class NestFactoryStatic {
     serverOrOptions?: AbstractHttpAdapter | NestApplicationOptions,
     options?: NestApplicationContextOptions | NestApplicationOptions,
   ) {
+	logger.debug(`>>> Entering setAbortOnError(serverOrOptions=${serverOrOptions},options=${options})`);
     this.abortOnError = this.isHttpServer(serverOrOptions!)
       ? !(options && options.abortOnError === false)
       : !(serverOrOptions && serverOrOptions.abortOnError === false);
+	logger.debug(`<<< Exiting setAbortOnError(serverOrOptions=${serverOrOptions},options=${options})`);
   }
 
   private createAdapterProxy<T>(app: NestApplication, adapter: HttpServer): T {
     const proxy = new Proxy(app, {
       get: (receiver: Record<string, any>, prop: string) => {
+		logger.debug(`>>> Entering createAdapterProxy(app=${app},adapter=${adapter})`);
         const mapToProxy = (result: unknown) => {
           return result instanceof Promise
             ? result.then(mapToProxy)
@@ -388,9 +425,11 @@ export class NestFactoryStatic {
     appOptions: NestApplicationContextOptions,
     container: NestContainer,
   ) {
+	logger.debug(`>>> Entering createGraphInspector(appOptions=${appOptions},container=${container})`);
     return appOptions?.snapshot
       ? new GraphInspector(container)
       : NoopGraphInspector;
+	logger.debug(`<<< Exiting createGraphInspector(appOptions=${appOptions},container=${container})`);
   }
 }
 

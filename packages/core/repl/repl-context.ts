@@ -47,12 +47,16 @@ export class ReplContext {
   }
 
   public writeToStdout(text: string) {
+	logger.debug(`>>> Entering writeToStdout(text=${text})`);
     process.stdout.write(text);
+	logger.debug(`<<< Exiting writeToStdout(text=${text})`);
   }
 
   private initializeContext() {
+	logger.debug('>>> Entering initializeContext()');
     const modules = this.container.getModules();
 
+	logger.debug(`initializeContext(): modules → ${modules}`);
     modules.forEach(moduleRef => {
       let moduleName = moduleRef.metatype.name;
       if (moduleName === InternalCoreModule.name) {
@@ -65,6 +69,7 @@ export class ReplContext {
       this.introspectCollection(moduleRef, moduleName, 'providers');
       this.introspectCollection(moduleRef, moduleName, 'controllers');
 
+	logger.debug('<<< Exiting initializeContext()');
       // For in REPL auto-complete functionality
       Object.defineProperty(this.globalScope, moduleName, {
         value: moduleRef.metatype,
@@ -79,6 +84,7 @@ export class ReplContext {
     moduleKey: ModuleKey,
     collection: keyof ModuleDebugEntry,
   ) {
+	logger.debug(`>>> Entering introspectCollection(moduleRef=${moduleRef},moduleKey=${moduleKey},collection=${collection})`);
     const moduleDebugEntry = {};
     moduleRef[collection].forEach(({ token }) => {
       const stringifiedToken = this.stringifyToken(token);
@@ -105,6 +111,7 @@ export class ReplContext {
       moduleDebugEntry[stringifiedToken] = token;
     });
 
+	logger.debug(`<<< Exiting introspectCollection(moduleRef=${moduleRef},moduleKey=${moduleKey},collection=${collection})`);
     this.debugRegistry[moduleKey] = {
       ...this.debugRegistry?.[moduleKey],
       [collection]: moduleDebugEntry,
@@ -123,11 +130,13 @@ export class ReplContext {
     NativeFunctionRef: ReplFunctionClass,
   ): InstanceType<ReplFunctionClass>[] {
     const nativeFunction = new NativeFunctionRef(this);
+	logger.debug(`addNativeFunction(NativeFunctionRef=${NativeFunctionRef}): nativeFunction → ${nativeFunction}`);
     const nativeFunctions = [nativeFunction];
 
     this.nativeFunctions.set(nativeFunction.fnDefinition.name, nativeFunction);
 
     nativeFunction.fnDefinition.aliases?.forEach(aliasName => {
+	logger.debug(`>>> Entering addNativeFunction(NativeFunctionRef=${NativeFunctionRef})`);
       const aliasNativeFunction: InstanceType<ReplFunctionClass> =
         Object.create(nativeFunction);
       aliasNativeFunction.fnDefinition = {
@@ -136,15 +145,18 @@ export class ReplContext {
         signature: aliasNativeFunction.fnDefinition.signature,
       };
       this.nativeFunctions.set(aliasName, aliasNativeFunction);
+	logger.debug(`addNativeFunction(NativeFunctionRef=${NativeFunctionRef}): aliasNativeFunction.fnDefinition → ${aliasNativeFunction.fnDefinition}`);
       nativeFunctions.push(aliasNativeFunction);
     });
 
+	logger.debug(`<<< Exiting addNativeFunction(NativeFunctionRef=${NativeFunctionRef})`);
     return nativeFunctions;
   }
 
   private registerFunctionIntoGlobalScope(
     nativeFunction: InstanceType<ReplFunctionClass>,
   ) {
+	logger.debug(`>>> Entering registerFunctionIntoGlobalScope(nativeFunction=${nativeFunction})`);
     // Bind the method to REPL's context:
     this.globalScope[nativeFunction.fnDefinition.name] =
       nativeFunction.action.bind(nativeFunction);
@@ -152,6 +164,7 @@ export class ReplContext {
     // Load the help trigger as a `help` getter on each native function:
     const functionBoundRef: ReplFunction['action'] =
       this.globalScope[nativeFunction.fnDefinition.name];
+	logger.debug(`<<< Exiting registerFunctionIntoGlobalScope(nativeFunction=${nativeFunction})`);
     Object.defineProperty(functionBoundRef, 'help', {
       enumerable: false,
       configurable: false,
@@ -177,8 +190,10 @@ export class ReplContext {
     builtInFunctionsClassRefs
       .concat(nativeFunctionsClassRefs)
       .forEach(NativeFunction => {
+		logger.debug(`>>> Entering initializeNativeFunctions(nativeFunctionsClassRefs=${nativeFunctionsClassRefs})`);
         const nativeFunctions = this.addNativeFunction(NativeFunction);
         nativeFunctions.forEach(nativeFunction => {
+		logger.debug(`initializeNativeFunctions(nativeFunctionsClassRefs=${nativeFunctionsClassRefs}): nativeFunctions → ${nativeFunctions}`);
           this.registerFunctionIntoGlobalScope(nativeFunction);
         });
       });

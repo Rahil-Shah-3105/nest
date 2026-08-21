@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AddressInfo } from 'net';
 import http from 'http';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 describe('AppController (e2e)', () => {
@@ -44,10 +45,12 @@ describe('AppController (e2e)', () => {
         let completed = false;
 
         const finish = (err?: Error) => {
+		logger.debug(`>>> Entering finish(err=${err})`);
           if (!completed) {
             completed = true;
             if (err) reject(err);
             else resolve();
+			logger.debug(`<<< Exiting finish(err=${err})`);
           }
         };
 

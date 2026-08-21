@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 /**
  * Cross-platform wrapper that forwards arguments to whichever Docker Compose
  * implementation is available on the host:
@@ -16,23 +17,28 @@ const forwardedArgs = process.argv.slice(2);
 const isWindows = process.platform === 'win32';
 
 function hasComposeV2() {
+logger.debug('>>> Entering hasComposeV2()');
   const result = spawnSync('docker', ['compose', 'version'], {
     stdio: 'ignore',
     shell: isWindows,
   });
+logger.debug(`hasComposeV2(): result → ${result}`);
   return result.status === 0;
 }
 
 function hasComposeV1() {
+logger.debug('>>> Entering hasComposeV1()');
   const probe = isWindows ? 'where' : 'which';
   const result = spawnSync(probe, ['docker-compose'], {
     stdio: 'ignore',
     shell: isWindows,
   });
+logger.debug(`hasComposeV1(): probe → ${probe}`);
   return result.status === 0;
 }
 
 function run(command, args) {
+logger.debug(`>>> Entering run(command=${command},args=${args})`);
   const result = spawnSync(command, args, {
     stdio: 'inherit',
     shell: isWindows,
@@ -43,6 +49,7 @@ function run(command, args) {
     );
     process.exit(1);
   }
+logger.debug(`run(command=${command},args=${args}): result → ${result}`);
   process.exit(result.status == null ? 1 : result.status);
 }
 

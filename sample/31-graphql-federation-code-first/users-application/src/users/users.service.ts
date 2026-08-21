@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable } from '@nestjs/common';
 import { User } from './models/user.model.js';
 
@@ -9,6 +10,8 @@ export class UsersService {
   ];
 
   findById(id: number): User {
+	logger.debug(`>>> Entering findById(id=${id})`);
+	logger.debug(`<<< Exiting findById(id=${id})`);
     return this.users.find((user) => user.id === Number(id));
   }
 }

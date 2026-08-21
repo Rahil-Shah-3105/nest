@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const RETURN_VALUE = 'test';
@@ -18,21 +19,29 @@ const EXCLUDE_VALUE = 'test_exclude';
 class TestController {
   @Get('test')
   test() {
+	logger.debug('>>> Entering test()');
+	logger.debug('<<< Exiting test()');
     return RETURN_VALUE;
   }
 
   @Get('tests/wildcard_nested')
   wildcard_nested() {
+	logger.debug('>>> Entering wildcard_nested()');
+	logger.debug('<<< Exiting wildcard_nested()');
     return RETURN_VALUE;
   }
 
   @Get('legacy-wildcard/overview')
   legacyWildcard() {
+	logger.debug('>>> Entering legacyWildcard()');
+	logger.debug('<<< Exiting legacyWildcard()');
     return RETURN_VALUE;
   }
 
   @Get('exclude')
   exclude() {
+	logger.debug('>>> Entering exclude()');
+	logger.debug('<<< Exiting exclude()');
     return EXCLUDE_VALUE;
   }
 }
@@ -43,6 +52,7 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.debug(`>>> Entering configure(consumer=${consumer})`);
     consumer
       .apply((req, res, next) => res.send(WILDCARD_VALUE))
       .forRoutes('tests/*path', 'legacy-wildcard/*')
@@ -52,6 +62,7 @@ class TestModule {
       .apply((req, res, next) => res.send(RETURN_VALUE))
       .exclude('exclude')
       .forRoutes('*');
+	logger.debug(`<<< Exiting configure(consumer=${consumer})`);
   }
 }
 

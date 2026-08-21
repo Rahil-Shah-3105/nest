@@ -1,16 +1,20 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 
 declare const module: any;
 
 async function bootstrap() {
+logger.debug('>>> Entering bootstrap()');
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
+logger.debug(`bootstrap(): app → ${app}`);
   console.log(`Application is running on: ${await app.getUrl()}`);
 
   if (module.hot) {
     module.hot.accept();
     module.hot.dispose(() => app.close());
+	logger.debug('<<< Exiting bootstrap()');
   }
 }
 await bootstrap();

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   DynamicModule,
@@ -14,6 +15,8 @@ class LoggerService {
 
 class LoggerModule {
   static forRoot(prefix: string): DynamicModule {
+	logger.debug(`>>> Entering forRoot(prefix=${prefix})`);
+	logger.debug(`<<< Exiting forRoot(prefix=${prefix})`);
     return {
       module: LoggerModule,
       global: true,
@@ -28,6 +31,8 @@ class LoggerModule {
   }
 
   static forFeature(prefix: string): DynamicModule {
+	logger.debug(`>>> Entering forFeature(prefix=${prefix})`);
+	logger.debug(`<<< Exiting forFeature(prefix=${prefix})`);
     return {
       module: LoggerModule,
       providers: [
@@ -54,6 +59,8 @@ class CatController {
   ) {}
 
   findAll() {
+	logger.debug('>>> Entering findAll()');
+	logger.debug('<<< Exiting findAll()');
     return [];
   }
 }

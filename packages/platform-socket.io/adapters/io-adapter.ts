@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   AbstractWsAdapter,
   type MessageMappingProperties,
@@ -19,6 +20,7 @@ export class IoAdapter extends AbstractWsAdapter {
     options?: ServerOptions & { namespace?: string; server?: Server },
   ): Server | Namespace {
     if (!options) {
+	logger.debug(`>>> Entering create(port=${port},options=${options})`);
       return this.createIOServer(port);
     }
     const { namespace, server, ...opt } = options;
@@ -27,10 +29,13 @@ export class IoAdapter extends AbstractWsAdapter {
       : namespace
         ? this.createIOServer(port, opt).of(namespace)
         : this.createIOServer(port, opt);
+		logger.debug(`<<< Exiting create(port=${port},options=${options})`);
   }
 
   public createIOServer(port: number, options?: ServerOptions): Server {
     if (this.httpServer && port === 0) {
+	logger.debug(`>>> Entering createIOServer(port=${port},options=${options})`);
+	logger.debug(`<<< Exiting createIOServer(port=${port},options=${options})`);
       return new Server(this.httpServer, options);
     }
     return new Server(port, options);
@@ -41,6 +46,7 @@ export class IoAdapter extends AbstractWsAdapter {
     handlers: MessageMappingProperties[],
     transform: (data: any) => Observable<any>,
   ) {
+	logger.debug(`>>> Entering bindMessageHandlers(socket=${socket},handlers=${handlers},transform=${transform})`);
     let disconnect$ = this.disconnectMap.get(socket);
     if (!disconnect$) {
       disconnect$ = fromEvent(socket, DISCONNECT_EVENT).pipe(share(), first());
@@ -64,6 +70,7 @@ export class IoAdapter extends AbstractWsAdapter {
         }
         if (!isAckHandledManually && isFunction(ack)) {
           ack(response);
+		logger.debug(`<<< Exiting bindMessageHandlers(socket=${socket},handlers=${handlers},transform=${transform})`);
         }
       });
     });
@@ -71,6 +78,7 @@ export class IoAdapter extends AbstractWsAdapter {
 
   public mapPayload(payload: unknown): { data: any; ack?: Function } {
     if (!Array.isArray(payload)) {
+	logger.debug(`>>> Entering mapPayload(payload=${payload})`);
       if (isFunction(payload)) {
         return { data: undefined, ack: payload };
       }
@@ -78,6 +86,7 @@ export class IoAdapter extends AbstractWsAdapter {
     }
     const lastElement = payload[payload.length - 1];
     const isAck = isFunction(lastElement);
+	logger.debug(`mapPayload(payload=${payload}): isAck → ${isAck}`);
     if (isAck) {
       const size = payload.length - 1;
       return {
@@ -85,15 +94,20 @@ export class IoAdapter extends AbstractWsAdapter {
         ack: lastElement,
       };
     }
+	logger.debug(`<<< Exiting mapPayload(payload=${payload})`);
     return { data: payload };
   }
 
   public bindClientDisconnect(client: Socket, callback: Function) {
+	logger.debug(`>>> Entering bindClientDisconnect(client=${client},callback=${callback})`);
     client.once(DISCONNECT_EVENT, (reason: string) => callback(reason));
+	logger.debug(`<<< Exiting bindClientDisconnect(client=${client},callback=${callback})`);
   }
 
   public async close(server: Server): Promise<void> {
     if (this.forceCloseConnections && server.httpServer === this.httpServer) {
+	logger.debug(`>>> Entering close(server=${server})`);
+	logger.debug(`<<< Exiting close(server=${server})`);
       return;
     }
 
