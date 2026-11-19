@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   DynamicModule,
@@ -14,6 +15,8 @@ class LoggerService {
 
 class LoggerModule {
   static forRoot(prefix: string): DynamicModule {
+	logger.error(`>>> Entering forRoot(prefix=${prefix})`, { "event.action": "forRoot", "logrite.prefix": prefix });
+	logger.warn(`<<< Exiting forRoot(prefix=${prefix})`, { "event.action": "forRoot", "logrite.prefix": prefix });
     return {
       module: LoggerModule,
       global: true,
@@ -28,6 +31,8 @@ class LoggerModule {
   }
 
   static forFeature(prefix: string): DynamicModule {
+	logger.error(`>>> Entering forFeature(prefix=${prefix})`, { "event.action": "forFeature", "logrite.prefix": prefix });
+	logger.warn(`<<< Exiting forFeature(prefix=${prefix})`, { "event.action": "forFeature", "logrite.prefix": prefix });
     return {
       module: LoggerModule,
       providers: [
@@ -54,6 +59,8 @@ class CatController {
   ) {}
 
   findAll() {
+	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
+	logger.warn('<<< Exiting findAll()', { "event.action": "findAll" });
     return [];
   }
 }

@@ -77,6 +77,7 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
 
   constructor(protected readonly options: Required<RmqOptions>['options']) {
     super();
+	logger.error(`>>> Entering constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
     this.queue = this.getOptionsProp(this.options, 'queue', RMQ_DEFAULT_QUEUE);
     this.queueOptions = this.getOptionsProp(
       this.options,
@@ -104,17 +105,23 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+	logger.warn(`<<< Exiting constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
   }
 
   public async close(): Promise<void> {
+	logger.error('>>> Entering close()', { "event.action": "close" });
     this.channel && (await this.channel.close());
     this.client && (await this.client.close());
     this.channel = null;
+	logger.debug(`close(): this.channel → ${this.channel}`, { "event.action": "close" });
     this.client = null;
+	logger.debug(`close(): this.client → ${this.client}`, { "event.action": "close" });
     this.pendingEventListeners = [];
+	logger.debug(`close(): this.pendingEventListeners → ${this.pendingEventListeners}`, { "event.action": "close" });
   }
 
   public async connect(): Promise<any> {
+	logger.error('>>> Entering connect()', { "event.action": "connect" });
     if (this.client) {
       return this.connectionPromise;
     }
@@ -129,6 +136,7 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
       this.client!.on(event, callback),
     );
     this.pendingEventListeners = [];
+	logger.debug(`connect(): this.pendingEventListeners → ${this.pendingEventListeners}`, { "event.action": "connect" });
 
     this.responseEmitter = new EventEmitter();
     this.responseEmitter.setMaxListeners(0);
@@ -148,10 +156,12 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
     source$.subscribe(this.connection$);
     this.connectionPromise = this.convertConnectionToPromise();
 
+	logger.warn('<<< Exiting connect()', { "event.action": "connect" });
     return this.connectionPromise;
   }
 
   public createChannel(): Promise<void> {
+	logger.error('>>> Entering createChannel()', { "event.action": "createChannel" });
     return new Promise(resolve => {
       this.channel = this.client!.createChannel({
         json: false,
@@ -161,8 +171,11 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
   }
 
   public createClient(): AmqpConnectionManager {
+	logger.error('>>> Entering createClient()', { "event.action": "createClient" });
     const socketOptions = this.getOptionsProp(this.options, 'socketOptions');
     const urls = this.getOptionsProp(this.options, 'urls') || [RMQ_DEFAULT_URL];
+	logger.error(`createClient(): socketOptions → ${socketOptions}`, { "event.action": "createClient" });
+	logger.error(`createClient(): urls → ${urls}`, { "event.action": "createClient" });
     return rmqPackage.connect(urls, socketOptions);
   }
 
@@ -170,6 +183,7 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
     instance: any,
     source$: Observable<T>,
   ): Observable<T> {
+	logger.error(`>>> Entering mergeDisconnectEvent(instance=${instance},source$=${source$})`, { "event.action": "mergeDisconnectEvent", "logrite.instance": instance, "logrite.source$": source$ });
     const eventToError = (eventType: string) =>
       fromEvent(instance, eventType).pipe(
         map((err: unknown) => {
@@ -179,12 +193,15 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
     const disconnect$ = eventToError(RmqEventsMap.DISCONNECT);
 
     const urls = this.getOptionsProp(this.options, 'urls', []);
+	logger.error(`mergeDisconnectEvent(instance=${instance},source$=${source$}): urls → ${urls}`, { "event.action": "mergeDisconnectEvent", "logrite.instance": instance, "logrite.source$": source$ });
     const connectFailedEventKey = 'connectFailed';
     const connectFailed$ = eventToError(connectFailedEventKey).pipe(
       retryWhen(e =>
         e.pipe(
           scan((errorCount, error: any) => {
             if (urls.indexOf(error.url) >= urls.length - 1) {
+			logger.error(`mergeDisconnectEvent(instance=${instance},source$=${source$}): connectFailedEventKey → ${connectFailedEventKey}`, { "event.action": "mergeDisconnectEvent", "logrite.instance": instance, "logrite.source$": source$ });
+			logger.warn(`<<< Exiting mergeDisconnectEvent(instance=${instance},source$=${source$})`, { "event.action": "mergeDisconnectEvent", "logrite.instance": instance, "logrite.source$": source$ });
               throw error;
             }
             return errorCount + 1;
@@ -198,17 +215,21 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
   }
 
   public async convertConnectionToPromise() {
+	logger.error('>>> Entering convertConnectionToPromise()', { "event.action": "convertConnectionToPromise" });
     try {
       return await firstValueFrom(this.connection$);
     } catch (err) {
+	logger.error('Exception in convertConnectionToPromise():', (err as Error).message, err, { "event.action": "convertConnectionToPromise", "event.category": "process" });
       if (err instanceof EmptyError) {
         return;
       }
+	logger.warn('<<< Exiting convertConnectionToPromise()', { "event.action": "convertConnectionToPromise" });
       throw err;
     }
   }
 
   public async setupChannel(channel: Channel, resolve: Function) {
+	logger.error(`>>> Entering setupChannel(channel=${channel},resolve=${resolve})`, { "event.action": "setupChannel", "logrite.channel": channel, "logrite.resolve": resolve });
     const prefetchCount =
       this.getOptionsProp(this.options, 'prefetchCount') ||
       RMQ_DEFAULT_PREFETCH_COUNT;
@@ -248,10 +269,13 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
     await channel.prefetch(prefetchCount, isGlobalPrefetchCount);
     await this.consumeChannel(channel);
     resolve();
+	logger.warn(`<<< Exiting setupChannel(channel=${channel},resolve=${resolve})`, { "event.action": "setupChannel", "logrite.channel": channel, "logrite.resolve": resolve });
   }
 
   public async consumeChannel(channel: Channel) {
+	logger.error(`>>> Entering consumeChannel(channel=${channel})`, { "event.action": "consumeChannel", "logrite.channel": channel });
     const noAck = this.getOptionsProp(this.options, 'noAck', RMQ_DEFAULT_NOACK);
+	logger.warn(`<<< Exiting consumeChannel(channel=${channel})`, { "event.action": "consumeChannel", "logrite.channel": channel });
     await channel.consume(
       this.replyQueue,
       (msg: ConsumeMessage | null) =>
@@ -263,12 +287,15 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
   }
 
   public registerErrorListener(client: AmqpConnectionManager): void {
+	logger.error(`>>> Entering registerErrorListener(client=${client})`, { "event.action": "registerErrorListener", "logrite.client": client });
     client.addListener(RmqEventsMap.ERROR, (err: any) =>
       this.logger.error(err),
     );
+	logger.warn(`<<< Exiting registerErrorListener(client=${client})`, { "event.action": "registerErrorListener", "logrite.client": client });
   }
 
   public registerDisconnectListener(client: AmqpConnectionManager): void {
+	logger.error(`>>> Entering registerDisconnectListener(client=${client})`, { "event.action": "registerDisconnectListener", "logrite.client": client });
     client.addListener(RmqEventsMap.DISCONNECT, (err: any) => {
       this._status$.next(RmqStatus.DISCONNECTED);
 
@@ -279,64 +306,77 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
 
         // Prevent unhandled promise rejection
         this.connectionPromise.catch(() => {});
+		logger.error(`Exception in registerDisconnectListener(client=${client}): (no error binding)`, { "event.action": "registerDisconnectListener", "event.category": "process", "logrite.client": client });
       }
 
       this.logger.error(DISCONNECTED_RMQ_MESSAGE);
       this.logger.error(err);
     });
+	logger.warn(`<<< Exiting registerDisconnectListener(client=${client})`, { "event.action": "registerDisconnectListener", "logrite.client": client });
   }
 
   private registerConnectListener(client: AmqpConnectionManager): void {
+	logger.error(`>>> Entering registerConnectListener(client=${client})`, { "event.action": "registerConnectListener", "logrite.client": client });
     client.addListener(RmqEventsMap.CONNECT, () => {
       this._status$.next(RmqStatus.CONNECTED);
       this.logger.log('Successfully connected to RMQ broker');
 
       if (this.isInitialConnect) {
         this.isInitialConnect = false;
+		logger.debug(`registerConnectListener(client=${client}): this.isInitialConnect → ${this.isInitialConnect}`, { "event.action": "registerConnectListener", "logrite.client": client });
 
         if (!this.channel) {
           this.connectionPromise = this.createChannel();
         }
       } else {
         this.connectionPromise = Promise.resolve();
+		logger.warn(`<<< Exiting registerConnectListener(client=${client})`, { "event.action": "registerConnectListener", "logrite.client": client });
       }
     });
   }
 
   public registerBlockedListener(client: AmqpConnectionManager): void {
+	logger.error(`>>> Entering registerBlockedListener(client=${client})`, { "event.action": "registerBlockedListener", "logrite.client": client });
     client.addListener(
       RmqEventsMap.BLOCKED,
       ({ reason }: { reason: string }) => {
         this._status$.next(RmqStatus.BLOCKED);
         this.logger.warn(BLOCKED_RMQ_MESSAGE(reason));
+		logger.warn(`<<< Exiting registerBlockedListener(client=${client})`, { "event.action": "registerBlockedListener", "logrite.client": client });
       },
     );
   }
 
   public registerUnblockedListener(client: AmqpConnectionManager): void {
+	logger.error(`>>> Entering registerUnblockedListener(client=${client})`, { "event.action": "registerUnblockedListener", "logrite.client": client });
     client.addListener(RmqEventsMap.UNBLOCKED, () => {
       this._status$.next(RmqStatus.UNBLOCKED);
       this.logger.log(UNBLOCKED_RMQ_MESSAGE);
     });
+	logger.warn(`<<< Exiting registerUnblockedListener(client=${client})`, { "event.action": "registerUnblockedListener", "logrite.client": client });
   }
 
   public on<
     EventKey extends keyof RmqEvents = keyof RmqEvents,
     EventCallback extends RmqEvents[EventKey] = RmqEvents[EventKey],
   >(event: EventKey, callback: EventCallback) {
+	logger.error(`>>> Entering on(event=${event},callback=${callback})`, { "event.action": "on", "logrite.callback": callback });
     if (this.client) {
       this.client.addListener(event, callback);
     } else {
       this.pendingEventListeners.push({ event, callback });
+	logger.warn(`<<< Exiting on(event=${event},callback=${callback})`, { "event.action": "on", "logrite.callback": callback });
     }
   }
 
   public unwrap<T>(): T {
+	logger.error('>>> Entering unwrap()', { "event.action": "unwrap" });
     if (!this.client) {
       throw new Error(
         'Not initialized. Please call the "connect" method first.',
       );
     }
+	logger.warn('<<< Exiting unwrap()', { "event.action": "unwrap" });
     return this.client as T;
   }
 
@@ -360,6 +400,7 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
     if (isFunction(options)) {
       callback = options as (packet: WritePacket) => any;
       options = undefined;
+	logger.error(`handleMessage(packet=${packet},options=${options},callback=${callback}): callback → ${callback}`, { "event.action": "handleMessage", "logrite.packet": packet, "logrite.options": options, "logrite.callback": callback });
     }
 
     const { err, response, isDisposed } = await this.deserializer.deserialize(
@@ -383,6 +424,7 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
     message: ReadPacket,
     callback: (packet: WritePacket) => any,
   ): () => void {
+	logger.error(`>>> Entering publish(message=${message},callback=${callback})`, { "event.action": "publish", "logrite.message": message, "logrite.callback": callback });
     try {
       const correlationId = randomStringGenerator();
       const listener = ({
@@ -425,6 +467,7 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
           ? message.pattern
           : JSON.stringify(message.pattern);
 
+		logger.error(`publish(message=${message},callback=${callback}): correlationId → ${correlationId}`, { "event.action": "publish", "logrite.message": message, "logrite.callback": callback });
         // The exchange is the same as the queue when wildcards are enabled
         // and the exchange is not explicitly set
         const exchange = this.getOptionsProp(
@@ -447,19 +490,23 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
       return () => this.responseEmitter.removeListener(correlationId, listener);
     } catch (err) {
       callback({ err });
+	logger.warn(`<<< Exiting publish(message=${message},callback=${callback})`, { "event.action": "publish", "logrite.message": message, "logrite.callback": callback });
       return () => {};
     }
   }
 
   protected dispatchEvent(packet: ReadPacket): Promise<any> {
+	logger.error(`>>> Entering dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     const serializedPacket: ReadPacket & Partial<RmqRecord> =
       this.serializer.serialize(packet);
 
     const options = serializedPacket.options;
     delete serializedPacket.options;
 
+	logger.warn(`<<< Exiting dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     return new Promise<void>((resolve, reject) => {
       const content = Buffer.from(JSON.stringify(serializedPacket));
+	logger.error(`dispatchEvent(packet=${packet}): content → ${content}`, { "event.action": "dispatchEvent", "logrite.packet": packet });
       const sendOptions = {
         persistent: this.getOptionsProp(
           this.options,
@@ -494,16 +541,20 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
   }
 
   protected initializeSerializer(options: RmqOptions['options']) {
+	logger.error(`>>> Entering initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
     this.serializer = options?.serializer ?? new RmqRecordSerializer();
+	logger.warn(`<<< Exiting initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
   }
 
   protected mergeHeaders(
     requestHeaders?: Record<string, string>,
   ): Record<string, string> | undefined {
+	logger.error(`>>> Entering mergeHeaders(requestHeaders=${requestHeaders})`, { "event.action": "mergeHeaders", "logrite.requestHeaders": requestHeaders });
     if (!requestHeaders && !this.options?.headers) {
       return undefined;
     }
 
+	logger.warn(`<<< Exiting mergeHeaders(requestHeaders=${requestHeaders})`, { "event.action": "mergeHeaders", "logrite.requestHeaders": requestHeaders });
     return {
       ...this.options?.headers,
       ...requestHeaders,
@@ -511,10 +562,14 @@ export class ClientRMQ extends ClientProxy<RmqEvents, RmqStatus> {
   }
 
   protected parseMessageContent(content: Buffer) {
+	logger.error(`>>> Entering parseMessageContent(content=${content})`, { "event.action": "parseMessageContent", "logrite.content": content });
     const rawContent = content.toString();
     try {
+	logger.error(`parseMessageContent(content=${content}): rawContent → ${rawContent}`, { "event.action": "parseMessageContent", "logrite.content": content });
       return JSON.parse(rawContent);
     } catch {
+	logger.error(`Exception in parseMessageContent(content=${content}): (no error binding)`, { "event.action": "parseMessageContent", "event.category": "process", "logrite.content": content });
+	logger.warn(`<<< Exiting parseMessageContent(content=${content})`, { "event.action": "parseMessageContent", "logrite.content": content });
       return rawContent;
     }
   }

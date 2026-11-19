@@ -16,7 +16,9 @@ interface CapturedLogger {
 }
 
 function createCaptureLogger(): CapturedLogger {
+capture.error('>>> Entering createCaptureLogger()', { "event.action": "createCaptureLogger" });
   const warnings: string[] = [];
+capture.warn('<<< Exiting createCaptureLogger()', { "event.action": "createCaptureLogger" });
   return {
     warnings,
     logger: {

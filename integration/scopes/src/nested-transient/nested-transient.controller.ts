@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get, Scope } from '@nestjs/common';
 import { FirstRequestService } from './first-request.service.js';
 import { SecondRequestService } from './second-request.service.js';
@@ -15,6 +16,8 @@ export class NestedTransientController {
 
   @Get()
   getIsolationData() {
+	logger.error('>>> Entering getIsolationData()', { "event.action": "getIsolationData" });
+	logger.warn('<<< Exiting getIsolationData()', { "event.action": "getIsolationData" });
     return {
       firstServiceContext: this.firstService.logger.getNestedContext(),
       firstServiceNestedId: this.firstService.logger.getNestedInstanceId(),

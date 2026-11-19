@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   INestMicroservice,
@@ -25,6 +26,8 @@ do {
 @Injectable()
 class RpcOptionsProvider {
   getOptions(): TcpOptions {
+	logger.error('>>> Entering getOptions()', { "event.action": "getOptions" });
+	logger.warn('<<< Exiting getOptions()', { "event.action": "getOptions" });
     return {
       transport: Transport.TCP,
       options: {
@@ -39,6 +42,8 @@ class RpcOptionsProvider {
 class RpcController {
   @MessagePattern({ cmd: 'sum' })
   sumPayload(@Payload() payload: number[]) {
+	logger.error(`>>> Entering sumPayload(payload=${payload})`, { "event.action": "sumPayload" });
+	logger.warn(`<<< Exiting sumPayload(payload=${payload})`, { "event.action": "sumPayload" });
     return payload.reduce((a, b) => a + b, 0);
   }
 }

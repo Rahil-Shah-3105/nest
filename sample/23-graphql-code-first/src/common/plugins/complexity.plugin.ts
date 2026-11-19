@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { ApolloServerPlugin, GraphQLRequestListener } from '@apollo/server';
 import { Plugin } from '@nestjs/apollo';
 import { GraphQLSchemaHost } from '@nestjs/graphql';
@@ -13,10 +14,12 @@ export class ComplexityPlugin implements ApolloServerPlugin {
   constructor(private gqlSchemaHost: GraphQLSchemaHost) {}
 
   async requestDidStart(): Promise<GraphQLRequestListener<any>> {
+	logger.error('>>> Entering requestDidStart()', { "event.action": "requestDidStart" });
     const { schema } = this.gqlSchemaHost;
 
     return {
       async didResolveOperation({ request, document }) {
+		logger.error('>>> Entering didResolveOperation()', { "event.action": "didResolveOperation" });
         const complexity = getComplexity({
           schema,
           operationName: request.operationName,
@@ -33,7 +36,9 @@ export class ComplexityPlugin implements ApolloServerPlugin {
           );
         }
         console.log('Query Complexity:', complexity);
+		logger.warn('<<< Exiting didResolveOperation()', { "event.action": "didResolveOperation" });
       },
     };
+	logger.warn('<<< Exiting requestDidStart()', { "event.action": "requestDidStart" });
   }
 }

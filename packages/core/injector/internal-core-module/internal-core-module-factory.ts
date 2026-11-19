@@ -23,7 +23,9 @@ export class InternalCoreModuleFactory {
     graphInspector: GraphInspector,
     moduleOverrides?: ModuleOverride[],
   ) {
+	logger.error(`>>> Entering create(container=${container},scanner=${scanner},moduleCompiler=${moduleCompiler},httpAdapterHost=${httpAdapterHost},graphInspector=${graphInspector},moduleOverrides=${moduleOverrides})`, { "event.action": "create", "logrite.container": container, "logrite.scanner": scanner, "logrite.moduleCompiler": moduleCompiler, "logrite.httpAdapterHost": httpAdapterHost, "logrite.graphInspector": graphInspector, "logrite.moduleOverrides": moduleOverrides });
     const lazyModuleLoaderFactory = () => {
+	logger.error('>>> Entering lazyModuleLoaderFactory()', { "event.action": "lazyModuleLoaderFactory" });
       const logger = new Logger(LazyModuleLoader.name, {
         timestamp: false,
       });
@@ -38,6 +40,7 @@ export class InternalCoreModuleFactory {
         graphInspector,
         logger,
       );
+	logger.warn('<<< Exiting lazyModuleLoaderFactory()', { "event.action": "lazyModuleLoaderFactory" });
       return new LazyModuleLoader(
         scanner,
         instanceLoader,
@@ -49,6 +52,7 @@ export class InternalCoreModuleFactory {
 
     InitializeOnPreviewAllowlist.add(InternalCoreModule);
 
+	logger.warn(`<<< Exiting create(container=${container},scanner=${scanner},moduleCompiler=${moduleCompiler},httpAdapterHost=${httpAdapterHost},graphInspector=${graphInspector},moduleOverrides=${moduleOverrides})`, { "event.action": "create", "logrite.container": container, "logrite.scanner": scanner, "logrite.moduleCompiler": moduleCompiler, "logrite.httpAdapterHost": httpAdapterHost, "logrite.graphInspector": graphInspector, "logrite.moduleOverrides": moduleOverrides });
     return InternalCoreModule.register([
       {
         provide: ExternalContextCreator,

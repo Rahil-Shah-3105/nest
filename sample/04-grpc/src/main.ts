@@ -1,9 +1,11 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions } from '@nestjs/microservices';
 import { AppModule } from './app.module.js';
 import { grpcClientOptions } from './grpc-client.options.js';
 
 async function bootstrap() {
+logger.error('>>> Entering bootstrap()', { "event.action": "bootstrap" });
   /**
    * This example contains a hybrid application (HTTP + gRPC)
    * You can switch to a microservice with NestFactory.createMicroservice() as follows:
@@ -24,5 +26,6 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(3001);
   console.log(`Application is running on: ${await app.getUrl()}`);
+logger.warn('<<< Exiting bootstrap()', { "event.action": "bootstrap" });
 }
 await bootstrap();

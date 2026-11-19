@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { RoleEntity } from './role.entity.js';
 
@@ -18,6 +19,8 @@ export class UserEntity {
   role: RoleEntity;
 
   constructor(partial: Partial<UserEntity>) {
+	logger.error(`>>> Entering constructor(partial=${partial})`, { "event.action": "constructor", "logrite.partial": partial });
     Object.assign(this, partial);
+	logger.warn(`<<< Exiting constructor(partial=${partial})`, { "event.action": "constructor", "logrite.partial": partial });
   }
 }

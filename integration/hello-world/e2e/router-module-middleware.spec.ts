@@ -8,6 +8,7 @@ import {
 import { RouterModule } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const RETURN_VALUE = 'test';
@@ -17,11 +18,15 @@ const SCOPED_VALUE = 'test_scoped';
 class TestController {
   @Get('test')
   test() {
+	logger.error('>>> Entering test()', { "event.action": "test" });
+	logger.warn('<<< Exiting test()', { "event.action": "test" });
     return RETURN_VALUE;
   }
 
   @Get('test2')
   test2() {
+	logger.error('>>> Entering test2()', { "event.action": "test2" });
+	logger.warn('<<< Exiting test2()', { "event.action": "test2" });
     return RETURN_VALUE;
   }
 }
@@ -32,9 +37,11 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     consumer
       .apply((req, res, next) => res.send(SCOPED_VALUE))
       .forRoutes(TestController);
+	logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
   }
 }
 

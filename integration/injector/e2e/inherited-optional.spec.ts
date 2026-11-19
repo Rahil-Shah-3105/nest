@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable, mixin, Module, Optional } from '@nestjs/common';
 import { UnknownDependenciesException } from '@nestjs/core/errors/exceptions/unknown-dependencies.exception.js';
 import { Test } from '@nestjs/testing';
@@ -5,6 +6,8 @@ import { Test } from '@nestjs/testing';
 @Injectable()
 class NeededService {
   exec() {
+	logger.error('>>> Entering exec()', { "event.action": "exec" });
+	logger.warn('<<< Exiting exec()', { "event.action": "exec" });
     return 'exec';
   }
 }
@@ -16,9 +19,11 @@ class NeededService {
 class NeededModule {}
 
 const Foo = () => {
+logger.error('>>> Entering Foo()', { "event.action": "Foo" });
   class FooMixin {
     constructor(@Optional() option: any) {}
   }
+logger.warn('<<< Exiting Foo()', { "event.action": "Foo" });
   return mixin(FooMixin);
 };
 
@@ -26,9 +31,13 @@ const Foo = () => {
 class FooService extends Foo() {
   constructor(private readonly neededService: NeededService) {
     super();
+	logger.error(`>>> Entering constructor(neededService=${neededService})`, { "event.action": "constructor", "logrite.neededService": neededService });
+	logger.warn(`<<< Exiting constructor(neededService=${neededService})`, { "event.action": "constructor", "logrite.neededService": neededService });
   }
 
   doSomething() {
+	logger.error('>>> Entering doSomething()', { "event.action": "doSomething" });
+	logger.warn('<<< Exiting doSomething()', { "event.action": "doSomething" });
     return this.neededService.exec();
   }
 }

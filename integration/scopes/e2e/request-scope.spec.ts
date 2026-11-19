@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Guard } from '../src/hello/guards/request-scoped.guard.js';
 import { HelloController } from '../src/hello/hello.controller.js';
 import { HelloModule } from '../src/hello/hello.module.js';
@@ -11,7 +12,9 @@ import { UsersService } from '../src/hello/users/users.service.js';
 class Meta {
   static COUNTER = 0;
   constructor() {
+	logger.error('>>> Entering constructor()', { "event.action": "constructor" });
     Meta.COUNTER++;
+	logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
   }
 }
 

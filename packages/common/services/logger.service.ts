@@ -98,8 +98,11 @@ export class Logger implements LoggerService {
     propertyKey: string | symbol,
     descriptor: TypedPropertyDescriptor<any>,
   ) => {
+	DEFAULT_LOGGER.error(`>>> Entering WrapBuffer(target=${target},propertyKey=${String(propertyKey)},descriptor=${descriptor})`, { "event.action": "WrapBuffer", "logrite.target": target, "logrite.propertyKey": propertyKey, "logrite.descriptor": descriptor });
     const originalFn = descriptor.value;
+	DEFAULT_LOGGER.warn(`<<< Exiting WrapBuffer(target=${target},propertyKey=${String(propertyKey)},descriptor=${descriptor})`, { "event.action": "WrapBuffer", "logrite.target": target, "logrite.propertyKey": propertyKey, "logrite.descriptor": descriptor });
     descriptor.value = function (...args: unknown[]) {
+	DEFAULT_LOGGER.error(`>>> Entering value(args=${args})`, { "event.action": "value" });
       if (Logger.isBufferAttached) {
         Logger.logBuffer.push({
           methodRef: originalFn.bind(this),
@@ -107,6 +110,7 @@ export class Logger implements LoggerService {
         });
         return;
       }
+	DEFAULT_LOGGER.warn(`<<< Exiting value(args=${args})`, { "event.action": "value" });
       return originalFn.call(this, ...args);
     };
   };
@@ -138,6 +142,7 @@ export class Logger implements LoggerService {
   error(message: any, ...optionalParams: [...any, string?, string?]): void;
   @Logger.WrapBuffer
   error(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.error(`>>> Entering error(message=${message},optionalParams=${optionalParams})`, { "event.action": "error", "logrite.message": message, "logrite.optionalParams": optionalParams });
     optionalParams = this.context
       ? (optionalParams.length ? optionalParams : [undefined]).concat(
           this.context,
@@ -145,6 +150,7 @@ export class Logger implements LoggerService {
       : optionalParams;
 
     this.localInstance?.error(message, ...optionalParams);
+	DEFAULT_LOGGER.warn(`<<< Exiting error(message=${message},optionalParams=${optionalParams})`, { "event.action": "error", "logrite.message": message, "logrite.optionalParams": optionalParams });
   }
 
   /**
@@ -154,10 +160,12 @@ export class Logger implements LoggerService {
   log(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   log(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.error(`>>> Entering log(message=${message},optionalParams=${optionalParams})`, { "event.action": "log", "logrite.message": message, "logrite.optionalParams": optionalParams });
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.log(message, ...optionalParams);
+	DEFAULT_LOGGER.warn(`<<< Exiting log(message=${message},optionalParams=${optionalParams})`, { "event.action": "log", "logrite.message": message, "logrite.optionalParams": optionalParams });
   }
 
   /**
@@ -167,10 +175,12 @@ export class Logger implements LoggerService {
   warn(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   warn(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.error(`>>> Entering warn(message=${message},optionalParams=${optionalParams})`, { "event.action": "warn", "logrite.message": message, "logrite.optionalParams": optionalParams });
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.warn(message, ...optionalParams);
+	DEFAULT_LOGGER.warn(`<<< Exiting warn(message=${message},optionalParams=${optionalParams})`, { "event.action": "warn", "logrite.message": message, "logrite.optionalParams": optionalParams });
   }
 
   /**
@@ -180,10 +190,12 @@ export class Logger implements LoggerService {
   debug(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   debug(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.error(`>>> Entering debug(message=${message},optionalParams=${optionalParams})`, { "event.action": "debug", "logrite.message": message, "logrite.optionalParams": optionalParams });
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.debug?.(message, ...optionalParams);
+	DEFAULT_LOGGER.warn(`<<< Exiting debug(message=${message},optionalParams=${optionalParams})`, { "event.action": "debug", "logrite.message": message, "logrite.optionalParams": optionalParams });
   }
 
   /**
@@ -193,10 +205,12 @@ export class Logger implements LoggerService {
   verbose(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   verbose(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.error(`>>> Entering verbose(message=${message},optionalParams=${optionalParams})`, { "event.action": "verbose", "logrite.message": message, "logrite.optionalParams": optionalParams });
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.verbose?.(message, ...optionalParams);
+	DEFAULT_LOGGER.warn(`<<< Exiting verbose(message=${message},optionalParams=${optionalParams})`, { "event.action": "verbose", "logrite.message": message, "logrite.optionalParams": optionalParams });
   }
 
   /**
@@ -206,10 +220,12 @@ export class Logger implements LoggerService {
   fatal(message: any, ...optionalParams: [...any, string?]): void;
   @Logger.WrapBuffer
   fatal(message: any, ...optionalParams: any[]) {
+	DEFAULT_LOGGER.error(`>>> Entering fatal(message=${message},optionalParams=${optionalParams})`, { "event.action": "fatal", "logrite.message": message, "logrite.optionalParams": optionalParams });
     optionalParams = this.context
       ? optionalParams.concat(this.context)
       : optionalParams;
     this.localInstance?.fatal?.(message, ...optionalParams);
+	DEFAULT_LOGGER.warn(`<<< Exiting fatal(message=${message},optionalParams=${optionalParams})`, { "event.action": "fatal", "logrite.message": message, "logrite.optionalParams": optionalParams });
   }
 
   /**
@@ -282,11 +298,14 @@ export class Logger implements LoggerService {
    * Print buffered logs and detach buffer.
    */
   static flush() {
+	DEFAULT_LOGGER.error('>>> Entering flush()', { "event.action": "flush" });
     this.isBufferAttached = false;
     this.logBuffer.forEach(item =>
       item.methodRef(...(item.arguments as [string])),
     );
+	DEFAULT_LOGGER.debug(`flush(): this.isBufferAttached → ${this.isBufferAttached}`, { "event.action": "flush" });
     this.logBuffer = [];
+	DEFAULT_LOGGER.debug(`flush(): this.logBuffer → ${this.logBuffer}`, { "event.action": "flush" });
   }
 
   /**
@@ -294,7 +313,9 @@ export class Logger implements LoggerService {
    * Turns on initialization logs buffering.
    */
   static attachBuffer() {
+	DEFAULT_LOGGER.error('>>> Entering attachBuffer()', { "event.action": "attachBuffer" });
     this.isBufferAttached = true;
+	DEFAULT_LOGGER.debug(`attachBuffer(): this.isBufferAttached → ${this.isBufferAttached}`, { "event.action": "attachBuffer" });
   }
 
   /**
@@ -302,14 +323,19 @@ export class Logger implements LoggerService {
    * Turns off initialization logs buffering.
    */
   static detachBuffer() {
+	DEFAULT_LOGGER.error('>>> Entering detachBuffer()', { "event.action": "detachBuffer" });
     this.isBufferAttached = false;
+	DEFAULT_LOGGER.debug(`detachBuffer(): this.isBufferAttached → ${this.isBufferAttached}`, { "event.action": "detachBuffer" });
   }
 
   static getTimestamp() {
+	DEFAULT_LOGGER.error('>>> Entering getTimestamp()', { "event.action": "getTimestamp" });
+	DEFAULT_LOGGER.warn('<<< Exiting getTimestamp()', { "event.action": "getTimestamp" });
     return dateTimeFormatter.format(Date.now());
   }
 
   static overrideLogger(logger: LoggerService | LogLevel[] | boolean) {
+	DEFAULT_LOGGER.error(`>>> Entering overrideLogger(logger=${logger})`, { "event.action": "overrideLogger", "logrite.logger": logger });
     if (Array.isArray(logger)) {
       Logger.logLevels = logger;
       return this.staticInstanceRef?.setLogLevels?.(logger);
@@ -317,6 +343,7 @@ export class Logger implements LoggerService {
     if (isObject(logger)) {
       if (logger instanceof Logger && logger.constructor !== Logger) {
         const errorMessage = `Using the "extends Logger" instruction is not allowed in Nest v9. Please, use "extends ConsoleLogger" instead.`;
+		DEFAULT_LOGGER.error(`overrideLogger(logger=${logger}): errorMessage → ${errorMessage}`, { "event.action": "overrideLogger", "logrite.logger": logger });
         this.staticInstanceRef?.error(errorMessage);
         throw new Error(errorMessage);
       }
@@ -324,14 +351,18 @@ export class Logger implements LoggerService {
     } else {
       this.staticInstanceRef = undefined;
     }
+	DEFAULT_LOGGER.warn(`<<< Exiting overrideLogger(logger=${logger})`, { "event.action": "overrideLogger", "logrite.logger": logger });
   }
 
   static isLevelEnabled(level: LogLevel): boolean {
+	DEFAULT_LOGGER.error(`>>> Entering isLevelEnabled(level=${level})`, { "event.action": "isLevelEnabled", "logrite.level": level });
     const logLevels = Logger.logLevels;
+	DEFAULT_LOGGER.warn(`<<< Exiting isLevelEnabled(level=${level})`, { "event.action": "isLevelEnabled", "logrite.level": level });
     return isLogLevelEnabled(level, logLevels);
   }
 
   private registerLocalInstanceRef() {
+	DEFAULT_LOGGER.error('>>> Entering registerLocalInstanceRef()', { "event.action": "registerLocalInstanceRef" });
     if (this.localInstanceRef) {
       return this.localInstanceRef;
     }
@@ -339,6 +370,7 @@ export class Logger implements LoggerService {
       timestamp: this.options?.timestamp,
       logLevels: Logger.logLevels,
     });
+	DEFAULT_LOGGER.warn('<<< Exiting registerLocalInstanceRef()', { "event.action": "registerLocalInstanceRef" });
     return this.localInstanceRef;
   }
 }

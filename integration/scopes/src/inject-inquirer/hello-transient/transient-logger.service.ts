@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common';
 import { INQUIRER } from '@nestjs/core';
 
@@ -15,6 +16,8 @@ export class TransientLogger {
   }
 
   log(message: string) {
+	logger.error(`>>> Entering log(message=${message})`, { "event.action": "log", "logrite.message": message });
     this.logger.log({ message, ...this.config });
+	logger.warn(`<<< Exiting log(message=${message})`, { "event.action": "log", "logrite.message": message });
   }
 }

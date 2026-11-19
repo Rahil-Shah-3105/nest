@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Body, Controller, HttpCode, Post, Query } from '@nestjs/common';
 import {
   Client,
@@ -15,6 +16,8 @@ import { catchError, from, mergeMap, Observable, of } from 'rxjs';
 
 class ErrorHandlingProxy extends ClientGrpcProxy {
   serializeError(err) {
+	logger.error(`>>> Entering serializeError(err=${err})`, { "event.action": "serializeError", "logrite.err": err });
+	logger.warn(`<<< Exiting serializeError(err=${err})`, { "event.action": "serializeError", "logrite.err": err });
     return new RpcException(err);
   }
 }
@@ -23,10 +26,12 @@ class ErrorHandlingProxy extends ClientGrpcProxy {
 export class GrpcController {
   private readonly customClient: ClientGrpc;
   constructor() {
+	logger.error('>>> Entering constructor()', { "event.action": "constructor" });
     this.customClient = new ErrorHandlingProxy({
       package: 'math',
       protoPath: join(import.meta.dirname, 'math.proto'),
     });
+	logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
   }
 
   @Client({
@@ -53,7 +58,9 @@ export class GrpcController {
   @Post('sum')
   @HttpCode(200)
   call(@Body() data: number[]): Observable<number> {
+	logger.error(`>>> Entering call(data=${data})`, { "event.action": "call" });
     const svc = this.client.getService<any>('Math');
+	logger.error(`call(data=${data}): svc → ${svc}`, { "event.action": "call" });
     return svc.sum({ data });
   }
 
@@ -61,12 +68,16 @@ export class GrpcController {
   @Post('upperMethod/sum')
   @HttpCode(200)
   callWithOptions(@Body() data: number[]): Observable<number> {
+	logger.error(`>>> Entering callWithOptions(data=${data})`, { "event.action": "callWithOptions" });
     const svc = this.client.getService<any>('Math');
+	logger.error(`callWithOptions(data=${data}): svc → ${svc}`, { "event.action": "callWithOptions" });
     return svc.Sum({ data });
   }
 
   @GrpcMethod('Math')
   async sum({ data }: { data: number[] }): Promise<any> {
+	logger.error('>>> Entering sum()', { "event.action": "sum" });
+	logger.warn('<<< Exiting sum()', { "event.action": "sum" });
     return of({
       result: data.reduce((a, b) => a + b),
     });
@@ -74,6 +85,7 @@ export class GrpcController {
 
   @GrpcStreamMethod('Math')
   async sumStream(messages: Observable<any>): Promise<any> {
+	logger.error(`>>> Entering sumStream(messages=${messages})`, { "event.action": "sumStream", "logrite.messages": messages });
     return new Promise<any>((resolve, reject) => {
       messages.subscribe({
         next: msg => {
@@ -83,6 +95,7 @@ export class GrpcController {
         },
         error: err => {
           reject(err as Error);
+		logger.warn(`<<< Exiting sumStream(messages=${messages})`, { "event.action": "sumStream", "logrite.messages": messages });
         },
       });
     });
@@ -90,13 +103,16 @@ export class GrpcController {
 
   @GrpcStreamCall('Math')
   async sumStreamPass(stream: any) {
+	logger.error(`>>> Entering sumStreamPass(stream=${stream})`, { "event.action": "sumStreamPass", "logrite.stream": stream });
     stream.on('data', (msg: any) => {
       stream.write({ result: msg.data.reduce((a, b) => a + b) });
     });
+	logger.warn(`<<< Exiting sumStreamPass(stream=${stream})`, { "event.action": "sumStreamPass", "logrite.stream": stream });
   }
 
   @GrpcMethod('Math')
   async divide(request: { dividend: number; divisor: number }): Promise<any> {
+	logger.error(`>>> Entering divide(request=${request})`, { "event.action": "divide" });
     if (request.divisor === 0) {
       throw new RpcException({
         code: 3,
@@ -110,6 +126,8 @@ export class GrpcController {
 
   @GrpcMethod('Math')
   async alreadyExists(): Promise<any> {
+	logger.error('>>> Entering alreadyExists()', { "event.action": "alreadyExists" });
+	logger.warn('<<< Exiting alreadyExists()', { "event.action": "alreadyExists" });
     throw new GrpcAlreadyExistsException('email already exists');
   }
 
@@ -126,6 +144,8 @@ export class GrpcController {
 
   @GrpcMethod('Math2')
   async sum2({ data }: { data: number[] }): Promise<any> {
+	logger.error('>>> Entering sum2()', { "event.action": "sum2" });
+	logger.warn('<<< Exiting sum2()', { "event.action": "sum2" });
     return of({
       result: data.reduce((a, b) => a + b),
     });
@@ -134,22 +154,28 @@ export class GrpcController {
   @Post('multi/sum')
   @HttpCode(200)
   callMultiSum(@Body() data: number[]): Observable<number> {
+	logger.error(`>>> Entering callMultiSum(data=${data})`, { "event.action": "callMultiSum" });
     const svc = this.clientMulti.getService<any>('Math');
+	logger.error(`callMultiSum(data=${data}): svc → ${svc}`, { "event.action": "callMultiSum" });
     return svc.sum({ data });
   }
 
   @Post('multi/sum2')
   @HttpCode(200)
   callMultiSum2(@Body() data: number[]): Observable<number> {
+	logger.error(`>>> Entering callMultiSum2(data=${data})`, { "event.action": "callMultiSum2" });
     const svc = this.clientMulti.getService<any>('Math2');
+	logger.error(`callMultiSum2(data=${data}): svc → ${svc}`, { "event.action": "callMultiSum2" });
     return svc.sum2({ data });
   }
 
   @GrpcMethod('Math')
   streamLargeMessages(_req: unknown, _meta: unknown) {
+	logger.error(`>>> Entering streamLargeMessages(_req=${_req},_meta=${_meta})`, { "event.action": "streamLargeMessages", "logrite._meta": _meta });
     // Send 1000 messages of >1MB each relatively fast
     // This should be enough to trigger backpressure issues
     // while writing to the socket.
+	logger.warn(`<<< Exiting streamLargeMessages(_req=${_req},_meta=${_meta})`, { "event.action": "streamLargeMessages", "logrite._meta": _meta });
     return new Observable(subscriber => {
       let n = 0;
       const interval = setInterval(() => {
@@ -162,6 +188,7 @@ export class GrpcController {
       }, 0);
       return () => {
         clearInterval(interval);
+		logger.error(`streamLargeMessages(_req=${_req},_meta=${_meta}): interval → ${interval}`, { "event.action": "streamLargeMessages", "logrite._meta": _meta });
       };
     });
   }

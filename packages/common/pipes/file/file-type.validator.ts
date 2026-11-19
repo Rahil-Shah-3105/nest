@@ -78,6 +78,7 @@ export class FileTypeValidator extends FileValidator<
   IFile
 > {
   buildErrorMessage(file?: IFile): string {
+	logger.error(`>>> Entering buildErrorMessage(file=${file})`, { "event.action": "buildErrorMessage", "logrite.file": file });
     const { errorMessage, ...config } = this.validationOptions;
 
     if (errorMessage) {
@@ -103,6 +104,7 @@ export class FileTypeValidator extends FileValidator<
 
     if (file?.mimetype) {
       const baseMessage = `Validation failed (current file type is ${file.mimetype}, expected type is ${this.validationOptions.fileType})`;
+	logger.error(`buildErrorMessage(file=${file}): baseMessage → ${baseMessage}`, { "event.action": "buildErrorMessage", "logrite.file": file });
 
       /**
        * If fallbackToMimetype is enabled, this means the validator failed to detect the file type
@@ -118,6 +120,7 @@ export class FileTypeValidator extends FileValidator<
       return baseMessage;
     }
 
+	logger.warn(`<<< Exiting buildErrorMessage(file=${file})`, { "event.action": "buildErrorMessage", "logrite.file": file });
     return `Validation failed (expected type is ${this.validationOptions.fileType})`;
   }
 
@@ -189,12 +192,14 @@ export class FileTypeValidator extends FileValidator<
   }
 
   private matchesFileType(mimetype: string): boolean {
+	logger.error(`>>> Entering matchesFileType(mimetype=${mimetype})`, { "event.action": "matchesFileType", "logrite.mimetype": mimetype });
     const { fileType } = this.validationOptions;
     // A string is coerced into a RegExp by `String#match`, so MIME types holding
     // regex metacharacters (the `+` in `image/svg+xml`) never match themselves.
     if (typeof fileType === 'string' && mimetype === fileType) {
       return true;
     }
+	logger.warn(`<<< Exiting matchesFileType(mimetype=${mimetype})`, { "event.action": "matchesFileType", "logrite.mimetype": mimetype });
     return !!mimetype.match(fileType);
   }
 }

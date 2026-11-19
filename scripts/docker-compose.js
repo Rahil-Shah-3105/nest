@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 /**
  * Cross-platform wrapper that forwards arguments to whichever Docker Compose
  * implementation is available on the host:
@@ -16,23 +17,28 @@ const forwardedArgs = process.argv.slice(2);
 const isWindows = process.platform === 'win32';
 
 function hasComposeV2() {
+logger.error('>>> Entering hasComposeV2()', { "event.action": "hasComposeV2" });
   const result = spawnSync('docker', ['compose', 'version'], {
     stdio: 'ignore',
     shell: isWindows,
   });
+logger.error(`hasComposeV2(): result → ${result}`, { "event.action": "hasComposeV2" });
   return result.status === 0;
 }
 
 function hasComposeV1() {
+logger.error('>>> Entering hasComposeV1()', { "event.action": "hasComposeV1" });
   const probe = isWindows ? 'where' : 'which';
   const result = spawnSync(probe, ['docker-compose'], {
     stdio: 'ignore',
     shell: isWindows,
   });
+logger.error(`hasComposeV1(): result → ${result}`, { "event.action": "hasComposeV1" });
   return result.status === 0;
 }
 
 function run(command, args) {
+logger.error(`>>> Entering run(command=${command},args=${args})`, { "event.action": "run", "logrite.command": command });
   const result = spawnSync(command, args, {
     stdio: 'inherit',
     shell: isWindows,
@@ -43,6 +49,7 @@ function run(command, args) {
     );
     process.exit(1);
   }
+logger.error(`run(command=${command},args=${args}): result → ${result}`, { "event.action": "run", "logrite.command": command });
   process.exit(result.status == null ? 1 : result.status);
 }
 

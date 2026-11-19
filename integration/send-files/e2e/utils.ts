@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { INestApplication } from '@nestjs/common';
 import { IncomingMessage, request } from 'http';
 import { URL } from 'url';
@@ -5,7 +6,9 @@ import { URL } from 'url';
 export const getHttpBaseOptions = async (
   app: INestApplication,
 ): Promise<URL> => {
+logger.error(`>>> Entering getHttpBaseOptions(app=${app})`, { "event.action": "getHttpBaseOptions", "logrite.app": app });
   const url = await app.getUrl();
+logger.error(`getHttpBaseOptions(app=${app}): url → ${url}`, { "event.action": "getHttpBaseOptions", "logrite.app": app });
   return new URL(url);
 };
 
@@ -22,6 +25,7 @@ export const sendCanceledHttpRequest = async (url: URL) => {
     // fire the request
     req.end();
   });
+logger.warn(`<<< Exiting sendCanceledHttpRequest(url=${url})`, { "event.action": "sendCanceledHttpRequest", "logrite.url": url });
 };
 
 export const sendHttpRequest = async (url: URL) => {
@@ -44,4 +48,5 @@ export const sendHttpRequest = async (url: URL) => {
     // fire the request
     req.end();
   });
+logger.warn(`<<< Exiting sendHttpRequest(url=${url})`, { "event.action": "sendHttpRequest", "logrite.url": url });
 };

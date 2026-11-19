@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get, Param, Version } from '@nestjs/common';
 
 // Fastify uses `find-my-way`, whose catch-all is the bare `*` at the
@@ -11,12 +12,16 @@ import { Controller, Get, Param, Version } from '@nestjs/common';
 export class UsersWildcardController {
   @Get('profile')
   profile() {
+	logger.error('>>> Entering profile()', { "event.action": "profile" });
+	logger.warn('<<< Exiting profile()', { "event.action": "profile" });
     return { handler: 'profile' };
   }
 
   @Version('1')
   @Get('*')
   catchAll(@Param('*') tail: string) {
+	logger.error(`>>> Entering catchAll(tail=${tail})`, { "event.action": "catchAll", "logrite.tail": tail });
+	logger.warn(`<<< Exiting catchAll(tail=${tail})`, { "event.action": "catchAll", "logrite.tail": tail });
     return { handler: 'catchAll', tail };
   }
 }

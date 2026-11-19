@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Body,
   CallHandler,
@@ -29,6 +30,8 @@ class SseQueryDto {
 @Injectable()
 class PassthroughInterceptor implements NestInterceptor {
   intercept(_context: ExecutionContext, next: CallHandler): Observable<any> {
+	logger.error(`>>> Entering intercept(_context=${_context},next=${next})`, { "event.action": "intercept" });
+	logger.warn(`<<< Exiting intercept(_context=${_context},next=${next})`, { "event.action": "intercept" });
     return next.handle();
   }
 }
@@ -64,6 +67,8 @@ export class AppController {
 
   @Sse('sse')
   sse(): Observable<MessageEvent> {
+	logger.error('>>> Entering sse()', { "event.action": "sse" });
+	logger.warn('<<< Exiting sse()', { "event.action": "sse" });
     return interval(1000).pipe(
       map(() => ({ data: { hello: 'world' } }) as MessageEvent),
     );
@@ -71,6 +76,8 @@ export class AppController {
 
   @Sse('sse/validated')
   sseWithValidatedQuery(@Query() query: SseQueryDto): Observable<MessageEvent> {
+	logger.error(`>>> Entering sseWithValidatedQuery(query=${query})`, { "event.action": "sseWithValidatedQuery", "logrite.query": query });
+	logger.warn(`<<< Exiting sseWithValidatedQuery(query=${query})`, { "event.action": "sseWithValidatedQuery", "logrite.query": query });
     return of({ data: { limit: query.limit } });
   }
 
@@ -81,6 +88,8 @@ export class AppController {
   ): Observable<MessageEvent> {
     const count = parseInt(n, 10);
     const payload = 'X'.repeat(parseInt(size, 10));
+	logger.error(`sseBurst(n=${n},size=${size}): count → ${count}`, { "event.action": "sseBurst", "logrite.n": n, "logrite.size": size });
+	logger.error(`sseBurst(n=${n},size=${size}): payload → ${payload}`, { "event.action": "sseBurst", "logrite.n": n, "logrite.size": size });
 
     return new Observable(subscriber => {
       for (let i = 0; i < count; i++) {
@@ -92,6 +101,8 @@ export class AppController {
 
   @Sse('sse/post', { method: RequestMethod.POST })
   ssePost(@Body() body: { content?: string }): Observable<MessageEvent> {
+	logger.error(`>>> Entering ssePost(body=${body})`, { "event.action": "ssePost" });
+	logger.warn(`<<< Exiting ssePost(body=${body})`, { "event.action": "ssePost" });
     return of({ data: { content: body.content ?? 'default' } });
   }
 
@@ -113,18 +124,23 @@ export class AppController {
   private createPromiseDelayedSse(
     request: IncomingMessage & { raw?: IncomingMessage },
   ): Promise<Observable<MessageEvent>> {
+	logger.error(`>>> Entering createPromiseDelayedSse(request=${request})`, { "event.action": "createPromiseDelayedSse" });
     this.promiseDelayedRequestsStarted += 1;
     this.promiseDelayedRunningStreams += 1;
     const rawRequest = request.socket ?? request;
 
     let subscribed = false;
+	logger.error(`createPromiseDelayedSse(request=${request}): subscribed → ${subscribed}`, { "event.action": "createPromiseDelayedSse" });
     let released = false;
+	logger.error(`createPromiseDelayedSse(request=${request}): released → ${released}`, { "event.action": "createPromiseDelayedSse" });
     const releaseStream = () => {
+	logger.error('>>> Entering releaseStream()', { "event.action": "releaseStream" });
       if (released) {
         return;
       }
       released = true;
       this.promiseDelayedRunningStreams -= 1;
+	logger.warn('<<< Exiting releaseStream()', { "event.action": "releaseStream" });
     };
 
     rawRequest.once('close', () => {
@@ -153,6 +169,7 @@ export class AppController {
               clearInterval(intervalId);
               this.promiseDelayedTeardownsObserved += 1;
               releaseStream();
+			logger.warn(`<<< Exiting createPromiseDelayedSse(request=${request})`, { "event.action": "createPromiseDelayedSse" });
             };
           }),
         ),
@@ -162,9 +179,11 @@ export class AppController {
 
   @Post('sse/promise-delayed/release')
   releaseSsePromiseDelayed() {
+	logger.error('>>> Entering releaseSsePromiseDelayed()', { "event.action": "releaseSsePromiseDelayed" });
     const pendingResolvers = this.promiseDelayedResolvers.splice(0);
     pendingResolvers.forEach(resolve => resolve());
 
+	logger.warn('<<< Exiting releaseSsePromiseDelayed()', { "event.action": "releaseSsePromiseDelayed" });
     return {
       released: pendingResolvers.length,
     };
@@ -172,6 +191,8 @@ export class AppController {
 
   @Get('sse/promise-delayed/stats')
   getSsePromiseDelayedStats() {
+	logger.error('>>> Entering getSsePromiseDelayedStats()', { "event.action": "getSsePromiseDelayedStats" });
+	logger.warn('<<< Exiting getSsePromiseDelayedStats()', { "event.action": "getSsePromiseDelayedStats" });
     return {
       closeEventsObserved: this.promiseDelayedCloseEventsObserved,
       requestsStarted: this.promiseDelayedRequestsStarted,
@@ -201,12 +222,15 @@ export class AppController {
   private createInterceptorDelayedSse(
     request: IncomingMessage & { raw?: IncomingMessage },
   ): Promise<Observable<MessageEvent>> {
+	logger.error(`>>> Entering createInterceptorDelayedSse(request=${request})`, { "event.action": "createInterceptorDelayedSse" });
     this.interceptorDelayedRequestsStarted += 1;
     this.interceptorDelayedRunningStreams += 1;
     const rawRequest = request.socket ?? request;
 
     let subscribed = false;
+	logger.error(`createInterceptorDelayedSse(request=${request}): subscribed → ${subscribed}`, { "event.action": "createInterceptorDelayedSse" });
     let released = false;
+	logger.error(`createInterceptorDelayedSse(request=${request}): released → ${released}`, { "event.action": "createInterceptorDelayedSse" });
     const releaseStream = () => {
       if (released) {
         return;
@@ -241,6 +265,7 @@ export class AppController {
               clearInterval(intervalId);
               this.interceptorDelayedTeardownsObserved += 1;
               releaseStream();
+			logger.warn(`<<< Exiting createInterceptorDelayedSse(request=${request})`, { "event.action": "createInterceptorDelayedSse" });
             };
           }),
         ),
@@ -250,9 +275,11 @@ export class AppController {
 
   @Post('sse/interceptor/promise-delayed/release')
   releaseInterceptorDelayedSse() {
+	logger.error('>>> Entering releaseInterceptorDelayedSse()', { "event.action": "releaseInterceptorDelayedSse" });
     const pendingResolvers = this.interceptorDelayedResolvers.splice(0);
     pendingResolvers.forEach(resolve => resolve());
 
+	logger.warn('<<< Exiting releaseInterceptorDelayedSse()', { "event.action": "releaseInterceptorDelayedSse" });
     return {
       released: pendingResolvers.length,
     };
@@ -260,6 +287,8 @@ export class AppController {
 
   @Get('sse/interceptor/promise-delayed/stats')
   getInterceptorDelayedSseStats() {
+	logger.error('>>> Entering getInterceptorDelayedSseStats()', { "event.action": "getInterceptorDelayedSseStats" });
+	logger.warn('<<< Exiting getInterceptorDelayedSseStats()', { "event.action": "getInterceptorDelayedSseStats" });
     return {
       closeEventsObserved: this.interceptorDelayedCloseEventsObserved,
       requestsStarted: this.interceptorDelayedRequestsStarted,
@@ -274,11 +303,13 @@ export class AppController {
   async sseSignalPromiseDelayed(
     @SseSignal() signal: AbortSignal,
   ): Promise<Observable<MessageEvent>> {
+	logger.error(`>>> Entering sseSignalPromiseDelayed(signal=${signal})`, { "event.action": "sseSignalPromiseDelayed", "logrite.signal": signal });
     this.signalRequestsStarted += 1;
 
     // Simulate an expensive async setup that allocates a resource (e.g. an LLM
     // session, a DB cursor) before the producer Observable exists.
     const resource = { closed: false };
+	logger.debug(`sseSignalPromiseDelayed(signal=${signal}): resource.closed → ${resource.closed}`, { "event.action": "sseSignalPromiseDelayed", "logrite.signal": signal });
     this.signalResourcesAllocated += 1;
 
     await new Promise(resolve => setTimeout(resolve, 80));
@@ -296,8 +327,13 @@ export class AppController {
       const intervalId = setInterval(() => {
         subscriber.next({ data: { hello: 'world' } });
       }, 50);
-      const onAbort = () => subscriber.complete();
+      const onAbort = () => {
+          logger.error('>>> Entering onAbort()', { "event.action": "onAbort" });
+          logger.warn('<<< Exiting onAbort()', { "event.action": "onAbort" });
+          return subscriber.complete();
+      };
       signal.addEventListener('abort', onAbort, { once: true });
+	logger.error(`sseSignalPromiseDelayed(signal=${signal}): intervalId → ${intervalId}`, { "event.action": "sseSignalPromiseDelayed", "logrite.signal": signal });
 
       return () => {
         clearInterval(intervalId);
@@ -337,6 +373,8 @@ export class AppController {
 
   @Get('sse/signal/completing/stats')
   getSignalCompletingSseStats() {
+	logger.error('>>> Entering getSignalCompletingSseStats()', { "event.action": "getSignalCompletingSseStats" });
+	logger.warn('<<< Exiting getSignalCompletingSseStats()', { "event.action": "getSignalCompletingSseStats" });
     return {
       abortsObserved: this.completingAbortsObserved,
       subscriptionsStarted: this.completingSubscriptionsStarted,
@@ -357,6 +395,7 @@ export class AppController {
         subscriber.next({ data: { hello: 'world' } });
       }, 50);
 
+	logger.error(`sseSignalStreaming(signal=${signal}): intervalId → ${intervalId}`, { "event.action": "sseSignalStreaming", "logrite.signal": signal });
       const onAbort = () => {
         this.streamingAbortsObserved += 1;
         subscriber.complete();
@@ -373,6 +412,8 @@ export class AppController {
 
   @Get('sse/signal/streaming/stats')
   getSignalStreamingSseStats() {
+	logger.error('>>> Entering getSignalStreamingSseStats()', { "event.action": "getSignalStreamingSseStats" });
+	logger.warn('<<< Exiting getSignalStreamingSseStats()', { "event.action": "getSignalStreamingSseStats" });
     return {
       abortsObserved: this.streamingAbortsObserved,
       subscriptionsStarted: this.streamingSubscriptionsStarted,
@@ -382,6 +423,8 @@ export class AppController {
 
   @Get('sse/signal/promise-delayed/stats')
   getSignalDelayedSseStats() {
+	logger.error('>>> Entering getSignalDelayedSseStats()', { "event.action": "getSignalDelayedSseStats" });
+	logger.warn('<<< Exiting getSignalDelayedSseStats()', { "event.action": "getSignalDelayedSseStats" });
     return {
       requestsStarted: this.signalRequestsStarted,
       resourcesAllocated: this.signalResourcesAllocated,

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable } from '@nestjs/common';
 import { Post } from './models/post.model.js';
 
@@ -11,14 +12,20 @@ export class PostsService {
   ];
 
   findAllByAuthorId(authorId: number): Post[] {
+	logger.error(`>>> Entering findAllByAuthorId(authorId=${authorId})`, { "event.action": "findAllByAuthorId", "logrite.authorId": authorId });
+	logger.warn(`<<< Exiting findAllByAuthorId(authorId=${authorId})`, { "event.action": "findAllByAuthorId", "logrite.authorId": authorId });
     return this.posts.filter((post) => post.authorId === Number(authorId));
   }
 
   findOne(postId: number): Post {
+	logger.error(`>>> Entering findOne(postId=${postId})`, { "event.action": "findOne", "logrite.postId": postId });
+	logger.warn(`<<< Exiting findOne(postId=${postId})`, { "event.action": "findOne", "logrite.postId": postId });
     return this.posts.find((post) => post.id === postId);
   }
 
   findAll(): Post[] {
+	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
+	logger.warn('<<< Exiting findAll()', { "event.action": "findAll" });
     return this.posts;
   }
 }

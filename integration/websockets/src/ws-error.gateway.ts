@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   SubscribeMessage,
   WebSocketGateway,
@@ -9,6 +10,8 @@ import { throwError } from 'rxjs';
 export class WsErrorGateway {
   @SubscribeMessage('push')
   onPush() {
+	logger.error('>>> Entering onPush()', { "event.action": "onPush" });
+	logger.warn('<<< Exiting onPush()', { "event.action": "onPush" });
     return throwError(() => new WsException('test'));
   }
 }

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
@@ -14,11 +15,15 @@ export class CatsController {
   @Post()
   @Roles('admin')
   async create(@Body() createCatDto: CreateCatDto) {
+	logger.error(`>>> Entering create(createCatDto=${createCatDto})`, { "event.action": "create", "logrite.createCatDto": createCatDto });
     this.catsService.create(createCatDto);
+	logger.warn(`<<< Exiting create(createCatDto=${createCatDto})`, { "event.action": "create", "logrite.createCatDto": createCatDto });
   }
 
   @Get()
   async findAll(): Promise<Cat[]> {
+	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
+	logger.warn('<<< Exiting findAll()', { "event.action": "findAll" });
     return this.catsService.findAll();
   }
 

@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common';
 import { INQUIRER, REQUEST } from '@nestjs/core';
 
@@ -14,13 +15,17 @@ export class RequestLogger {
   }
 
   get requestId() {
+	logger.error('>>> Entering requestId()', { "event.action": "requestId" });
     if (!this.request.id) {
       this.request.id = `${Date.now()}.${Math.floor(Math.random() * 1000000)}`;
     }
+	logger.warn('<<< Exiting requestId()', { "event.action": "requestId" });
     return this.request.id;
   }
 
   log(message: string) {
+	logger.error(`>>> Entering log(message=${message})`, { "event.action": "log", "logrite.message": message });
     this.logger.log({ message, requestId: this.requestId, ...this.config });
+	logger.warn(`<<< Exiting log(message=${message})`, { "event.action": "log", "logrite.message": message });
   }
 }

@@ -29,6 +29,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   private readonly client: ClientKafka;
 
   async onModuleInit() {
+	logger.error('>>> Entering onModuleInit()', { "event.action": "onModuleInit" });
     const requestPatterns = [
       'math.sum.sync.kafka.message',
       'math.sum.sync.without.key',
@@ -46,10 +47,13 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
     });
 
     await this.client.connect();
+	logger.warn('<<< Exiting onModuleInit()', { "event.action": "onModuleInit" });
   }
 
   async onModuleDestroy() {
+	logger.error('>>> Entering onModuleDestroy()', { "event.action": "onModuleDestroy" });
     await this.client.close();
+	logger.warn('<<< Exiting onModuleDestroy()', { "event.action": "onModuleDestroy" });
   }
 
   // sync send kafka message
@@ -58,6 +62,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   async mathSumSyncKafkaMessage(
     @Body() data: number[],
   ): Promise<Observable<any>> {
+	logger.error(`>>> Entering mathSumSyncKafkaMessage(data=${data})`, { "event.action": "mathSumSyncKafkaMessage" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.kafka.message', {
         key: '1',
@@ -66,6 +71,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
         },
       }),
     );
+	logger.warn(`<<< Exiting mathSumSyncKafkaMessage(data=${data})`, { "event.action": "mathSumSyncKafkaMessage" });
     return result;
   }
 
@@ -75,6 +81,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   async mathSumSyncWithoutKey(
     @Body() data: number[],
   ): Promise<Observable<any>> {
+	logger.error(`>>> Entering mathSumSyncWithoutKey(data=${data})`, { "event.action": "mathSumSyncWithoutKey" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.without.key', {
         value: {
@@ -82,6 +89,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
         },
       }),
     );
+	logger.warn(`<<< Exiting mathSumSyncWithoutKey(data=${data})`, { "event.action": "mathSumSyncWithoutKey" });
     return result;
   }
 
@@ -91,11 +99,13 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   async mathSumSyncPlainObject(
     @Body() data: number[],
   ): Promise<Observable<any>> {
+	logger.error(`>>> Entering mathSumSyncPlainObject(data=${data})`, { "event.action": "mathSumSyncPlainObject" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.plain.object', {
         numbers: data,
       }),
     );
+	logger.error(`mathSumSyncPlainObject(data=${data}): result → ${result}`, { "event.action": "mathSumSyncPlainObject" });
     return result;
   }
 
@@ -103,15 +113,18 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   @Post('mathSumSyncArray')
   @HttpCode(200)
   async mathSumSyncArray(@Body() data: number[]): Promise<Observable<any>> {
+	logger.error(`>>> Entering mathSumSyncArray(data=${data})`, { "event.action": "mathSumSyncArray" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.array', data),
     );
+	logger.error(`mathSumSyncArray(data=${data}): result → ${result}`, { "event.action": "mathSumSyncArray" });
     return result;
   }
 
   @Post('mathSumSyncString')
   @HttpCode(200)
   async mathSumSyncString(@Body() data: number[]): Promise<Observable<any>> {
+	logger.error(`>>> Entering mathSumSyncString(data=${data})`, { "event.action": "mathSumSyncString" });
     // this.logger.error(util.format('mathSumSyncString() data: %o', data));
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.string', data.toString()),
@@ -122,26 +135,32 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   @Post('mathSumSyncNumber')
   @HttpCode(200)
   async mathSumSyncNumber(@Body() data: number[]): Promise<Observable<any>> {
+	logger.error(`>>> Entering mathSumSyncNumber(data=${data})`, { "event.action": "mathSumSyncNumber" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.number', data[0]),
     );
+	logger.error(`mathSumSyncNumber(data=${data}): result → ${result}`, { "event.action": "mathSumSyncNumber" });
     return result;
   }
 
   @Post('mathSumSyncRegex')
   @HttpCode(200)
   async mathSumSyncRegex(@Body() data: number[]): Promise<Observable<any>> {
+	logger.error(`>>> Entering mathSumSyncRegex(data=${data})`, { "event.action": "mathSumSyncRegex" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.regex.integration', {
         numbers: data,
       }),
     );
+	logger.error(`mathSumSyncRegex(data=${data}): result → ${result}`, { "event.action": "mathSumSyncRegex" });
     return result;
   }
 
   // async notify
   @Post('notify')
   async sendNotification(): Promise<any> {
+	logger.error('>>> Entering sendNotification()', { "event.action": "sendNotification" });
+	logger.warn('<<< Exiting sendNotification()', { "event.action": "sendNotification" });
     return this.client.emit('notify', { notify: true });
   }
 
@@ -149,6 +168,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   @Post('/user')
   @HttpCode(200)
   async createUser(@Body() user: UserDto): Promise<Observable<any>> {
+	logger.error(`>>> Entering createUser(user=${user})`, { "event.action": "createUser", "user.name": String(user) });
     const result = await lastValueFrom(
       this.client.send('user.create', {
         key: '1',
@@ -157,6 +177,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
         },
       }),
     );
+	logger.error(`createUser(user=${user}): result → ${result}`, { "event.action": "createUser", "user.name": String(user) });
     return result;
   }
 
@@ -164,6 +185,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   @Post('/business')
   @HttpCode(200)
   async createBusiness(@Body() business: BusinessDto) {
+	logger.error(`>>> Entering createBusiness(business=${business})`, { "event.action": "createBusiness", "logrite.business": business });
     const result = await lastValueFrom(
       this.client.send('business.create', {
         key: '1',
@@ -172,6 +194,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
         },
       }),
     );
+	logger.error(`createBusiness(business=${business}): result → ${result}`, { "event.action": "createBusiness", "logrite.business": business });
     return result;
   }
 }

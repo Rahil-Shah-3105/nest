@@ -47,6 +47,8 @@ export class WsAdapter extends AbstractWsAdapter {
     WsServerRegistryEntry
   >();
   protected messageParser: WsMessageParser = (data: WsData) => {
+	logger.error(`>>> Entering messageParser(data=${data})`, { "event.action": "messageParser" });
+	logger.warn(`<<< Exiting messageParser(data=${data})`, { "event.action": "messageParser" });
     return JSON.parse(data.toString());
   };
 
@@ -77,6 +79,7 @@ export class WsAdapter extends AbstractWsAdapter {
       path?: string;
     },
   ) {
+	logger.error(`>>> Entering create(port=${port},options=${options})`, { "event.action": "create", "logrite.port": port, "logrite.options": options });
     const { server, path, ...wsOptions } = options as {
       namespace?: string;
       server?: any;
@@ -100,6 +103,8 @@ export class WsAdapter extends AbstractWsAdapter {
       );
 
       this.addWsServerToRegistry(wsServer, port, path!);
+	logger.error(`>>> Entering bindErrorHandler(server=${server})`, { "event.action": "bindErrorHandler", "logrite.server": server });
+	logger.warn(`<<< Exiting bindErrorHandler(server=${server})`, { "event.action": "bindErrorHandler", "logrite.server": server });
       return wsServer;
     }
 
@@ -111,6 +116,7 @@ export class WsAdapter extends AbstractWsAdapter {
       // sharing a single HTTP/S server running on different port
       // than a regular HTTP application
       const httpServer = this.ensureHttpServerExists(port);
+	logger.error(`create(port=${port},options=${options}): httpServer → ${httpServer}`, { "event.action": "create", "logrite.port": port, "logrite.options": options });
       httpServer?.listen(port);
 
       const wsServer = this.bindErrorHandler(
@@ -129,6 +135,7 @@ export class WsAdapter extends AbstractWsAdapter {
         ...wsOptions,
       }),
     );
+	logger.warn(`<<< Exiting create(port=${port},options=${options})`, { "event.action": "create", "logrite.port": port, "logrite.options": options });
     return wsServer;
   }
 
@@ -137,8 +144,10 @@ export class WsAdapter extends AbstractWsAdapter {
     handlers: MessageMappingProperties[],
     transform: (data: any) => Observable<any>,
   ) {
+	logger.error(`>>> Entering bindMessageHandlers(client=${client},handlers=${handlers},transform=${transform})`, { "event.action": "bindMessageHandlers", "logrite.client": client, "logrite.handlers": handlers, "logrite.transform": transform });
     const handlersMap = new Map<string, MessageMappingProperties>();
     handlers.forEach(handler => handlersMap.set(handler.message, handler));
+	logger.error(`bindMessageHandlers(client=${client},handlers=${handlers},transform=${transform}): handlersMap → ${handlersMap}`, { "event.action": "bindMessageHandlers", "logrite.client": client, "logrite.handlers": handlers, "logrite.transform": transform });
 
     const close$ = fromEvent(client, CLOSE_EVENT).pipe(share(), first());
     const source$ = fromEvent(client, 'message').pipe(
@@ -150,12 +159,15 @@ export class WsAdapter extends AbstractWsAdapter {
       takeUntil(close$),
     );
     const onMessage = (response: any) => {
+	logger.error(`>>> Entering onMessage(response=${response})`, { "event.action": "onMessage" });
       if (client.readyState !== READY_STATE.OPEN_STATE) {
         return;
       }
       client.send(JSON.stringify(response));
+	logger.warn(`<<< Exiting onMessage(response=${response})`, { "event.action": "onMessage" });
     };
     source$.subscribe(onMessage);
+	logger.warn(`<<< Exiting bindMessageHandlers(client=${client},handlers=${handlers},transform=${transform})`, { "event.action": "bindMessageHandlers", "logrite.client": client, "logrite.handlers": handlers, "logrite.transform": transform });
   }
 
   public bindMessageHandler(
@@ -163,15 +175,20 @@ export class WsAdapter extends AbstractWsAdapter {
     handlersMap: Map<string, MessageMappingProperties>,
     transform: (data: any) => Observable<any>,
   ): Observable<any> {
+	logger.error(`>>> Entering bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform})`, { "event.action": "bindMessageHandler", "logrite.buffer": buffer, "logrite.handlersMap": handlersMap, "logrite.transform": transform });
     try {
       const message = this.messageParser(buffer.data);
+	logger.error(`bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform}): message → ${message}`, { "event.action": "bindMessageHandler", "logrite.buffer": buffer, "logrite.handlersMap": handlersMap, "logrite.transform": transform });
       if (!message) {
         return EMPTY;
       }
       const messageHandler = handlersMap.get(message.event)!;
+	logger.error(`bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform}): messageHandler → ${messageHandler}`, { "event.action": "bindMessageHandler", "logrite.buffer": buffer, "logrite.handlersMap": handlersMap, "logrite.transform": transform });
       const { callback } = messageHandler;
       return transform(callback(message.data, message.event));
     } catch {
+	logger.error(`Exception in bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform}): (no error binding)`, { "event.action": "bindMessageHandler", "event.category": "process", "logrite.buffer": buffer, "logrite.handlersMap": handlersMap, "logrite.transform": transform });
+	logger.warn(`<<< Exiting bindMessageHandler(buffer=${buffer},handlersMap=${handlersMap},transform=${transform})`, { "event.action": "bindMessageHandler", "logrite.buffer": buffer, "logrite.handlersMap": handlersMap, "logrite.transform": transform });
       return EMPTY;
     }
   }
@@ -185,14 +202,17 @@ export class WsAdapter extends AbstractWsAdapter {
   }
 
   public bindClientDisconnect(client: any, callback: Function) {
+	logger.error(`>>> Entering bindClientDisconnect(client=${client},callback=${callback})`, { "event.action": "bindClientDisconnect", "logrite.client": client, "logrite.callback": callback });
     if (typeof client.once === 'function') {
       client.once(CLOSE_EVENT, callback);
       return;
     }
     client.on(CLOSE_EVENT, callback);
+	logger.warn(`<<< Exiting bindClientDisconnect(client=${client},callback=${callback})`, { "event.action": "bindClientDisconnect", "logrite.client": client, "logrite.callback": callback });
   }
 
   public async close(server: any) {
+	logger.error(`>>> Entering close(server=${server})`, { "event.action": "close", "logrite.server": server });
     const closeEventSignal = new Promise((resolve, reject) =>
       server.close((err: Error) => (err ? reject(err) : resolve(undefined))),
     );
@@ -205,23 +225,29 @@ export class WsAdapter extends AbstractWsAdapter {
   }
 
   public async dispose() {
+	logger.error('>>> Entering dispose()', { "event.action": "dispose" });
     const closeEventSignals = Array.from(this.httpServersRegistry)
       .filter(([port]) => port !== UNDERLYING_HTTP_SERVER_PORT)
       .map(([_, server]) => new Promise(resolve => server.close(resolve)));
 
+	logger.error(`dispose(): closeEventSignals → ${closeEventSignals}`, { "event.action": "dispose" });
     await Promise.all(closeEventSignals);
     this.httpServersRegistry.clear();
     this.wsServersRegistry.clear();
+	logger.warn('<<< Exiting dispose()', { "event.action": "dispose" });
   }
 
   public setMessageParser(parser: WsMessageParser) {
+	logger.error(`>>> Entering setMessageParser(parser=${parser})`, { "event.action": "setMessageParser", "logrite.parser": parser });
     this.messageParser = parser;
+	logger.warn(`<<< Exiting setMessageParser(parser=${parser})`, { "event.action": "setMessageParser", "logrite.parser": parser });
   }
 
   protected ensureHttpServerExists(
     port: number,
     httpServer = http.createServer(),
   ) {
+	logger.error(`>>> Entering ensureHttpServerExists(port=${port},httpServer=${httpServer})`, { "event.action": "ensureHttpServerExists", "logrite.port": port, "logrite.httpServer": httpServer });
     if (this.httpServersRegistry.has(port)) {
       return;
     }
@@ -230,10 +256,14 @@ export class WsAdapter extends AbstractWsAdapter {
     httpServer.on('upgrade', (request, socket, head) => {
       try {
         const baseUrl = 'ws://' + request.headers.host + '/';
+		logger.error(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): baseUrl → ${baseUrl}`, { "event.action": "ensureHttpServerExists", "logrite.port": port, "logrite.httpServer": httpServer });
         const pathname = new URL(request.url!, baseUrl).pathname;
+		logger.error(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): pathname → ${pathname}`, { "event.action": "ensureHttpServerExists", "logrite.port": port, "logrite.httpServer": httpServer });
         const wsServersCollection = this.wsServersRegistry.get(port)!;
+		logger.error(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): wsServersCollection → ${wsServersCollection}`, { "event.action": "ensureHttpServerExists", "logrite.port": port, "logrite.httpServer": httpServer });
 
         let isRequestDelegated = false;
+		logger.error(`ensureHttpServerExists(port=${port},httpServer=${httpServer}): isRequestDelegated → ${isRequestDelegated}`, { "event.action": "ensureHttpServerExists", "logrite.port": port, "logrite.httpServer": httpServer });
         for (const wsServer of wsServersCollection) {
           if (pathname === wsServer.path) {
             wsServer.handleUpgrade(request, socket, head, (ws: unknown) => {
@@ -247,9 +277,11 @@ export class WsAdapter extends AbstractWsAdapter {
           socket.destroy();
         }
       } catch (err) {
+		logger.error(`Exception in ensureHttpServerExists(port=${port},httpServer=${httpServer}): ${(err as Error).message}`, err, { "event.action": "ensureHttpServerExists", "event.category": "process", "logrite.port": port, "logrite.httpServer": httpServer });
         socket.end(`HTTP/1.1 400\r\n${err.message}`);
       }
     });
+	logger.warn(`<<< Exiting ensureHttpServerExists(port=${port},httpServer=${httpServer})`, { "event.action": "ensureHttpServerExists", "logrite.port": port, "logrite.httpServer": httpServer });
     return httpServer;
   }
 
@@ -258,10 +290,13 @@ export class WsAdapter extends AbstractWsAdapter {
     port: number,
     path: string,
   ) {
+	logger.error(`>>> Entering addWsServerToRegistry(wsServer=${wsServer},port=${port},path=${path})`, { "event.action": "addWsServerToRegistry", "logrite.wsServer": wsServer, "logrite.port": port, "logrite.path": path });
     const entries = this.wsServersRegistry.get(port) ?? [];
     entries.push(wsServer);
+	logger.error(`addWsServerToRegistry(wsServer=${wsServer},port=${port},path=${path}): entries → ${entries}`, { "event.action": "addWsServerToRegistry", "logrite.wsServer": wsServer, "logrite.port": port, "logrite.path": path });
 
     wsServer.path = normalizePath(path);
     this.wsServersRegistry.set(port, entries);
+	logger.warn(`<<< Exiting addWsServerToRegistry(wsServer=${wsServer},port=${port},path=${path})`, { "event.action": "addWsServerToRegistry", "logrite.wsServer": wsServer, "logrite.port": port, "logrite.path": path });
   }
 }

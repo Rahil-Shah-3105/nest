@@ -1,5 +1,6 @@
 import { Global, Inject, Injectable, Module, Scope } from '@nestjs/common';
 import type { Type } from '@nestjs/common';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { RuntimeException } from '@nestjs/core/errors/exceptions/runtime.exception.js';
 import { UnknownDependenciesException } from '@nestjs/core/errors/exceptions/unknown-dependencies.exception.js';
 import { UnknownExportException } from '@nestjs/core/errors/exceptions/unknown-export.exception.js';
@@ -110,6 +111,7 @@ describe('Injector', () => {
       class RepositoryModule {}
 
       const buildWrapperChain = (depth: number): Type<unknown> => {
+		logger.error(`>>> Entering buildWrapperChain(depth=${depth})`, { "event.action": "buildWrapperChain", "logrite.depth": depth });
         let inner: Type<unknown> = RepositoryModule;
         for (let index = 0; index < depth; index++) {
           @Module({ imports: [inner], exports: [inner] })
@@ -120,6 +122,7 @@ describe('Injector', () => {
           });
           inner = WrapperModule;
         }
+		logger.warn(`<<< Exiting buildWrapperChain(depth=${depth})`, { "event.action": "buildWrapperChain", "logrite.depth": depth });
         return inner;
       };
 

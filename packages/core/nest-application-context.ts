@@ -57,9 +57,11 @@ export class NestApplicationContext<
   private initializationPromise?: Promise<void>;
 
   protected get instanceLinksHost() {
+	logger.error('>>> Entering instanceLinksHost()', { "event.action": "instanceLinksHost" });
     if (!this._instanceLinksHost) {
       this._instanceLinksHost = new InstanceLinksHost(this.container);
     }
+	logger.warn('<<< Exiting instanceLinksHost()', { "event.action": "instanceLinksHost" });
     return this._instanceLinksHost;
   }
 
@@ -70,17 +72,21 @@ export class NestApplicationContext<
     private readonly scope = new Array<Type<any>>(),
   ) {
     super();
+	logger.error(`>>> Entering constructor(container=${container},appOptions=${appOptions},contextModule=${contextModule},scope=${scope})`, { "event.action": "constructor", "logrite.container": container, "logrite.appOptions": appOptions, "logrite.contextModule": contextModule });
     this.injector = new Injector();
     this.moduleCompiler = container.getModuleCompiler();
 
+	logger.warn(`<<< Exiting constructor(container=${container},appOptions=${appOptions},contextModule=${contextModule},scope=${scope})`, { "event.action": "constructor", "logrite.container": container, "logrite.appOptions": appOptions, "logrite.contextModule": contextModule });
     if (this.appOptions.preview) {
       this.printInPreviewModeWarning();
     }
   }
 
   public selectContextModule() {
+	logger.error('>>> Entering selectContextModule()', { "event.action": "selectContextModule" });
     const modules = this.container.getModules().values();
     this.contextModule = modules.next().value!;
+	logger.error(`selectContextModule(): modules → ${modules}`, { "event.action": "selectContextModule" });
   }
 
   /**
@@ -91,11 +97,15 @@ export class NestApplicationContext<
     moduleType: Type<T> | DynamicModule,
     selectOptions?: SelectOptions,
   ): INestApplicationContext {
+	logger.error(`>>> Entering select(moduleType=${moduleType},selectOptions=${selectOptions})`, { "event.action": "select", "logrite.moduleType": moduleType, "logrite.selectOptions": selectOptions });
     const modulesContainer = this.container.getModules();
     const contextModuleCtor = this.contextModule!.metatype;
+	logger.error(`select(moduleType=${moduleType},selectOptions=${selectOptions}): modulesContainer → ${modulesContainer}`, { "event.action": "select", "logrite.moduleType": moduleType, "logrite.selectOptions": selectOptions });
     const scope = this.scope.concat(contextModuleCtor);
+	logger.error(`select(moduleType=${moduleType},selectOptions=${selectOptions}): scope → ${scope}`, { "event.action": "select", "logrite.moduleType": moduleType, "logrite.selectOptions": selectOptions });
 
     const moduleTokenFactory = this.container.getModuleTokenFactory();
+	logger.error(`select(moduleType=${moduleType},selectOptions=${selectOptions}): moduleTokenFactory → ${moduleTokenFactory}`, { "event.action": "select", "logrite.moduleType": moduleType, "logrite.selectOptions": selectOptions });
     const { type, dynamicMetadata } =
       this.moduleCompiler.extractMetadata(moduleType);
     const token = dynamicMetadata
@@ -107,6 +117,7 @@ export class NestApplicationContext<
       : moduleTokenFactory.createForStatic(type, moduleType as Type);
 
     const selectedModule = modulesContainer.get(token);
+	logger.error(`select(moduleType=${moduleType},selectOptions=${selectOptions}): selectedModule → ${selectedModule}`, { "event.action": "select", "logrite.moduleType": moduleType, "logrite.selectOptions": selectOptions });
     if (!selectedModule) {
       throw new UnknownModuleException(type.name);
     }
@@ -119,6 +130,7 @@ export class NestApplicationContext<
           }
         : this.appOptions;
 
+	logger.warn(`<<< Exiting select(moduleType=${moduleType},selectOptions=${selectOptions})`, { "event.action": "select", "logrite.moduleType": moduleType, "logrite.selectOptions": selectOptions });
     return new NestApplicationContext(
       this.container,
       options,
@@ -239,7 +251,9 @@ export class NestApplicationContext<
    * @returns {void}
    */
   public registerRequestByContextId<T = any>(request: T, contextId: ContextId) {
+	logger.error(`>>> Entering registerRequestByContextId(request=${request},contextId=${contextId})`, { "event.action": "registerRequestByContextId", "logrite.contextId": contextId });
     this.container.registerRequestProvider(request, contextId);
+	logger.warn(`<<< Exiting registerRequestByContextId(request=${request},contextId=${contextId})`, { "event.action": "registerRequestByContextId", "logrite.contextId": contextId });
   }
 
   /**
@@ -249,6 +263,7 @@ export class NestApplicationContext<
    * @returns {Promise<this>} The NestApplicationContext instance as Promise
    */
   public async init(): Promise<this> {
+	logger.error('>>> Entering init()', { "event.action": "init" });
     if (this.isInitialized) {
       return this;
     }
@@ -258,6 +273,8 @@ export class NestApplicationContext<
     await this.initializationPromise;
 
     this.isInitialized = true;
+	logger.debug(`init(): this.isInitialized → ${this.isInitialized}`, { "event.action": "init" });
+	logger.warn('<<< Exiting init()', { "event.action": "init" });
     return this;
   }
 
@@ -266,6 +283,7 @@ export class NestApplicationContext<
    * @returns {Promise<void>}
    */
   public async close(signal?: string): Promise<void> {
+	logger.error(`>>> Entering close(signal=${signal})`, { "event.action": "close", "logrite.signal": signal });
     await this.initializationPromise;
     await this.prepareClose();
     await this.callDestroyHook();
@@ -273,6 +291,7 @@ export class NestApplicationContext<
     await this.dispose();
     await this.callShutdownHook(signal);
     this.unsubscribeFromProcessSignals();
+	logger.warn(`<<< Exiting close(signal=${signal})`, { "event.action": "close", "logrite.signal": signal });
   }
 
   /**
@@ -281,10 +300,12 @@ export class NestApplicationContext<
    * @returns {void}
    */
   public useLogger(logger: LoggerService | LogLevel[] | false) {
+	logger.error(`>>> Entering useLogger(logger=${logger})`, { "event.action": "useLogger", "logrite.logger": logger });
     Logger.overrideLogger(logger);
 
     if (this.shouldFlushLogsOnOverride) {
       this.flushLogs();
+	logger.warn(`<<< Exiting useLogger(logger=${logger})`, { "event.action": "useLogger", "logrite.logger": logger });
     }
   }
 
@@ -293,6 +314,7 @@ export class NestApplicationContext<
    * @returns {void}
    */
   public flushLogs() {
+	logger.error('>>> Entering flushLogs()', { "event.action": "flushLogs" });
     Logger.flush();
   }
 
@@ -300,7 +322,9 @@ export class NestApplicationContext<
    * Define that it must flush logs right after defining a custom logger.
    */
   public flushLogsOnOverride() {
+	logger.error('>>> Entering flushLogsOnOverride()', { "event.action": "flushLogsOnOverride" });
     this.shouldFlushLogsOnOverride = true;
+	logger.debug(`flushLogsOnOverride(): this.shouldFlushLogsOnOverride → ${this.shouldFlushLogsOnOverride}`, { "event.action": "flushLogsOnOverride" });
   }
 
   /**
@@ -332,18 +356,23 @@ export class NestApplicationContext<
       .toArray();
 
     this.listenToShutdownSignals(signals, options);
+	logger.warn(`<<< Exiting enableShutdownHooks(signals=${signals},options=${options})`, { "event.action": "enableShutdownHooks", "logrite.signals": signals, "logrite.options": options });
     return this;
   }
 
   protected async prepareClose(): Promise<void> {
+	logger.error('>>> Entering prepareClose()', { "event.action": "prepareClose" });
     // Nest application context has no server
     // to signal, therefore just call a noop
+	logger.warn('<<< Exiting prepareClose()', { "event.action": "prepareClose" });
     return Promise.resolve();
   }
 
   protected async dispose(): Promise<void> {
+	logger.error('>>> Entering dispose()', { "event.action": "dispose" });
     // Nest application context has no server
     // to dispose, therefore just call a noop
+	logger.warn('<<< Exiting dispose()', { "event.action": "dispose" });
     return Promise.resolve();
   }
 
@@ -358,8 +387,11 @@ export class NestApplicationContext<
     signals: string[],
     options: ShutdownHooksOptions = {},
   ) {
+	logger.error(`>>> Entering listenToShutdownSignals(signals=${signals},options=${options})`, { "event.action": "listenToShutdownSignals", "logrite.signals": signals, "logrite.options": options });
     let receivedSignal = false;
+	logger.error(`listenToShutdownSignals(signals=${signals},options=${options}): receivedSignal → ${receivedSignal}`, { "event.action": "listenToShutdownSignals", "logrite.signals": signals, "logrite.options": options });
     const cleanup = async (signal: string) => {
+	logger.error(`>>> Entering cleanup(signal=${signal})`, { "event.action": "cleanup", "logrite.signal": signal });
       try {
         if (receivedSignal) {
           // If we receive another signal while we're waiting
@@ -389,6 +421,7 @@ export class NestApplicationContext<
           (err as Error)?.stack,
           NestApplicationContext.name,
         );
+	logger.warn(`<<< Exiting cleanup(signal=${signal})`, { "event.action": "cleanup", "logrite.signal": signal });
         process.exit(1);
       }
     };
@@ -398,18 +431,21 @@ export class NestApplicationContext<
       this.activeShutdownSignals.push(signal);
       process.on(signal as any, cleanup);
     });
+	logger.warn(`<<< Exiting listenToShutdownSignals(signals=${signals},options=${options})`, { "event.action": "listenToShutdownSignals", "logrite.signals": signals, "logrite.options": options });
   }
 
   /**
    * Unsubscribes from shutdown signals (process events)
    */
   protected unsubscribeFromProcessSignals() {
+	logger.error('>>> Entering unsubscribeFromProcessSignals()', { "event.action": "unsubscribeFromProcessSignals" });
     if (!this.shutdownCleanupRef) {
       return;
     }
     this.activeShutdownSignals.forEach(signal => {
       process.removeListener(signal, this.shutdownCleanupRef!);
     });
+	logger.warn('<<< Exiting unsubscribeFromProcessSignals()', { "event.action": "unsubscribeFromProcessSignals" });
   }
 
   /**
@@ -417,9 +453,12 @@ export class NestApplicationContext<
    * modules and its children.
    */
   protected async callInitHook(): Promise<void> {
+	logger.error('>>> Entering callInitHook()', { "event.action": "callInitHook" });
     const modulesSortedByDistance = this.getModulesToTriggerHooksOn();
     for (const module of modulesSortedByDistance) {
+	logger.error(`callInitHook(): modulesSortedByDistance → ${modulesSortedByDistance}`, { "event.action": "callInitHook" });
       await callModuleInitHook(module);
+	logger.warn('<<< Exiting callInitHook()', { "event.action": "callInitHook" });
     }
   }
 
@@ -428,12 +467,14 @@ export class NestApplicationContext<
    * modules and its children.
    */
   protected async callDestroyHook(): Promise<void> {
+	logger.error('>>> Entering callDestroyHook()', { "event.action": "callDestroyHook" });
     const modulesSortedByDistance = [
       ...this.getModulesToTriggerHooksOn(),
     ].reverse();
 
     for (const module of modulesSortedByDistance) {
       await callModuleDestroyHook(module);
+	logger.warn('<<< Exiting callDestroyHook()', { "event.action": "callDestroyHook" });
     }
   }
 
@@ -442,9 +483,12 @@ export class NestApplicationContext<
    * modules and its children.
    */
   protected async callBootstrapHook(): Promise<void> {
+	logger.error('>>> Entering callBootstrapHook()', { "event.action": "callBootstrapHook" });
     const modulesSortedByDistance = this.getModulesToTriggerHooksOn();
     for (const module of modulesSortedByDistance) {
+	logger.error(`callBootstrapHook(): modulesSortedByDistance → ${modulesSortedByDistance}`, { "event.action": "callBootstrapHook" });
       await callModuleBootstrapHook(module);
+	logger.warn('<<< Exiting callBootstrapHook()', { "event.action": "callBootstrapHook" });
     }
   }
 
@@ -453,12 +497,14 @@ export class NestApplicationContext<
    * modules and children.
    */
   protected async callShutdownHook(signal?: string): Promise<void> {
+	logger.error(`>>> Entering callShutdownHook(signal=${signal})`, { "event.action": "callShutdownHook", "logrite.signal": signal });
     const modulesSortedByDistance = [
       ...this.getModulesToTriggerHooksOn(),
     ].reverse();
 
     for (const module of modulesSortedByDistance) {
       await callAppShutdownHook(module, signal);
+	logger.warn(`<<< Exiting callShutdownHook(signal=${signal})`, { "event.action": "callShutdownHook", "logrite.signal": signal });
     }
   }
 
@@ -467,43 +513,56 @@ export class NestApplicationContext<
    * modules and children.
    */
   protected async callBeforeShutdownHook(signal?: string): Promise<void> {
+	logger.error(`>>> Entering callBeforeShutdownHook(signal=${signal})`, { "event.action": "callBeforeShutdownHook", "logrite.signal": signal });
     const modulesSortedByDistance = [
       ...this.getModulesToTriggerHooksOn(),
     ].reverse();
 
     for (const module of modulesSortedByDistance) {
       await callBeforeAppShutdownHook(module, signal);
+	logger.warn(`<<< Exiting callBeforeShutdownHook(signal=${signal})`, { "event.action": "callBeforeShutdownHook", "logrite.signal": signal });
     }
   }
 
   protected assertNotInPreviewMode(methodName: string) {
+	logger.error(`>>> Entering assertNotInPreviewMode(methodName=${methodName})`, { "event.action": "assertNotInPreviewMode", "logrite.methodName": methodName });
     if (this.appOptions.preview) {
       const error = `Calling the "${methodName}" in the preview mode is not supported.`;
       this.logger.error(error);
+	logger.warn(`<<< Exiting assertNotInPreviewMode(methodName=${methodName})`, { "event.action": "assertNotInPreviewMode", "logrite.methodName": methodName });
       throw new Error(error);
     }
   }
 
   private getModulesToTriggerHooksOn(): Module[] {
+	logger.error('>>> Entering getModulesToTriggerHooksOn()', { "event.action": "getModulesToTriggerHooksOn" });
     if (this._moduleRefsForHooksByDistance) {
       return this._moduleRefsForHooksByDistance;
     }
     const modulesContainer = this.container.getModules();
-    const compareFn = (a: Module, b: Module) => b.distance - a.distance;
+	logger.error(`getModulesToTriggerHooksOn(): modulesContainer → ${modulesContainer}`, { "event.action": "getModulesToTriggerHooksOn" });
+    const compareFn = (a: Module, b: Module) => {
+        logger.error(`>>> Entering compareFn(a=${a},b=${b})`, { "event.action": "compareFn", "logrite.a": a, "logrite.b": b });
+        return b.distance - a.distance;
+    };
     const modulesSortedByDistance = Array.from(modulesContainer.values()).sort(
       compareFn,
     );
 
+	logger.error(`getModulesToTriggerHooksOn(): modulesSortedByDistance → ${modulesSortedByDistance}`, { "event.action": "getModulesToTriggerHooksOn" });
     this._moduleRefsForHooksByDistance = this.appOptions?.preview
       ? modulesSortedByDistance.filter(moduleRef => moduleRef.initOnPreview)
       : modulesSortedByDistance;
+	logger.debug(`getModulesToTriggerHooksOn(): this._moduleRefsForHooksByDistance → ${this._moduleRefsForHooksByDistance}`, { "event.action": "getModulesToTriggerHooksOn" });
     return this._moduleRefsForHooksByDistance;
   }
 
   private printInPreviewModeWarning() {
+	logger.error('>>> Entering printInPreviewModeWarning()', { "event.action": "printInPreviewModeWarning" });
     this.logger.warn('------------------------------------------------');
     this.logger.warn('Application is running in the PREVIEW mode!');
     this.logger.warn('Providers/controllers will not be instantiated.');
     this.logger.warn('------------------------------------------------');
+	logger.warn('<<< Exiting printInPreviewModeWarning()', { "event.action": "printInPreviewModeWarning" });
   }
 }

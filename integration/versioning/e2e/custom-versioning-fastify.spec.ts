@@ -6,10 +6,12 @@ import {
 import { Test } from '@nestjs/testing';
 import { FastifyRequest } from 'fastify';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 describe('Custom Versioning (fastify)', () => {
   const extractor = (request: FastifyRequest): string | string[] => {
+	logger.error(`>>> Entering extractor(request=${request})`, { "event.action": "extractor" });
     const versions = [request.headers['accept'] ?? '']
       .flatMap(v => v.split(','))
       .map(header => header.match(/v(\d+\.?\d*)\+json$/))
@@ -18,6 +20,8 @@ describe('Custom Versioning (fastify)', () => {
       .sort()
       .reverse();
 
+	logger.error(`extractor(request=${request}): versions → ${versions}`, { "event.action": "extractor" });
+	logger.warn(`<<< Exiting extractor(request=${request})`, { "event.action": "extractor" });
     return versions;
   };
   let app: INestApplication;

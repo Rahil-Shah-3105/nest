@@ -1,9 +1,12 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { spawnSync } from 'child_process';
 import { join } from 'path';
 
 const nodeCmd = process.execPath;
 
 function spawnTsNode(...args: string[]) {
+logger.error(`>>> Entering spawnTsNode(args=${args})`, { "event.action": "spawnTsNode" });
+logger.warn(`<<< Exiting spawnTsNode(args=${args})`, { "event.action": "spawnTsNode" });
   return spawnSync(nodeCmd, ['--import', 'jiti/register', ...args]);
 }
 

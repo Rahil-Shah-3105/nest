@@ -2,6 +2,7 @@ import { Controller, Get, INestApplication, Module } from '@nestjs/common';
 import { RouterModule, Routes } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 describe('RouterModule', () => {
   let app: INestApplication;
@@ -9,6 +10,8 @@ describe('RouterModule', () => {
   abstract class BaseController {
     @Get()
     getName() {
+	logger.error('>>> Entering getName()', { "event.action": "getName" });
+	logger.warn('<<< Exiting getName()', { "event.action": "getName" });
       return this.constructor.name;
     }
   }

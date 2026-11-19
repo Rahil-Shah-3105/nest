@@ -109,14 +109,18 @@ export class ConfigurableModuleBuilder<
       extras: ExtraModuleDefinitionOptions,
     ) => DynamicModule = def => def,
   ) {
+	logger.error(`>>> Entering setExtras(extras=${extras},transformDefinition=${transformDefinition})`, { "event.action": "setExtras", "logrite.extras": extras, "logrite.transformDefinition": transformDefinition });
     const builder = new ConfigurableModuleBuilder<
       ModuleOptions,
       StaticMethodKey,
       FactoryClassMethodKey,
       ExtraModuleDefinitionOptions
     >(this.options, this as any);
+	logger.debug(`setExtras(extras=${extras},transformDefinition=${transformDefinition}): builder.transformModuleDefinition → ${builder.transformModuleDefinition}`, { "event.action": "setExtras", "logrite.extras": extras, "logrite.transformDefinition": transformDefinition });
     builder.extras = extras;
+	logger.debug(`setExtras(extras=${extras},transformDefinition=${transformDefinition}): builder.extras → ${builder.extras}`, { "event.action": "setExtras", "logrite.extras": extras, "logrite.transformDefinition": transformDefinition });
     builder.transformModuleDefinition = transformDefinition;
+	logger.warn(`<<< Exiting setExtras(extras=${extras},transformDefinition=${transformDefinition})`, { "event.action": "setExtras", "logrite.extras": extras, "logrite.transformDefinition": transformDefinition });
     return builder;
   }
 
@@ -132,6 +136,7 @@ export class ConfigurableModuleBuilder<
    * @param key name of the method
    */
   setClassMethodName<StaticMethodKey extends string>(key: StaticMethodKey) {
+	logger.error(`>>> Entering setClassMethodName(key=${key})`, { "event.action": "setClassMethodName", "logrite.key": key });
     const builder = new ConfigurableModuleBuilder<
       ModuleOptions,
       StaticMethodKey,
@@ -139,6 +144,8 @@ export class ConfigurableModuleBuilder<
       ExtraModuleDefinitionOptions
     >(this.options, this as any);
     builder.staticMethodKey = key;
+	logger.debug(`setClassMethodName(key=${key}): builder.staticMethodKey → ${builder.staticMethodKey}`, { "event.action": "setClassMethodName", "logrite.key": key });
+	logger.warn(`<<< Exiting setClassMethodName(key=${key})`, { "event.action": "setClassMethodName", "logrite.key": key });
     return builder;
   }
 
@@ -156,6 +163,7 @@ export class ConfigurableModuleBuilder<
   setFactoryMethodName<FactoryClassMethodKey extends string>(
     key: FactoryClassMethodKey,
   ) {
+	logger.error(`>>> Entering setFactoryMethodName(key=${key})`, { "event.action": "setFactoryMethodName", "logrite.key": key });
     const builder = new ConfigurableModuleBuilder<
       ModuleOptions,
       StaticMethodKey,
@@ -163,6 +171,8 @@ export class ConfigurableModuleBuilder<
       ExtraModuleDefinitionOptions
     >(this.options, this as any);
     builder.factoryClassMethodKey = key;
+	logger.debug(`setFactoryMethodName(key=${key}): builder.factoryClassMethodKey → ${builder.factoryClassMethodKey}`, { "event.action": "setFactoryMethodName", "logrite.key": key });
+	logger.warn(`<<< Exiting setFactoryMethodName(key=${key})`, { "event.action": "setFactoryMethodName", "logrite.key": key });
     return builder;
   }
 
@@ -194,11 +204,13 @@ export class ConfigurableModuleBuilder<
   }
 
   private constructInjectionTokenString(): string {
+	logger.error('>>> Entering constructInjectionTokenString()', { "event.action": "constructInjectionTokenString" });
     const moduleNameInSnakeCase = this.options
       .moduleName!.trim()
       .split(/(?=[A-Z])/)
       .join('_')
       .toUpperCase();
+	logger.warn('<<< Exiting constructInjectionTokenString()', { "event.action": "constructInjectionTokenString" });
     return `${moduleNameInSnakeCase}_MODULE_OPTIONS`;
   }
 
@@ -207,6 +219,7 @@ export class ConfigurableModuleBuilder<
     StaticMethodKey,
     FactoryClassMethodKey
   > {
+	logger.error('>>> Entering createConfigurableModuleCls()', { "event.action": "createConfigurableModuleCls" });
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     const asyncMethodKey = this.staticMethodKey + ASYNC_METHOD_SUFFIX;
@@ -243,8 +256,10 @@ export class ConfigurableModuleBuilder<
         options: ConfigurableModuleAsyncOptions<ModuleOptions> &
           ExtraModuleDefinitionOptions,
       ): DynamicModule {
+		logger.error(`>>> Entering asyncMethodKey(options=${options})`, { "event.action": "asyncMethodKey", "logrite.options": options });
         const providers = this.createAsyncProviders(options);
         if (self.options.alwaysTransient) {
+		logger.warn(`<<< Exiting asyncMethodKey(options=${options})`, { "event.action": "asyncMethodKey", "logrite.options": options });
           providers.push({
             provide: CONFIGURABLE_MODULE_ID,
             useValue: randomStringGenerator(),
@@ -267,17 +282,20 @@ export class ConfigurableModuleBuilder<
         input: ModuleOptions & ExtraModuleDefinitionOptions,
         extras: ExtraModuleDefinitionOptions | undefined,
       ): ModuleOptions {
+		logger.error(`>>> Entering omitExtras(input=${input},extras=${extras})`, { "event.action": "omitExtras", "logrite.extras": extras });
         if (!extras) {
           return input;
         }
         const moduleOptions = {};
         const extrasKeys = Object.keys(extras);
+		logger.error(`omitExtras(input=${input},extras=${extras}): extrasKeys → ${extrasKeys}`, { "event.action": "omitExtras", "logrite.extras": extras });
 
         Object.keys(input as object)
           .filter(key => !extrasKeys.includes(key))
           .forEach(key => {
             moduleOptions[key] = input[key];
           });
+		logger.warn(`<<< Exiting omitExtras(input=${input},extras=${extras})`, { "event.action": "omitExtras", "logrite.extras": extras });
         return moduleOptions as ModuleOptions;
       }
 
@@ -286,6 +304,7 @@ export class ConfigurableModuleBuilder<
           ExtraModuleDefinitionOptions,
         extras: ExtraModuleDefinitionOptions | undefined,
       ): Partial<ExtraModuleDefinitionOptions> {
+		logger.error(`>>> Entering extractExtrasFromAsyncOptions(input=${input},extras=${extras})`, { "event.action": "extractExtrasFromAsyncOptions", "logrite.extras": extras });
         if (!extras) {
           return {};
         }
@@ -297,6 +316,7 @@ export class ConfigurableModuleBuilder<
             extrasOptions[key] = input[key];
           });
 
+		logger.warn(`<<< Exiting extractExtrasFromAsyncOptions(input=${input},extras=${extras})`, { "event.action": "extractExtrasFromAsyncOptions", "logrite.extras": extras });
         return extrasOptions;
       }
 
@@ -304,8 +324,10 @@ export class ConfigurableModuleBuilder<
         options: ConfigurableModuleAsyncOptions<ModuleOptions> &
           ExtraModuleDefinitionOptions,
       ): Provider[] {
+		logger.error(`>>> Entering createAsyncProviders(options=${options})`, { "event.action": "createAsyncProviders", "logrite.options": options });
         if (options.useExisting || options.useFactory) {
           if (options.inject && options.provideInjectionTokensFrom) {
+			logger.warn(`<<< Exiting createAsyncProviders(options=${options})`, { "event.action": "createAsyncProviders", "logrite.options": options });
             return [
               this.createAsyncOptionsProvider(options),
               ...getInjectionProviders(
@@ -328,6 +350,7 @@ export class ConfigurableModuleBuilder<
       private static createAsyncOptionsProvider(
         options: ConfigurableModuleAsyncOptions<ModuleOptions>,
       ): Provider {
+		logger.error(`>>> Entering createAsyncOptionsProvider(options=${options})`, { "event.action": "createAsyncOptionsProvider", "logrite.options": options });
         if (options.useFactory) {
           return {
             provide: self.options.optionsInjectionToken!,
@@ -348,6 +371,7 @@ export class ConfigurableModuleBuilder<
             ](),
           inject: [options.useExisting || options.useClass!],
         };
+		logger.warn('<<< Exiting createConfigurableModuleCls()', { "event.action": "createConfigurableModuleCls" });
       }
     }
     return InternalModuleClass as unknown as ConfigurableModuleCls<
@@ -360,6 +384,7 @@ export class ConfigurableModuleBuilder<
   private createTypeProxy(
     typeName: 'OPTIONS_TYPE' | 'ASYNC_OPTIONS_TYPE' | 'OptionsFactoryInterface',
   ) {
+	logger.error(`>>> Entering createTypeProxy(typeName=${typeName})`, { "event.action": "createTypeProxy", "logrite.typeName": typeName });
     const proxy = new Proxy(
       {},
       {
@@ -370,6 +395,7 @@ export class ConfigurableModuleBuilder<
         },
       },
     );
+	logger.error(`createTypeProxy(typeName=${typeName}): proxy → ${proxy}`, { "event.action": "createTypeProxy", "logrite.typeName": typeName });
     return proxy as any;
   }
 }

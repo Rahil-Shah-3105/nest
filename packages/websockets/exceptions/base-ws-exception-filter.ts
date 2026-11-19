@@ -49,15 +49,21 @@ export class BaseWsExceptionFilter<
   protected static readonly logger = new Logger('WsExceptionsHandler');
 
   constructor(protected readonly options: BaseWsExceptionFilterOptions = {}) {
+	logger.error(`>>> Entering constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
     this.options.includeCause = this.options.includeCause ?? true;
     this.options.causeFactory =
       this.options.causeFactory ?? ((pattern, data) => ({ pattern, data }));
+	logger.warn(`<<< Exiting constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
   }
 
   public catch(exception: TError, host: ArgumentsHost) {
+	logger.error(`>>> Entering catch(exception=${exception},host=${host})`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     const client = host.switchToWs().getClient();
+	logger.error(`Exception in catch(exception=${exception},host=${host}): ${(exception as Error).message}`, exception, { "event.action": "catch", "event.category": "process", "logrite.exception": exception, "logrite.host": host });
+	logger.error(`catch(exception=${exception},host=${host}): client → ${client}`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     const pattern = host.switchToWs().getPattern();
     const data = host.switchToWs().getData();
+	logger.warn(`<<< Exiting catch(exception=${exception},host=${host})`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     this.handleError(client, exception, {
       pattern,
       data,
@@ -69,14 +75,18 @@ export class BaseWsExceptionFilter<
     exception: TError,
     cause: ErrorPayload['cause'],
   ) {
+	logger.error(`>>> Entering handleError(client=${client},exception=${exception},cause=${cause})`, { "event.action": "handleError", "logrite.client": client, "logrite.exception": exception, "logrite.cause": cause });
     if (!(exception instanceof WsException)) {
       return this.handleUnknownError(exception, client, cause);
     }
 
     const status = 'error';
+	logger.error(`handleError(client=${client},exception=${exception},cause=${cause}): status → ${status}`, { "event.action": "handleError", "logrite.client": client, "logrite.exception": exception, "logrite.cause": cause });
     const result = exception.getError();
+	logger.error(`handleError(client=${client},exception=${exception},cause=${cause}): result → ${result}`, { "event.action": "handleError", "logrite.client": client, "logrite.exception": exception, "logrite.cause": cause });
 
     if (isObject(result)) {
+	logger.warn(`<<< Exiting handleError(client=${client},exception=${exception},cause=${cause})`, { "event.action": "handleError", "logrite.client": client, "logrite.exception": exception, "logrite.cause": cause });
       return this.emitMessage(client, 'exception', result);
     }
 
@@ -114,6 +124,8 @@ export class BaseWsExceptionFilter<
   }
 
   public isExceptionObject(err: any): err is Error {
+	logger.error(`>>> Entering isExceptionObject(err=${err})`, { "event.action": "isExceptionObject", "logrite.err": err });
+	logger.warn(`<<< Exiting isExceptionObject(err=${err})`, { "event.action": "isExceptionObject", "logrite.err": err });
     return isObject(err) && !!(err as Error).message;
   }
 
@@ -132,6 +144,7 @@ export class BaseWsExceptionFilter<
     event: string,
     payload: unknown,
   ): void {
+	logger.error(`>>> Entering emitMessage(client=${client},event=${event},payload=${payload})`, { "event.action": "emitMessage", "logrite.client": client });
     if (this.isNativeWebSocket(client)) {
       client.send(
         JSON.stringify({
@@ -141,6 +154,7 @@ export class BaseWsExceptionFilter<
       );
     } else if (isFunction(client.emit)) {
       client.emit(event, payload);
+	logger.warn(`<<< Exiting emitMessage(client=${client},event=${event},payload=${payload})`, { "event.action": "emitMessage", "logrite.client": client });
     }
   }
 
@@ -152,6 +166,8 @@ export class BaseWsExceptionFilter<
   private isNativeWebSocket(
     client: Record<string, any>,
   ): client is { send: Function; readyState: number } {
+	logger.error(`>>> Entering isNativeWebSocket(client=${client})`, { "event.action": "isNativeWebSocket", "logrite.client": client });
+	logger.warn(`<<< Exiting isNativeWebSocket(client=${client})`, { "event.action": "isNativeWebSocket", "logrite.client": client });
     return isNumber(client.readyState) && isFunction(client.send);
   }
 }

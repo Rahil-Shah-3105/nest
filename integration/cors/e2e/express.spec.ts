@@ -1,6 +1,7 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 describe('Express Cors', () => {
@@ -34,9 +35,12 @@ describe('Express Cors', () => {
 
         let requestId = 0;
         const configDelegation = function (req, cb) {
+		logger.error(`>>> Entering configDelegation(req=${req},cb=${cb})`, { "event.action": "configDelegation", "logrite.cb": cb });
           const config = configs[requestId];
           requestId++;
+		logger.error(`configDelegation(req=${req},cb=${cb}): config → ${config}`, { "event.action": "configDelegation", "logrite.cb": cb });
           cb(null, config);
+		logger.warn(`<<< Exiting configDelegation(req=${req},cb=${cb})`, { "event.action": "configDelegation", "logrite.cb": cb });
         };
         app.enableCors(configDelegation);
 

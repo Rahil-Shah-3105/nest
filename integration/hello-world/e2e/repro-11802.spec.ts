@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   Get,
@@ -45,6 +46,8 @@ describe('Middleware + Fastify plugin registered with a prefix (#11802 repro)', 
   class RootController {
     @Get('other')
     other() {
+	logger.error('>>> Entering other()', { "event.action": "other" });
+	logger.warn('<<< Exiting other()', { "event.action": "other" });
       return 'other';
     }
   }
@@ -52,7 +55,9 @@ describe('Middleware + Fastify plugin registered with a prefix (#11802 repro)', 
   @Module({ controllers: [RootController] })
   class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
       consumer.apply(CountingMiddleware).forRoutes('/queues');
+	logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     }
   }
 

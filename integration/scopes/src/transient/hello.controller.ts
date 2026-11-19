@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   Get,
@@ -25,6 +26,8 @@ export class HelloController {
   @UseInterceptors(Interceptor)
   @Get()
   greeting(@Param('id', UserByIdPipe) id): string {
+	logger.error(`>>> Entering greeting(id=${id})`, { "event.action": "greeting", "logrite.id": id });
+	logger.warn(`<<< Exiting greeting(id=${id})`, { "event.action": "greeting", "logrite.id": id });
     return this.helloService.greeting();
   }
 }

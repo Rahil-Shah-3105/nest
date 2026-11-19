@@ -177,32 +177,43 @@ export class FastifyAdapter<
       }
     },
     storage() {
+	logger.error('>>> Entering storage()', { "event.action": "storage" });
       const versions = new Map<string, unknown>();
       return {
         get(version: string | Array<string>) {
+		logger.error(`>>> Entering get(version=${version})`, { "event.action": "get", "logrite.version": version });
           if (Array.isArray(version)) {
+			logger.error(`storage(): versions → ${versions}`, { "event.action": "storage" });
             return versions.get(version.find(v => versions.has(v))!) || null;
           }
+		logger.warn(`<<< Exiting get(version=${version})`, { "event.action": "get", "logrite.version": version });
           return versions.get(version) || null;
         },
         set(versionOrVersions: string | Array<string>, store: unknown) {
+		logger.error(`>>> Entering set(versionOrVersions=${versionOrVersions},store=${store})`, { "event.action": "set", "logrite.versionOrVersions": versionOrVersions, "logrite.store": store });
           const storeVersionConstraint = (version: string) =>
             versions.set(version, store);
           if (Array.isArray(versionOrVersions))
             versionOrVersions.forEach(storeVersionConstraint);
           else storeVersionConstraint(versionOrVersions);
+		logger.warn(`<<< Exiting set(versionOrVersions=${versionOrVersions},store=${store})`, { "event.action": "set", "logrite.versionOrVersions": versionOrVersions, "logrite.store": store });
         },
         del(version: string | Array<string>) {
+		logger.error(`>>> Entering del(version=${version})`, { "event.action": "del", "logrite.version": version });
           if (Array.isArray(version)) {
             version.forEach(v => versions.delete(v));
           } else {
             versions.delete(version);
+			logger.warn(`<<< Exiting del(version=${version})`, { "event.action": "del", "logrite.version": version });
           }
         },
         empty() {
+		logger.error('>>> Entering empty()', { "event.action": "empty" });
           versions.clear();
+		logger.warn('<<< Exiting empty()', { "event.action": "empty" });
         },
       };
+	logger.warn('<<< Exiting storage()', { "event.action": "storage" });
     },
     deriveConstraint: (req: FastifyRequest) => {
       // Media Type (Accept Header) Versioning Handler
@@ -297,7 +308,9 @@ export class FastifyAdapter<
       done: (err?: Error) => void,
     ) => void | Promise<void>,
   ) {
+	logger.error(`>>> Entering setOnRequestHook(hook=${hook})`, { "event.action": "setOnRequestHook", "logrite.hook": hook });
     this.onRequestHook = hook;
+	logger.warn(`<<< Exiting setOnRequestHook(hook=${hook})`, { "event.action": "setOnRequestHook", "logrite.hook": hook });
   }
 
   public setOnResponseHook(
@@ -307,10 +320,13 @@ export class FastifyAdapter<
       done: (err?: Error) => void,
     ) => void | Promise<void>,
   ) {
+	logger.error(`>>> Entering setOnResponseHook(hook=${hook})`, { "event.action": "setOnResponseHook", "logrite.hook": hook });
     this.onResponseHook = hook;
+	logger.warn(`<<< Exiting setOnResponseHook(hook=${hook})`, { "event.action": "setOnResponseHook", "logrite.hook": hook });
   }
 
   public async init() {
+	logger.error('>>> Entering init()', { "event.action": "init" });
     if (this.isMiddieRegistered) {
       return;
     }
@@ -322,6 +338,7 @@ export class FastifyAdapter<
         (this.instance.use as any)(...args);
       }
       this.pendingMiddlewares = [];
+	logger.debug(`init(): this.pendingMiddlewares → ${this.pendingMiddlewares}`, { "event.action": "init" });
     }
   }
 
@@ -335,8 +352,10 @@ export class FastifyAdapter<
     listenOptions: string | number | FastifyListenOptions,
     ...args: any[]
   ): void {
+	logger.error(`>>> Entering listen(listenOptions=${listenOptions},args=${args})`, { "event.action": "listen", "logrite.listenOptions": listenOptions });
     const isFirstArgTypeofFunction = typeof args[0] === 'function';
     const callback = isFirstArgTypeofFunction ? args[0] : args[1];
+	logger.error(`listen(listenOptions=${listenOptions},args=${args}): isFirstArgTypeofFunction → ${isFirstArgTypeofFunction}`, { "event.action": "listen", "logrite.listenOptions": listenOptions });
 
     let options: Record<string, any>;
     if (
@@ -354,6 +373,7 @@ export class FastifyAdapter<
     }
     if (!isFirstArgTypeofFunction) {
       options.host = args[0];
+	logger.warn(`<<< Exiting listen(listenOptions=${listenOptions},args=${args})`, { "event.action": "listen", "logrite.listenOptions": listenOptions });
     }
     return this.instance.listen(options, callback);
   }
@@ -363,62 +383,92 @@ export class FastifyAdapter<
   }
 
   public post(...args: any[]) {
+	logger.error(`>>> Entering post(args=${args})`, { "event.action": "post" });
+	logger.warn(`<<< Exiting post(args=${args})`, { "event.action": "post" });
     return this.injectRouteOptions('POST', ...args);
   }
 
   public head(...args: any[]) {
+	logger.error(`>>> Entering head(args=${args})`, { "event.action": "head" });
+	logger.warn(`<<< Exiting head(args=${args})`, { "event.action": "head" });
     return this.injectRouteOptions('HEAD', ...args);
   }
 
   public delete(...args: any[]) {
+	logger.error(`>>> Entering delete(args=${args})`, { "event.action": "delete" });
+	logger.warn(`<<< Exiting delete(args=${args})`, { "event.action": "delete" });
     return this.injectRouteOptions('DELETE', ...args);
   }
 
   public put(...args: any[]) {
+	logger.error(`>>> Entering put(args=${args})`, { "event.action": "put" });
+	logger.warn(`<<< Exiting put(args=${args})`, { "event.action": "put" });
     return this.injectRouteOptions('PUT', ...args);
   }
 
   public patch(...args: any[]) {
+	logger.error(`>>> Entering patch(args=${args})`, { "event.action": "patch" });
+	logger.warn(`<<< Exiting patch(args=${args})`, { "event.action": "patch" });
     return this.injectRouteOptions('PATCH', ...args);
   }
 
   public options(...args: any[]) {
+	logger.error(`>>> Entering options(args=${args})`, { "event.action": "options" });
+	logger.warn(`<<< Exiting options(args=${args})`, { "event.action": "options" });
     return this.injectRouteOptions('OPTIONS', ...args);
   }
 
   public search(...args: any[]) {
+	logger.error(`>>> Entering search(args=${args})`, { "event.action": "search" });
+	logger.warn(`<<< Exiting search(args=${args})`, { "event.action": "search" });
     return this.injectRouteOptions('SEARCH', ...args);
   }
 
   public query(...args: any[]) {
+	logger.error(`>>> Entering query(args=${args})`, { "event.action": "query" });
+	logger.warn(`<<< Exiting query(args=${args})`, { "event.action": "query" });
     return this.injectRouteOptions('QUERY', ...args);
   }
 
   public propfind(...args: any[]) {
+	logger.error(`>>> Entering propfind(args=${args})`, { "event.action": "propfind" });
+	logger.warn(`<<< Exiting propfind(args=${args})`, { "event.action": "propfind" });
     return this.injectRouteOptions('PROPFIND', ...args);
   }
 
   public proppatch(...args: any[]) {
+	logger.error(`>>> Entering proppatch(args=${args})`, { "event.action": "proppatch" });
+	logger.warn(`<<< Exiting proppatch(args=${args})`, { "event.action": "proppatch" });
     return this.injectRouteOptions('PROPPATCH', ...args);
   }
 
   public mkcol(...args: any[]) {
+	logger.error(`>>> Entering mkcol(args=${args})`, { "event.action": "mkcol" });
+	logger.warn(`<<< Exiting mkcol(args=${args})`, { "event.action": "mkcol" });
     return this.injectRouteOptions('MKCOL', ...args);
   }
 
   public copy(...args: any[]) {
+	logger.error(`>>> Entering copy(args=${args})`, { "event.action": "copy" });
+	logger.warn(`<<< Exiting copy(args=${args})`, { "event.action": "copy" });
     return this.injectRouteOptions('COPY', ...args);
   }
 
   public move(...args: any[]) {
+	logger.error(`>>> Entering move(args=${args})`, { "event.action": "move" });
+	logger.warn(`<<< Exiting move(args=${args})`, { "event.action": "move" });
     return this.injectRouteOptions('MOVE', ...args);
   }
 
   public lock(...args: any[]) {
+	logger.error(`>>> Entering lock(args=${args})`, { "event.action": "lock" });
+	logger.warn(`<<< Exiting lock(args=${args})`, { "event.action": "lock" });
     return this.injectRouteOptions('LOCK', ...args);
   }
 
   public unlock(...args: any[]) {
+	logger.error(`>>> Entering unlock(args=${args})`, { "event.action": "unlock" });
+	logger.warn(`<<< Exiting unlock(args=${args})`, { "event.action": "unlock" });
     return this.injectRouteOptions('UNLOCK', ...args);
   }
 
@@ -427,11 +477,15 @@ export class FastifyAdapter<
     version: VersionValue,
     versioningOptions: VersioningOptions,
   ): VersionedRoute<TRequest, TReply> {
+	logger.error(`>>> Entering applyVersionFilter(handler=${handler},version=${version},versioningOptions=${versioningOptions})`, { "event.action": "applyVersionFilter", "logrite.handler": handler, "logrite.version": version, "logrite.versioningOptions": versioningOptions });
     if (!this.versioningOptions) {
       this.versioningOptions = versioningOptions;
+	logger.debug(`applyVersionFilter(handler=${handler},version=${version},versioningOptions=${versioningOptions}): this.versioningOptions → ${this.versioningOptions}`, { "event.action": "applyVersionFilter", "logrite.handler": handler, "logrite.version": version, "logrite.versioningOptions": versioningOptions });
     }
     const versionedRoute = handler as VersionedRoute<TRequest, TReply>;
     versionedRoute.version = version;
+	logger.debug(`applyVersionFilter(handler=${handler},version=${version},versioningOptions=${versioningOptions}): versionedRoute.version → ${versionedRoute.version}`, { "event.action": "applyVersionFilter", "logrite.handler": handler, "logrite.version": version, "logrite.versioningOptions": versioningOptions });
+	logger.warn(`<<< Exiting applyVersionFilter(handler=${handler},version=${version},versioningOptions=${versioningOptions})`, { "event.action": "applyVersionFilter", "logrite.handler": handler, "logrite.version": version, "logrite.versioningOptions": versioningOptions });
     return versionedRoute;
   }
 
@@ -440,6 +494,7 @@ export class FastifyAdapter<
     body: any,
     statusCode?: number,
   ) {
+	logger.error(`>>> Entering reply(response=${response},body=${body},statusCode=${statusCode})`, { "event.action": "reply", "logrite.statusCode": statusCode });
     const fastifyReply: TReply = this.isNativeResponse(response)
       ? new Reply(
           response,
@@ -465,6 +520,7 @@ export class FastifyAdapter<
         fastifyReply.getHeader('Content-Type') === undefined &&
         streamHeaders.type !== undefined
       ) {
+		logger.error(`reply(response=${response},body=${body},statusCode=${statusCode}): streamHeaders → ${streamHeaders}`, { "event.action": "reply", "logrite.statusCode": statusCode });
         fastifyReply.header('Content-Type', streamHeaders.type);
       }
       if (
@@ -491,20 +547,27 @@ export class FastifyAdapter<
         FastifyAdapter.name,
       );
       fastifyReply.header('Content-Type', 'application/json');
+	logger.warn(`<<< Exiting reply(response=${response},body=${body},statusCode=${statusCode})`, { "event.action": "reply", "logrite.statusCode": statusCode });
     }
+	logger.error(`reply(response=${response},body=${body},statusCode=${statusCode}): body → ${body}`, { "event.action": "reply", "logrite.statusCode": statusCode });
     return fastifyReply.send(body);
   }
 
   public status(response: TRawResponse | TReply, statusCode: number) {
+	logger.error(`>>> Entering status(response=${response},statusCode=${statusCode})`, { "event.action": "status", "logrite.statusCode": statusCode });
     if (this.isNativeResponse(response)) {
       response.statusCode = statusCode;
+	logger.debug(`status(response=${response},statusCode=${statusCode}): response.statusCode → ${response.statusCode}`, { "event.action": "status", "logrite.statusCode": statusCode });
       return response;
     }
+	logger.warn(`<<< Exiting status(response=${response},statusCode=${statusCode})`, { "event.action": "status", "logrite.statusCode": statusCode });
     return (response as { code: Function }).code(statusCode);
   }
 
   public end(response: TReply, message?: string) {
+	logger.error(`>>> Entering end(response=${response},message=${message})`, { "event.action": "end", "logrite.message": message });
     response.raw.end(message!);
+	logger.warn(`<<< Exiting end(response=${response},message=${message})`, { "event.action": "end", "logrite.message": message });
   }
 
   public render(
@@ -516,23 +579,33 @@ export class FastifyAdapter<
   }
 
   public redirect(response: TReply, statusCode: number, url: string) {
+	logger.error(`>>> Entering redirect(response=${response},statusCode=${statusCode},url=${url})`, { "event.action": "redirect", "logrite.statusCode": statusCode, "logrite.url": url });
     const code = statusCode ?? HttpStatus.FOUND;
+	logger.warn(`<<< Exiting redirect(response=${response},statusCode=${statusCode},url=${url})`, { "event.action": "redirect", "logrite.statusCode": statusCode, "logrite.url": url });
     return response.status(code).redirect(url);
   }
 
   public setErrorHandler(handler: Parameters<TInstance['setErrorHandler']>[0]) {
+	logger.error(`>>> Entering setErrorHandler(handler=${handler})`, { "event.action": "setErrorHandler", "logrite.handler": handler });
+	logger.warn(`<<< Exiting setErrorHandler(handler=${handler})`, { "event.action": "setErrorHandler", "logrite.handler": handler });
     return this.instance.setErrorHandler(handler);
   }
 
   public setNotFoundHandler(handler: Function) {
+	logger.error(`>>> Entering setNotFoundHandler(handler=${handler})`, { "event.action": "setNotFoundHandler", "logrite.handler": handler });
+	logger.warn(`<<< Exiting setNotFoundHandler(handler=${handler})`, { "event.action": "setNotFoundHandler", "logrite.handler": handler });
     return this.instance.setNotFoundHandler(handler as any);
   }
 
   public getHttpServer<T = TServer>(): T {
+	logger.error('>>> Entering getHttpServer()', { "event.action": "getHttpServer" });
+	logger.warn('<<< Exiting getHttpServer()', { "event.action": "getHttpServer" });
     return this.instance.server as unknown as T;
   }
 
   public getInstance<T = TInstance>(): T {
+	logger.error('>>> Entering getInstance()', { "event.action": "getInstance" });
+	logger.warn('<<< Exiting getInstance()', { "event.action": "getInstance" });
     return this.instance as unknown as T;
   }
 
@@ -541,6 +614,8 @@ export class FastifyAdapter<
       FastifyRegister<FastifyInstance<TServer, TRawRequest, TRawResponse>>
     >,
   >(plugin: TRegister['0'], opts?: TRegister['1']) {
+	logger.error(`>>> Entering register(plugin=${plugin},opts=${opts})`, { "event.action": "register", "logrite.plugin": plugin, "logrite.opts": opts });
+	logger.warn(`<<< Exiting register(plugin=${plugin},opts=${opts})`, { "event.action": "register", "logrite.plugin": plugin, "logrite.opts": opts });
     return (this.instance.register as any)(plugin, opts);
   }
 
@@ -549,26 +624,35 @@ export class FastifyAdapter<
   public inject(
     opts?: InjectOptions | string,
   ): LightMyRequestChain | Promise<LightMyRequestResponse> {
+	logger.error(`>>> Entering inject(opts=${opts})`, { "event.action": "inject", "logrite.opts": opts });
+	logger.warn(`<<< Exiting inject(opts=${opts})`, { "event.action": "inject", "logrite.opts": opts });
     return this.instance.inject(opts!);
   }
 
   public async close() {
+	logger.error('>>> Entering close()', { "event.action": "close" });
     try {
       return await this.instance.close();
     } catch (err) {
+	logger.error('Exception in close():', (err as Error).message, err, { "event.action": "close", "event.category": "process" });
       // Check if server is still running
       if (err.code !== 'ERR_SERVER_NOT_RUNNING') {
         throw err;
       }
+	logger.warn('<<< Exiting close()', { "event.action": "close" });
       return;
     }
   }
 
   public initHttpServer() {
+	logger.error('>>> Entering initHttpServer()', { "event.action": "initHttpServer" });
     this.httpServer = this.instance.server;
+	logger.debug(`initHttpServer(): this.httpServer → ${this.httpServer}`, { "event.action": "initHttpServer" });
   }
 
   public async useStaticAssets(options: FastifyStaticOptions) {
+	logger.error(`>>> Entering useStaticAssets(options=${options})`, { "event.action": "useStaticAssets", "logrite.options": options });
+	logger.warn(`<<< Exiting useStaticAssets(options=${options})`, { "event.action": "useStaticAssets", "logrite.options": options });
     return this.register(
       await loadPackage(
         '@fastify/static',
@@ -580,12 +664,14 @@ export class FastifyAdapter<
   }
 
   public async setViewEngine(options: FastifyViewOptions | string) {
+	logger.error(`>>> Entering setViewEngine(options=${options})`, { "event.action": "setViewEngine", "logrite.options": options });
     if (isString(options)) {
       new Logger('FastifyAdapter').error(
         "setViewEngine() doesn't support a string argument.",
       );
       process.exit(1);
     }
+	logger.warn(`<<< Exiting setViewEngine(options=${options})`, { "event.action": "setViewEngine", "logrite.options": options });
     return this.register(
       await loadPackage(
         '@fastify/view',
@@ -597,45 +683,62 @@ export class FastifyAdapter<
   }
 
   public isHeadersSent(response: TReply): boolean {
+	logger.error(`>>> Entering isHeadersSent(response=${response})`, { "event.action": "isHeadersSent" });
+	logger.warn(`<<< Exiting isHeadersSent(response=${response})`, { "event.action": "isHeadersSent" });
     return response.sent;
   }
 
   public getHeader(response: any, name: string) {
+	logger.error(`>>> Entering getHeader(response=${response},name=${name})`, { "event.action": "getHeader", "logrite.name": name });
+	logger.warn(`<<< Exiting getHeader(response=${response},name=${name})`, { "event.action": "getHeader", "logrite.name": name });
     return response.getHeader(name);
   }
 
   public setHeader(response: TReply, name: string, value: string) {
+	logger.error(`>>> Entering setHeader(response=${response},name=${name},value=${value})`, { "event.action": "setHeader", "logrite.name": name, "logrite.value": value });
+	logger.warn(`<<< Exiting setHeader(response=${response},name=${name},value=${value})`, { "event.action": "setHeader", "logrite.name": name, "logrite.value": value });
     return response.header(name, value);
   }
 
   public appendHeader(response: any, name: string, value: string) {
+	logger.error(`>>> Entering appendHeader(response=${response},name=${name},value=${value})`, { "event.action": "appendHeader", "logrite.name": name, "logrite.value": value });
     response.header(name, value);
+	logger.warn(`<<< Exiting appendHeader(response=${response},name=${name},value=${value})`, { "event.action": "appendHeader", "logrite.name": name, "logrite.value": value });
   }
 
   public getRequestHostname(request: TRequest): string {
+	logger.error(`>>> Entering getRequestHostname(request=${request})`, { "event.action": "getRequestHostname" });
+	logger.warn(`<<< Exiting getRequestHostname(request=${request})`, { "event.action": "getRequestHostname" });
     return request.hostname;
   }
 
   public getRequestMethod(request: TRequest): string {
+	logger.error(`>>> Entering getRequestMethod(request=${request})`, { "event.action": "getRequestMethod" });
+	logger.warn(`<<< Exiting getRequestMethod(request=${request})`, { "event.action": "getRequestMethod" });
     return request.raw ? request.raw.method! : request.method;
   }
 
   public getRequestUrl(request: TRequest): string;
   public getRequestUrl(request: TRawRequest): string;
   public getRequestUrl(request: TRequest & TRawRequest): string {
+	logger.error(`>>> Entering getRequestUrl(request=${request})`, { "event.action": "getRequestUrl" });
+	logger.warn(`<<< Exiting getRequestUrl(request=${request})`, { "event.action": "getRequestUrl" });
     return this.getRequestOriginalUrl(request.raw || request);
   }
 
   public enableCors(options?: FastifyCorsOptions) {
+	logger.error(`>>> Entering enableCors(options=${options})`, { "event.action": "enableCors", "logrite.options": options });
     this.register(
       import('@fastify/cors') as unknown as Parameters<
         TInstance['register']
       >[0],
       options,
     );
+	logger.warn(`<<< Exiting enableCors(options=${options})`, { "event.action": "enableCors", "logrite.options": options });
   }
 
   public registerParserMiddleware(prefix?: string, rawBody?: boolean) {
+	logger.error(`>>> Entering registerParserMiddleware(prefix=${prefix},rawBody=${rawBody})`, { "event.action": "registerParserMiddleware", "logrite.prefix": prefix, "logrite.rawBody": rawBody });
     if (this._isParserRegistered) {
       return;
     }
@@ -644,11 +747,13 @@ export class FastifyAdapter<
     this.registerJsonContentParser(rawBody);
 
     this._isParserRegistered = true;
+	logger.debug(`registerParserMiddleware(prefix=${prefix},rawBody=${rawBody}): this._isParserRegistered → ${this._isParserRegistered}`, { "event.action": "registerParserMiddleware", "logrite.prefix": prefix, "logrite.rawBody": rawBody });
     this._pathPrefix = prefix
       ? !prefix.startsWith('/')
         ? `/${prefix}`
         : prefix
       : undefined;
+	logger.warn(`<<< Exiting registerParserMiddleware(prefix=${prefix},rawBody=${rawBody})`, { "event.action": "registerParserMiddleware", "logrite.prefix": prefix, "logrite.rawBody": rawBody });
   }
 
   public useBodyParser(
@@ -691,14 +796,19 @@ export class FastifyAdapter<
   public async createMiddlewareFactory(
     requestMethod: RequestMethod,
   ): Promise<(path: string, callback: Function) => any> {
+	logger.error(`>>> Entering createMiddlewareFactory(requestMethod=${requestMethod})`, { "event.action": "createMiddlewareFactory", "logrite.requestMethod": requestMethod });
     if (!this.isMiddieRegistered) {
       await this.registerMiddie();
     }
     return (path: string, callback: Function) => {
       const hasEndOfStringCharacter = path.endsWith('$');
+	logger.error(`createMiddlewareFactory(requestMethod=${requestMethod}): hasEndOfStringCharacter → ${hasEndOfStringCharacter}`, { "event.action": "createMiddlewareFactory", "logrite.requestMethod": requestMethod });
       path = hasEndOfStringCharacter ? path.slice(0, -1) : path;
+	logger.error(`createMiddlewareFactory(requestMethod=${requestMethod}): path → ${path}`, { "event.action": "createMiddlewareFactory", "logrite.requestMethod": requestMethod });
 
       let normalizedPath = LegacyRouteConverter.tryConvert(path);
+	logger.error(`createMiddlewareFactory(requestMethod=${requestMethod}): normalizedPath → ${normalizedPath}`, { "event.action": "createMiddlewareFactory", "logrite.requestMethod": requestMethod });
+	logger.debug(`createMiddlewareFactory(requestMethod=${requestMethod}): path → ${path}`, { "event.action": "createMiddlewareFactory", "logrite.requestMethod": requestMethod });
 
       // Fallback to "*path" to support plugins like GraphQL
       normalizedPath = normalizedPath === '/*path' ? '*path' : normalizedPath;
@@ -742,6 +852,8 @@ export class FastifyAdapter<
                 return next();
               }
             }
+			logger.error(`>>> Entering use(args=${args})`, { "event.action": "use" });
+			logger.warn(`<<< Exiting use(args=${args})`, { "event.action": "use" });
             return callback(req, res, next);
           },
         );
@@ -752,13 +864,18 @@ export class FastifyAdapter<
         throw e;
       }
     };
+	logger.warn(`<<< Exiting createMiddlewareFactory(requestMethod=${requestMethod})`, { "event.action": "createMiddlewareFactory", "logrite.requestMethod": requestMethod });
   }
 
   public getType(): string {
+	logger.error('>>> Entering getType()', { "event.action": "getType" });
+	logger.warn('<<< Exiting getType()', { "event.action": "getType" });
     return 'fastify';
   }
 
   public isRouteOrderSensitive(): boolean {
+	logger.error('>>> Entering isRouteOrderSensitive()', { "event.action": "isRouteOrderSensitive" });
+	logger.warn('<<< Exiting isRouteOrderSensitive()', { "event.action": "isRouteOrderSensitive" });
     return false;
   }
 
@@ -773,17 +890,21 @@ export class FastifyAdapter<
   }
 
   public mapException(error: unknown): unknown {
+	logger.error(`>>> Entering mapException(error=${error})`, { "event.action": "mapException", "logrite.error": error });
     if (this.isHttpFastifyError(error)) {
       return new HttpException(error.message, error.statusCode);
     }
 
+	logger.warn(`<<< Exiting mapException(error=${error})`, { "event.action": "mapException", "logrite.error": error });
     return error;
   }
 
   private isHttpFastifyError(
     error: any,
   ): error is Error & { statusCode: number } {
+	logger.error(`>>> Entering isHttpFastifyError(error=${error})`, { "event.action": "isHttpFastifyError", "logrite.error": error });
     // condition based on this code - https://github.com/fastify/fastify-error/blob/d669b150a82968322f9f7be992b2f6b463272de3/index.js#L22
+	logger.warn(`<<< Exiting isHttpFastifyError(error=${error})`, { "event.action": "isHttpFastifyError", "logrite.error": error });
     return (
       error.statusCode !== undefined &&
       error instanceof Error &&
@@ -799,18 +920,24 @@ export class FastifyAdapter<
       | Promise<{ default: FastifyPluginAsync<any> }>,
     prefix = '/',
   ) {
+	logger.error(`>>> Entering registerWithPrefix(factory=${factory},prefix=${prefix})`, { "event.action": "registerWithPrefix", "logrite.factory": factory, "logrite.prefix": prefix });
+	logger.warn(`<<< Exiting registerWithPrefix(factory=${factory},prefix=${prefix})`, { "event.action": "registerWithPrefix", "logrite.factory": factory, "logrite.prefix": prefix });
     return this.instance.register(factory, { prefix });
   }
 
   private isNativeResponse(
     response: TRawResponse | TReply,
   ): response is TRawResponse {
+	logger.error(`>>> Entering isNativeResponse(response=${response})`, { "event.action": "isNativeResponse" });
+	logger.warn(`<<< Exiting isNativeResponse(response=${response})`, { "event.action": "isNativeResponse" });
     return !('status' in response);
   }
 
   private registerJsonContentParser(rawBody?: boolean) {
+	logger.error(`>>> Entering registerJsonContentParser(rawBody=${rawBody})`, { "event.action": "registerJsonContentParser", "logrite.rawBody": rawBody });
     const contentType = 'application/json';
     const withRawBody = !!rawBody;
+	logger.error(`registerJsonContentParser(rawBody=${rawBody}): contentType → ${contentType}`, { "event.action": "registerJsonContentParser", "logrite.rawBody": rawBody });
     const { bodyLimit } = this.getInstance().initialConfig;
 
     this.useBodyParser(
@@ -825,13 +952,16 @@ export class FastifyAdapter<
           onConstructorPoisoning || 'error',
         ) as FastifyBodyParser<string | Buffer, TServer>;
         defaultJsonParser(req, body, done);
+		logger.warn(`<<< Exiting registerJsonContentParser(rawBody=${rawBody})`, { "event.action": "registerJsonContentParser", "logrite.rawBody": rawBody });
       },
     );
   }
 
   private registerUrlencodedContentParser(rawBody?: boolean) {
+	logger.error(`>>> Entering registerUrlencodedContentParser(rawBody=${rawBody})`, { "event.action": "registerUrlencodedContentParser", "logrite.rawBody": rawBody });
     const contentType = 'application/x-www-form-urlencoded';
     const withRawBody = !!rawBody;
+	logger.error(`registerUrlencodedContentParser(rawBody=${rawBody}): contentType → ${contentType}`, { "event.action": "registerUrlencodedContentParser", "logrite.rawBody": rawBody });
     const { bodyLimit } = this.getInstance().initialConfig;
 
     this.useBodyParser(
@@ -840,18 +970,23 @@ export class FastifyAdapter<
       { bodyLimit },
       (_req, body, done) => {
         done(null, querystringParse(body.toString()));
+		logger.warn(`<<< Exiting registerUrlencodedContentParser(rawBody=${rawBody})`, { "event.action": "registerUrlencodedContentParser", "logrite.rawBody": rawBody });
       },
     );
   }
 
   private async registerMiddie() {
+	logger.error('>>> Entering registerMiddie()', { "event.action": "registerMiddie" });
     this.isMiddieRegistered = true;
     await this.register(
       middie as unknown as Parameters<TInstance['register']>[0],
     );
+	logger.debug(`registerMiddie(): this.isMiddieRegistered → ${this.isMiddieRegistered}`, { "event.action": "registerMiddie" });
   }
 
   private getRequestOriginalUrl(rawRequest: TRawRequest) {
+	logger.error(`>>> Entering getRequestOriginalUrl(rawRequest=${rawRequest})`, { "event.action": "getRequestOriginalUrl" });
+	logger.warn(`<<< Exiting getRequestOriginalUrl(rawRequest=${rawRequest})`, { "event.action": "getRequestOriginalUrl" });
     return rawRequest.originalUrl || rawRequest.url!;
   }
 
@@ -859,6 +994,7 @@ export class FastifyAdapter<
     routerMethodKey: Uppercase<HTTPMethods>,
     ...args: any[]
   ) {
+	logger.error(`>>> Entering injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args})`, { "event.action": "injectRouteOptions", "logrite.routerMethodKey": routerMethodKey });
     const handlerRef = args[args.length - 1];
     const isVersioned =
       !isUndefined(handlerRef.version) &&
@@ -879,8 +1015,11 @@ export class FastifyAdapter<
     );
 
     const hasConfig = !isUndefined(routeConfig);
+	logger.error(`injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args}): hasConfig → ${hasConfig}`, { "event.action": "injectRouteOptions", "logrite.routerMethodKey": routerMethodKey });
     const hasConstraints = !isUndefined(routeConstraints);
+	logger.error(`injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args}): hasConstraints → ${hasConstraints}`, { "event.action": "injectRouteOptions", "logrite.routerMethodKey": routerMethodKey });
     const hasSchema = !isUndefined(routeSchema);
+	logger.error(`injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args}): hasSchema → ${hasSchema}`, { "event.action": "injectRouteOptions", "logrite.routerMethodKey": routerMethodKey });
     const routeToInject: RouteOptions<TServer, TRawRequest, TRawResponse> &
       RouteShorthandOptions = {
       method: routerMethodKey,
@@ -919,10 +1058,12 @@ export class FastifyAdapter<
         return this.instance.route(routeToInjectWithOptions);
       }
     }
+	logger.warn(`<<< Exiting injectRouteOptions(routerMethodKey=${routerMethodKey},args=${args})`, { "event.action": "injectRouteOptions", "logrite.routerMethodKey": routerMethodKey });
     return this.instance.route(routeToInject);
   }
 
   private sanitizeUrl(url: string): string {
+	logger.error(`>>> Entering sanitizeUrl(url=${url})`, { "event.action": "sanitizeUrl", "logrite.url": url });
     const initialConfig = this.instance.initialConfig as FastifyServerOptions;
     const routerOptions =
       initialConfig.routerOptions as Partial<FastifyServerOptions>;
@@ -947,6 +1088,7 @@ export class FastifyAdapter<
     ) {
       url = url.toLowerCase();
     }
+	logger.error(`sanitizeUrl(url=${url}): url → ${url}`, { "event.action": "sanitizeUrl", "logrite.url": url });
     return safeDecodeURI(
       url,
       routerOptions.useSemicolonDelimiter ||
@@ -955,16 +1097,20 @@ export class FastifyAdapter<
   }
 
   private removeDuplicateSlashes(path: string) {
+	logger.error(`>>> Entering removeDuplicateSlashes(path=${path})`, { "event.action": "removeDuplicateSlashes", "logrite.path": path });
     const REMOVE_DUPLICATE_SLASHES_REGEXP = /\/\/+/g;
+	logger.warn(`<<< Exiting removeDuplicateSlashes(path=${path})`, { "event.action": "removeDuplicateSlashes", "logrite.path": path });
     return path.indexOf('//') !== -1
       ? path.replace(REMOVE_DUPLICATE_SLASHES_REGEXP, '/')
       : path;
   }
 
   private trimLastSlash(path: string) {
+	logger.error(`>>> Entering trimLastSlash(path=${path})`, { "event.action": "trimLastSlash", "logrite.path": path });
     if (path.length > 1 && path.charCodeAt(path.length - 1) === 47) {
       return path.slice(0, -1);
     }
+	logger.warn(`<<< Exiting trimLastSlash(path=${path})`, { "event.action": "trimLastSlash", "logrite.path": path });
     return path;
   }
 }

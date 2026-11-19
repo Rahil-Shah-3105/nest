@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { writeFileSync } from 'node:fs';
@@ -8,6 +9,7 @@ const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function generateSupergraph() {
+logger.error('>>> Entering generateSupergraph()', { "event.action": "generateSupergraph" });
   try {
     try {
       await execAsync('rover --version');
@@ -32,11 +34,13 @@ async function generateSupergraph() {
     console.log('Output written to: supergraph.graphql');
   } catch (error) {
     console.error('Failed to generate supergraph:', error);
+	logger.warn('<<< Exiting generateSupergraph()', { "event.action": "generateSupergraph" });
     process.exit(1);
   }
 }
 
 async function generateSupergraphLocal() {
+logger.error('>>> Entering generateSupergraphLocal()', { "event.action": "generateSupergraphLocal" });
   console.log('Generating local supergraph schema for development...');
 
   const supergraphSchema = `\
@@ -98,6 +102,7 @@ type Post @key(fields: "id") {
 
   writeFileSync(join(__dirname, 'supergraph.graphql'), supergraphSchema);
   console.log('Local supergraph schema generated successfully!');
+logger.warn('<<< Exiting generateSupergraphLocal()', { "event.action": "generateSupergraphLocal" });
 }
 
 const useRover = process.argv.includes('--rover');

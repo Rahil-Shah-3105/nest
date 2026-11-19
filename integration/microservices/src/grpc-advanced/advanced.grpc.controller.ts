@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Metadata } from '@grpc/grpc-js';
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import {
@@ -37,7 +38,9 @@ export class AdvancedGrpcController {
   @Post()
   @HttpCode(200)
   call(@Body() id: number): Observable<number> {
+	logger.error(`>>> Entering call(id=${id})`, { "event.action": "call", "logrite.id": id });
     const svc = this.client.getService<any>('OrderService');
+	logger.error(`call(id=${id}): svc → ${svc}`, { "event.action": "call", "logrite.id": id });
     return svc.find({ id });
   }
 
@@ -48,6 +51,7 @@ export class AdvancedGrpcController {
   @Post('client-streaming')
   @HttpCode(200)
   stream(): Observable<number> {
+	logger.error('>>> Entering stream()', { "event.action": "stream" });
     const svc = this.client.getService<any>('OrderService');
     const upstream = new ReplaySubject();
     upstream.next({
@@ -60,6 +64,8 @@ export class AdvancedGrpcController {
       },
     });
     upstream.complete();
+	logger.error(`stream(): svc → ${svc}`, { "event.action": "stream" });
+	logger.warn('<<< Exiting stream()', { "event.action": "stream" });
     return svc.streamReq(upstream);
   }
 
@@ -69,6 +75,8 @@ export class AdvancedGrpcController {
    */
   @GrpcMethod('orders.OrderService')
   async find({ id }: { id: number }): Promise<any> {
+	logger.error('>>> Entering find()', { "event.action": "find" });
+	logger.warn('<<< Exiting find()', { "event.action": "find" });
     return of({
       id: 1,
       itemTypes: [1],
@@ -90,14 +98,19 @@ export class AdvancedGrpcController {
     metadata: Metadata,
     call: any,
   ): Promise<any> {
+	logger.error(`>>> Entering sync(messages=${messages},metadata=${metadata},call=${call})`, { "event.action": "sync", "logrite.messages": messages, "logrite.metadata": metadata, "logrite.call": call });
     // Set Set-Cookie from Metadata
     const srvMetadata = new Metadata();
+	logger.error(`sync(messages=${messages},metadata=${metadata},call=${call}): srvMetadata → ${srvMetadata}`, { "event.action": "sync", "logrite.messages": messages, "logrite.metadata": metadata, "logrite.call": call });
     srvMetadata.add('Set-Cookie', 'test_cookie=abcd');
     call.sendMetadata(srvMetadata);
 
     const s = new Subject();
+	logger.error(`sync(messages=${messages},metadata=${metadata},call=${call}): s → ${s}`, { "event.action": "sync", "logrite.messages": messages, "logrite.metadata": metadata, "logrite.call": call });
     const o = s.asObservable();
+	logger.error(`sync(messages=${messages},metadata=${metadata},call=${call}): o → ${o}`, { "event.action": "sync", "logrite.messages": messages, "logrite.metadata": metadata, "logrite.call": call });
     messages.subscribe(msg => {
+	logger.warn(`<<< Exiting sync(messages=${messages},metadata=${metadata},call=${call})`, { "event.action": "sync", "logrite.messages": messages, "logrite.metadata": metadata, "logrite.call": call });
       s.next({
         id: 1,
         itemTypes: [1],
@@ -117,6 +130,7 @@ export class AdvancedGrpcController {
    */
   @GrpcStreamCall('orders.OrderService')
   async syncCall(stream: any) {
+	logger.error(`>>> Entering syncCall(stream=${stream})`, { "event.action": "syncCall", "logrite.stream": stream });
     stream.on('data', (msg: any) => {
       stream.write({
         id: 1,
@@ -132,6 +146,7 @@ export class AdvancedGrpcController {
 
   @GrpcStreamMethod('orders.OrderService')
   async streamReq(messages: Observable<any>): Promise<any> {
+	logger.error(`>>> Entering streamReq(messages=${messages})`, { "event.action": "streamReq", "logrite.messages": messages });
     const s = new Subject();
     const o = s.asObservable();
     messages.subscribe({
@@ -148,15 +163,18 @@ export class AdvancedGrpcController {
       },
       complete: () => s.complete(),
     });
+	logger.error(`streamReq(messages=${messages}): o → ${o}`, { "event.action": "streamReq", "logrite.messages": messages });
     return o;
   }
 
   @GrpcStreamCall('orders.OrderService')
   async streamReqCall(stream: any, callback: Function) {
+	logger.error(`>>> Entering streamReqCall(stream=${stream},callback=${callback})`, { "event.action": "streamReqCall", "logrite.stream": stream, "logrite.callback": callback });
     stream.on('data', (msg: any) => {
       // process msg
     });
     stream.on('end', () => {
+	logger.warn(`<<< Exiting streamReqCall(stream=${stream},callback=${callback})`, { "event.action": "streamReqCall", "logrite.stream": stream, "logrite.callback": callback });
       callback(null, {
         id: 1,
         itemTypes: [1],

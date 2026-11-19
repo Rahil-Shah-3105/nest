@@ -75,6 +75,7 @@ export class WebSocketsController {
     moduleKey?: string,
     instanceWrapperId?: string,
   ) {
+	logger.error(`>>> Entering connectGatewayToServer(instanceOrWrapper=${instanceOrWrapper},metatypeOrModuleKey=${metatypeOrModuleKey},moduleKey=${moduleKey},instanceWrapperId=${instanceWrapperId})`, { "event.action": "connectGatewayToServer", "logrite.instanceOrWrapper": instanceOrWrapper, "logrite.metatypeOrModuleKey": metatypeOrModuleKey, "logrite.moduleKey": moduleKey, "logrite.instanceWrapperId": instanceWrapperId });
     const isInstanceWrapper =
       typeof metatypeOrModuleKey === 'string' &&
       'instance' in (instanceOrWrapper as InstanceWrapper<NestGateway>);
@@ -104,6 +105,7 @@ export class WebSocketsController {
     const port = Reflect.getMetadata(PORT_METADATA, gatewayMetatype) || 0;
 
     if (!Number.isInteger(port)) {
+	logger.warn(`<<< Exiting connectGatewayToServer(instanceOrWrapper=${instanceOrWrapper},metatypeOrModuleKey=${metatypeOrModuleKey},moduleKey=${moduleKey},instanceWrapperId=${instanceWrapperId})`, { "event.action": "connectGatewayToServer", "logrite.instanceOrWrapper": instanceOrWrapper, "logrite.metatypeOrModuleKey": metatypeOrModuleKey, "logrite.moduleKey": moduleKey, "logrite.instanceWrapperId": instanceWrapperId });
       throw new InvalidSocketPortException(port, gatewayMetatype);
     }
     this.subscribeToServerEvents(
@@ -236,6 +238,7 @@ export class WebSocketsController {
     );
     adapter.bindClientConnect(server, handler);
     this.printSubscriptionLogs(instance, subscribersMap);
+	logger.warn(`<<< Exiting subscribeEvents(instanceWrapper=${instanceWrapper},subscribersMap=${subscribersMap},observableServer=${observableServer},connectionHandler=${connectionHandler},disconnectHandler=${disconnectHandler})`, { "event.action": "subscribeEvents", "logrite.instanceWrapper": instanceWrapper, "logrite.subscribersMap": subscribersMap, "logrite.observableServer": observableServer, "logrite.connectionHandler": connectionHandler, "logrite.disconnectHandler": disconnectHandler });
   }
 
   public getConnectionHandler(
@@ -257,11 +260,14 @@ export class WebSocketsController {
           disconnect.next({ client, reason }),
         );
     };
+	logger.warn(`<<< Exiting getConnectionHandler(context=${context},instance=${instance},subscribersMap=${subscribersMap},disconnect=${disconnect},connection=${connection})`, { "event.action": "getConnectionHandler", "logrite.instance": instance, "logrite.subscribersMap": subscribersMap, "logrite.disconnect": disconnect });
   }
 
   public subscribeInitEvent(instance: NestGateway, event: Subject<any>) {
+	logger.error(`>>> Entering subscribeInitEvent(instance=${instance},event=${event})`, { "event.action": "subscribeInitEvent", "logrite.instance": instance });
     if (instance.afterInit) {
       event.subscribe(instance.afterInit.bind(instance));
+	logger.warn(`<<< Exiting subscribeInitEvent(instance=${instance},event=${event})`, { "event.action": "subscribeInitEvent", "logrite.instance": instance });
     }
   }
 
@@ -269,11 +275,13 @@ export class WebSocketsController {
     handlerOrGateway: Function | NestGateway | undefined,
     event: Subject<any>,
   ) {
+	logger.error(`>>> Entering subscribeConnectionEvent(handlerOrGateway=${handlerOrGateway},event=${event})`, { "event.action": "subscribeConnectionEvent", "logrite.handlerOrGateway": handlerOrGateway });
     const handler =
       typeof handlerOrGateway === 'function'
         ? handlerOrGateway
         : handlerOrGateway?.handleConnection?.bind(handlerOrGateway);
     if (handler) {
+	logger.warn(`<<< Exiting subscribeConnectionEvent(handlerOrGateway=${handlerOrGateway},event=${event})`, { "event.action": "subscribeConnectionEvent", "logrite.handlerOrGateway": handlerOrGateway });
       event
         .pipe(
           distinctUntilChanged((prev, curr) => compareElementAt(prev, curr, 0)),
@@ -286,6 +294,7 @@ export class WebSocketsController {
     handlerOrGateway: Function | NestGateway | undefined,
     event: Subject<any>,
   ) {
+	logger.error(`>>> Entering subscribeDisconnectEvent(handlerOrGateway=${handlerOrGateway},event=${event})`, { "event.action": "subscribeDisconnectEvent", "logrite.handlerOrGateway": handlerOrGateway });
     const handler =
       typeof handlerOrGateway === 'function'
         ? handlerOrGateway
@@ -305,6 +314,7 @@ export class WebSocketsController {
           } else {
             // Backward compatibility: if it's just the client
             handler(data);
+			logger.warn(`<<< Exiting subscribeDisconnectEvent(handlerOrGateway=${handlerOrGateway},event=${event})`, { "event.action": "subscribeDisconnectEvent", "logrite.handlerOrGateway": handlerOrGateway });
           }
         });
     }
@@ -315,6 +325,7 @@ export class WebSocketsController {
     client: T,
     instance: NestGateway,
   ) {
+	logger.error(`>>> Entering subscribeMessages(subscribersMap=${subscribersMap},client=${client},instance=${instance})`, { "event.action": "subscribeMessages", "logrite.subscribersMap": subscribersMap, "logrite.client": client, "logrite.instance": instance });
     const adapter = this.config.getIoAdapter();
     const handlers = subscribersMap.map(
       ({ callback, message, isAckHandledManually }) => ({
@@ -326,16 +337,19 @@ export class WebSocketsController {
     adapter.bindMessageHandlers(client, handlers, data =>
       fromPromise(this.pickResult(data)).pipe(mergeAll()),
     );
+	logger.error(`subscribeMessages(subscribersMap=${subscribersMap},client=${client},instance=${instance}): adapter → ${adapter}`, { "event.action": "subscribeMessages", "logrite.subscribersMap": subscribersMap, "logrite.client": client, "logrite.instance": instance });
   }
 
   public async pickResult(
     deferredResult: Promise<any>,
   ): Promise<Observable<any>> {
+	logger.error(`>>> Entering pickResult(deferredResult=${deferredResult})`, { "event.action": "pickResult", "logrite.deferredResult": deferredResult });
     const result = await deferredResult;
     if (isObservable(result)) {
       return result;
     }
     if (result instanceof Promise) {
+	logger.error(`pickResult(deferredResult=${deferredResult}): result → ${result}`, { "event.action": "pickResult", "logrite.deferredResult": deferredResult });
       return fromPromise(result);
     }
     return of(result);
@@ -363,6 +377,7 @@ export class WebSocketsController {
         instanceWrapperId,
       );
     });
+	logger.warn(`<<< Exiting inspectEntrypointDefinitions(instance=${instance},port=${port},messageHandlers=${messageHandlers},instanceWrapperId=${instanceWrapperId})`, { "event.action": "inspectEntrypointDefinitions", "logrite.instance": instance, "logrite.port": port, "logrite.messageHandlers": messageHandlers, "logrite.instanceWrapperId": instanceWrapperId });
   }
 
   public createRequestScopedHandler(
@@ -414,6 +429,7 @@ export class WebSocketsController {
         exceptionFilter.handle(err as Error, host);
       }
     };
+	logger.warn(`<<< Exiting createRequestScopedHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName})`, { "event.action": "createRequestScopedHandler", "logrite.instanceWrapper": instanceWrapper, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.methodName": methodName });
   }
 
   public createRequestScopedEventHandler(
@@ -474,6 +490,7 @@ export class WebSocketsController {
         }
       }
     };
+	logger.warn(`<<< Exiting createRequestScopedEventHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName},server=${server})`, { "event.action": "createRequestScopedEventHandler", "logrite.instanceWrapper": instanceWrapper, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.methodName": methodName, "logrite.server": server });
   }
 
   public getContextId<T extends Record<any, unknown> = any>(
@@ -502,17 +519,21 @@ export class WebSocketsController {
     _contextId: ContextId,
     request: Record<any, any>,
   ) {
+	logger.error(`>>> Entering cleanupRequestScopedContext(_instanceWrapper=${_instanceWrapper},_contextId=${_contextId},request=${request})`, { "event.action": "cleanupRequestScopedContext", "logrite._instanceWrapper": _instanceWrapper, "logrite._contextId": _contextId });
     Reflect.deleteProperty(request, REQUEST_CONTEXT_ID as any);
+	logger.warn(`<<< Exiting cleanupRequestScopedContext(_instanceWrapper=${_instanceWrapper},_contextId=${_contextId},request=${request})`, { "event.action": "cleanupRequestScopedContext", "logrite._instanceWrapper": _instanceWrapper, "logrite._contextId": _contextId });
   }
 
   private assignServerToProperties<T = any>(
     instance: NestGateway,
     server: object,
   ) {
+	logger.error(`>>> Entering assignServerToProperties(instance=${instance},server=${server})`, { "event.action": "assignServerToProperties", "logrite.instance": instance, "logrite.server": server });
     for (const propertyKey of this.metadataExplorer.scanForServerHooks(
       instance,
     )) {
       Reflect.set(instance, propertyKey, server);
+	logger.warn(`<<< Exiting assignServerToProperties(instance=${instance},server=${server})`, { "event.action": "assignServerToProperties", "logrite.instance": instance, "logrite.server": server });
     }
   }
 
@@ -520,8 +541,10 @@ export class WebSocketsController {
     instance: NestGateway,
     subscribersMap: MessageMappingProperties[],
   ) {
+	logger.error(`>>> Entering printSubscriptionLogs(instance=${instance},subscribersMap=${subscribersMap})`, { "event.action": "printSubscriptionLogs", "logrite.instance": instance, "logrite.subscribersMap": subscribersMap });
     const gatewayClassName = (instance as object)?.constructor?.name;
     if (!gatewayClassName) {
+	logger.warn(`<<< Exiting printSubscriptionLogs(instance=${instance},subscribersMap=${subscribersMap})`, { "event.action": "printSubscriptionLogs", "logrite.instance": instance, "logrite.subscribersMap": subscribersMap });
       return;
     }
     subscribersMap.forEach(({ message }) =>

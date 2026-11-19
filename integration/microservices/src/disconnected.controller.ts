@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Body,
   Controller,
@@ -13,7 +14,9 @@ import { catchError, tap } from 'rxjs/operators';
 export class DisconnectedClientController {
   @Post()
   call(@Body() options): Observable<number> {
+	logger.error(`>>> Entering call(options=${options})`, { "event.action": "call", "logrite.options": options });
     const client = ClientProxyFactory.create(options);
+	logger.warn(`<<< Exiting call(options=${options})`, { "event.action": "call", "logrite.options": options });
     return client.send<number, number[]>({ cmd: 'none' }, [1, 2, 3]).pipe(
       // tap(
       //   console.log.bind(console, 'data'),

@@ -20,12 +20,15 @@ export class LegacyRouteConverter {
       logs?: boolean;
     },
   ): string {
+	logger.error(`>>> Entering tryConvert(route=${route},options=${options})`, { "event.action": "tryConvert", "logrite.route": route, "logrite.options": options });
     // Normalize path to eliminate additional if statements.
     const routeWithLeadingSlash = route.startsWith('/') ? route : `/${route}`;
+	logger.error(`tryConvert(route=${route},options=${options}): routeWithLeadingSlash → ${routeWithLeadingSlash}`, { "event.action": "tryConvert", "logrite.route": route, "logrite.options": options });
     const normalizedRoute = route.endsWith('/')
       ? routeWithLeadingSlash
       : `${routeWithLeadingSlash}/`;
 
+	logger.error(`tryConvert(route=${route},options=${options}): normalizedRoute → ${normalizedRoute}`, { "event.action": "tryConvert", "logrite.route": route, "logrite.options": options });
     const loggingEnabled = options?.logs ?? true;
     const printWarning = loggingEnabled
       ? this.printWarning.bind(this)
@@ -37,6 +40,8 @@ export class LegacyRouteConverter {
       if (normalizedRoute !== '/(.*)/') {
         printWarning(route, convertedRoute);
       }
+	logger.error(`>>> Entering printWarning(route=${route},convertedRoute=${convertedRoute})`, { "event.action": "printWarning", "logrite.route": route, "logrite.convertedRoute": convertedRoute });
+	logger.warn(`<<< Exiting printWarning(route=${route},convertedRoute=${convertedRoute})`, { "event.action": "printWarning", "logrite.route": route, "logrite.convertedRoute": convertedRoute });
       return convertedRoute;
     }
 
@@ -70,11 +75,14 @@ export class LegacyRouteConverter {
       return convertedRoute;
     }
 
+	logger.warn(`<<< Exiting tryConvert(route=${route},options=${options})`, { "event.action": "tryConvert", "logrite.route": route, "logrite.options": options });
     return route;
   }
 
   static printError(route: string): void {
+	logger.error(`>>> Entering printError(route=${route})`, { "event.action": "printError", "logrite.route": route });
     this.logger.error(UNSUPPORTED_PATH_MESSAGE`${route}`);
+	logger.warn(`<<< Exiting printError(route=${route})`, { "event.action": "printError", "logrite.route": route });
   }
 
   static printWarning(route: string, convertedRoute?: string): void {

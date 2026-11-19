@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get } from '@nestjs/common';
 import {
   ClientProxy,
@@ -11,6 +12,7 @@ export class RMQFanoutExchangeProducerController {
   client: ClientProxy;
 
   constructor() {
+	logger.error('>>> Entering constructor()', { "event.action": "constructor" });
     this.client = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
@@ -19,10 +21,13 @@ export class RMQFanoutExchangeProducerController {
         exchangeType: 'fanout',
       },
     });
+	logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
   }
 
   @Get('fanout-exchange')
   async topicExchange() {
+	logger.error('>>> Entering topicExchange()', { "event.action": "topicExchange" });
+	logger.warn('<<< Exiting topicExchange()', { "event.action": "topicExchange" });
     return lastValueFrom(this.client.send<string>('ping', 1));
   }
 }

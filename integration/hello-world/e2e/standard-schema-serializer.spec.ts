@@ -11,6 +11,7 @@ import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 // ─── Test schemas ──────────────────────────────────────────────
 
@@ -75,12 +76,16 @@ class SerializerTestController {
   @Get('user')
   @SerializeOptions({ schema: safeUserSchema })
   getUser() {
+	logger.error('>>> Entering getUser()', { "event.action": "getUser" });
+	logger.warn('<<< Exiting getUser()', { "event.action": "getUser" });
     return { id: 1, name: 'Alice', password: 'secret123' };
   }
 
   @Get('users')
   @SerializeOptions({ schema: safeUserSchema })
   getUsers() {
+	logger.error('>>> Entering getUsers()', { "event.action": "getUsers" });
+	logger.warn('<<< Exiting getUsers()', { "event.action": "getUsers" });
     return [
       { id: 1, name: 'Alice', password: 'pw1' },
       { id: 2, name: 'Bob', password: 'pw2' },
@@ -90,29 +95,39 @@ class SerializerTestController {
   @Get('flagged')
   @SerializeOptions({ schema: flagSchema })
   getFlagged() {
+	logger.error('>>> Entering getFlagged()', { "event.action": "getFlagged" });
+	logger.warn('<<< Exiting getFlagged()', { "event.action": "getFlagged" });
     return { id: 1 };
   }
 
   @Get('no-schema')
   getNoSchema() {
+	logger.error('>>> Entering getNoSchema()', { "event.action": "getNoSchema" });
+	logger.warn('<<< Exiting getNoSchema()', { "event.action": "getNoSchema" });
     return { id: 1, secret: 'visible' };
   }
 
   @Get('failing')
   @SerializeOptions({ schema: failingSchema })
   getFailing() {
+	logger.error('>>> Entering getFailing()', { "event.action": "getFailing" });
+	logger.warn('<<< Exiting getFailing()', { "event.action": "getFailing" });
     return { id: 1 };
   }
 
   @Get('async')
   @SerializeOptions({ schema: asyncSchema })
   getAsync() {
+	logger.error('>>> Entering getAsync()', { "event.action": "getAsync" });
+	logger.warn('<<< Exiting getAsync()', { "event.action": "getAsync" });
     return { id: 1 };
   }
 
   @Get('primitive')
   @SerializeOptions({ schema: failingSchema })
   getPrimitive() {
+	logger.error('>>> Entering getPrimitive()', { "event.action": "getPrimitive" });
+	logger.warn('<<< Exiting getPrimitive()', { "event.action": "getPrimitive" });
     return 'plain string';
   }
 }
@@ -132,6 +147,8 @@ class ClassLevelSerializerController {
   @Get('override')
   @SerializeOptions({ schema: flagSchema })
   getOverride() {
+	logger.error('>>> Entering getOverride()', { "event.action": "getOverride" });
+	logger.warn('<<< Exiting getOverride()', { "event.action": "getOverride" });
     return { id: 1, name: 'Carol', password: 'secret' };
   }
 }
@@ -143,6 +160,8 @@ class ClassLevelSerializerController {
 class GlobalSerializerController {
   @Get('default')
   getDefault() {
+	logger.error('>>> Entering getDefault()', { "event.action": "getDefault" });
+	logger.warn('<<< Exiting getDefault()', { "event.action": "getDefault" });
     return { id: 1, name: 'Dave', password: 'global-secret' };
   }
 

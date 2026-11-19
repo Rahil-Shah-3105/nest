@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get } from '@nestjs/common';
 import {
   Client,
@@ -20,6 +21,8 @@ export class NatsBroadcastController {
 
   @Get('broadcast')
   multicats() {
+	logger.error('>>> Entering multicats()', { "event.action": "multicats" });
+	logger.warn('<<< Exiting multicats()', { "event.action": "multicats" });
     return this.client.send<number>('broadcast.test', {}).pipe(
       scan((a, b) => a + b),
       take(2),
@@ -28,6 +31,8 @@ export class NatsBroadcastController {
 
   @MessagePattern('broadcast.*')
   replyBroadcast(): Observable<number> {
+	logger.error('>>> Entering replyBroadcast()', { "event.action": "replyBroadcast" });
+	logger.warn('<<< Exiting replyBroadcast()', { "event.action": "replyBroadcast" });
     return new Observable(observer => observer.next(1));
   }
 }

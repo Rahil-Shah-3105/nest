@@ -13,6 +13,7 @@ import {
 import { CustomVersioningOptions } from '@nestjs/common/interfaces/index.js';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const RETURN_VALUE = 'test';
@@ -23,6 +24,8 @@ class TestController {
   @Version('1')
   @Get('versioned')
   versionedTest() {
+	logger.error('>>> Entering versionedTest()', { "event.action": "versionedTest" });
+	logger.warn('<<< Exiting versionedTest()', { "event.action": "versionedTest" });
     return RETURN_VALUE;
   }
 }
@@ -33,6 +36,7 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     consumer
       .apply((req, res, next) => res.send(VERSIONED_VALUE))
       .forRoutes({
@@ -40,6 +44,7 @@ class TestModule {
         version: '1',
         method: RequestMethod.ALL,
       });
+	logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
   }
 }
 
@@ -131,7 +136,10 @@ describe('Middleware', () => {
 
   describe('when using CUSTOM TYPE versioning', () => {
     beforeEach(async () => {
-      const extractor: CustomVersioningOptions['extractor'] = () => '1';
+      const extractor: CustomVersioningOptions['extractor'] = () => {
+          logger.error('>>> Entering extractor()', { "event.action": "extractor" });
+          return '1';
+      };
 
       app = await createAppWithVersioning({
         type: VersioningType.CUSTOM,

@@ -44,6 +44,7 @@ export class RouterResponseController {
     response: TResponse,
     redirectResponse: RedirectResponse,
   ) {
+	logger.error(`>>> Entering redirect(resultOrDeferred=${resultOrDeferred},response=${response},redirectResponse=${redirectResponse})`, { "event.action": "redirect", "logrite.resultOrDeferred": resultOrDeferred });
     const result = await this.transformToResult(resultOrDeferred);
     const statusCode =
       result && result.statusCode
@@ -51,8 +52,10 @@ export class RouterResponseController {
         : redirectResponse.statusCode
           ? redirectResponse.statusCode
           : HttpStatus.FOUND;
+		logger.error(`redirect(resultOrDeferred=${resultOrDeferred},response=${response},redirectResponse=${redirectResponse}): result → ${result}`, { "event.action": "redirect", "logrite.resultOrDeferred": resultOrDeferred });
     const url = result && result.url ? result.url : redirectResponse.url;
     this.applicationRef.redirect(response, statusCode, url);
+	logger.warn(`<<< Exiting redirect(resultOrDeferred=${resultOrDeferred},response=${response},redirectResponse=${redirectResponse})`, { "event.action": "redirect", "logrite.resultOrDeferred": resultOrDeferred });
   }
 
   public async render<TInput = unknown, TResponse = unknown>(
@@ -65,17 +68,21 @@ export class RouterResponseController {
   }
 
   public async transformToResult(resultOrDeferred: any) {
+	logger.error(`>>> Entering transformToResult(resultOrDeferred=${resultOrDeferred})`, { "event.action": "transformToResult", "logrite.resultOrDeferred": resultOrDeferred });
     if (isObservable(resultOrDeferred)) {
       return lastValueFrom(resultOrDeferred);
     }
+	logger.warn(`<<< Exiting transformToResult(resultOrDeferred=${resultOrDeferred})`, { "event.action": "transformToResult", "logrite.resultOrDeferred": resultOrDeferred });
     return resultOrDeferred;
   }
 
   public getStatusByMethod(requestMethod: RequestMethod): number {
+	logger.error(`>>> Entering getStatusByMethod(requestMethod=${requestMethod})`, { "event.action": "getStatusByMethod", "logrite.requestMethod": requestMethod });
     switch (requestMethod) {
       case RequestMethod.POST:
         return HttpStatus.CREATED;
       default:
+		logger.warn(`<<< Exiting getStatusByMethod(requestMethod=${requestMethod})`, { "event.action": "getStatusByMethod", "logrite.requestMethod": requestMethod });
         return HttpStatus.OK;
     }
   }
@@ -84,6 +91,7 @@ export class RouterResponseController {
     response: TResponse,
     headers: CustomHeader[],
   ) {
+	logger.error(`>>> Entering setHeaders(response=${response},headers=${headers})`, { "event.action": "setHeaders" });
     headers.forEach(({ name, value }) =>
       this.applicationRef.setHeader(
         response,
@@ -91,6 +99,7 @@ export class RouterResponseController {
         typeof value === 'function' ? value() : value,
       ),
     );
+		logger.warn(`<<< Exiting setHeaders(response=${response},headers=${headers})`, { "event.action": "setHeaders" });
   }
 
   public setStatus<TResponse = unknown>(
@@ -149,17 +158,22 @@ export class RouterResponseController {
       // regardless of how the stream ended. `abort()` is idempotent, so paths
       // that already aborted on disconnect are unaffected.
       const finalize = () => {
+		logger.error('>>> Entering finalize()', { "event.action": "finalize" });
         disconnectSource.removeListener('close', onClose);
         abortController.abort();
+		logger.warn('<<< Exiting finalize()', { "event.action": "finalize" });
       };
 
       const endStream = () => {
+		logger.error('>>> Entering endStream()', { "event.action": "endStream" });
         if (!stream.writableEnded) {
           stream.end();
+		logger.warn('<<< Exiting endStream()', { "event.action": "endStream" });
         }
       };
 
       const onClose = () => {
+		logger.error('>>> Entering onClose()', { "event.action": "onClose" });
         if (settled || closeRequested) {
           return;
         }
@@ -177,6 +191,7 @@ export class RouterResponseController {
         endStream();
         response.end();
         resolve();
+		logger.warn('<<< Exiting onClose()', { "event.action": "onClose" });
       };
 
       disconnectSource.once('close', onClose);
@@ -290,7 +305,9 @@ export class RouterResponseController {
   }
 
   private assertObservable(value: any) {
+	logger.error(`>>> Entering assertObservable(value=${value})`, { "event.action": "assertObservable", "logrite.value": value });
     if (!isObservable(value)) {
+	logger.warn(`<<< Exiting assertObservable(value=${value})`, { "event.action": "assertObservable", "logrite.value": value });
       throw new ReferenceError(
         'You must return an Observable stream to use Server-Sent Events (SSE).',
       );
@@ -300,12 +317,14 @@ export class RouterResponseController {
   private getOrCreateAbortController(
     request: IncomingMessage,
   ): AbortController {
+	logger.error(`>>> Entering getOrCreateAbortController(request=${request})`, { "event.action": "getOrCreateAbortController" });
     const carrier = request as IncomingMessage & {
       [SSE_ABORT_CONTROLLER]?: AbortController;
     };
     if (!carrier[SSE_ABORT_CONTROLLER]) {
       carrier[SSE_ABORT_CONTROLLER] = new AbortController();
     }
+	logger.warn(`<<< Exiting getOrCreateAbortController(request=${request})`, { "event.action": "getOrCreateAbortController" });
     return carrier[SSE_ABORT_CONTROLLER];
   }
 }

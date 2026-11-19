@@ -1,6 +1,7 @@
 import { INestApplication, Scope } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { HelloController } from '../src/circular-transient/hello.controller.js';
 import { HelloModule } from '../src/circular-transient/hello.module.js';
 import { HelloService } from '../src/circular-transient/hello.service.js';
@@ -9,7 +10,9 @@ import { UsersService } from '../src/circular-transient/users/users.service.js';
 class Meta {
   static COUNTER = 0;
   constructor(private readonly helloService: HelloService) {
+	logger.error(`>>> Entering constructor(helloService=${helloService})`, { "event.action": "constructor", "logrite.helloService": helloService });
     Meta.COUNTER++;
+	logger.warn(`<<< Exiting constructor(helloService=${helloService})`, { "event.action": "constructor", "logrite.helloService": helloService });
   }
 }
 

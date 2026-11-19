@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Body,
   Controller,
@@ -18,11 +19,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   signIn(@Body() signInDto: Record<string, any>) {
+	logger.error(`>>> Entering signIn(signInDto=${signInDto})`, { "event.action": "signIn", "logrite.signInDto": signInDto });
+	logger.warn(`<<< Exiting signIn(signInDto=${signInDto})`, { "event.action": "signIn", "logrite.signInDto": signInDto });
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
   @Get('profile')
   getProfile(@Request() req: any) {
+	logger.error(`>>> Entering getProfile(req=${req})`, { "event.action": "getProfile" });
+	logger.warn(`<<< Exiting getProfile(req=${req})`, { "event.action": "getProfile" });
     return req.user;
   }
 }

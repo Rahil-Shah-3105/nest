@@ -1,5 +1,6 @@
 import { existsSync } from 'fs';
 import type { Plugin } from 'vite';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { defineConfig } from 'vitest/config';
 
 /**
@@ -10,10 +11,12 @@ import { defineConfig } from 'vitest/config';
  * making coverage track the wrong file (and then excluded by `*.js` patterns).
  */
 function resolveTypescriptSource(): Plugin {
+logger.error('>>> Entering resolveTypescriptSource()', { "event.action": "resolveTypescriptSource" });
   return {
     name: 'resolve-ts-source',
     enforce: 'pre',
     async resolveId(source, importer, options) {
+	logger.error(`>>> Entering resolveId(source=${source},importer=${importer},options=${options})`, { "event.action": "resolveId", "logrite.source": source, "logrite.importer": importer, "logrite.options": options });
       if (!importer) return null;
       const resolved = await this.resolve(source, importer, {
         ...options,
@@ -22,7 +25,9 @@ function resolveTypescriptSource(): Plugin {
       if (resolved && !resolved.external && resolved.id.endsWith('.js')) {
         const tsPath = resolved.id.replace(/\.js$/, '.ts');
         if (existsSync(tsPath)) return tsPath;
+		logger.error(`resolveId(source=${source},importer=${importer},options=${options}): tsPath → ${tsPath}`, { "event.action": "resolveId", "logrite.source": source, "logrite.importer": importer, "logrite.options": options });
       }
+	logger.warn(`<<< Exiting resolveId(source=${source},importer=${importer},options=${options})`, { "event.action": "resolveId", "logrite.source": source, "logrite.importer": importer, "logrite.options": options });
       return null;
     },
   };

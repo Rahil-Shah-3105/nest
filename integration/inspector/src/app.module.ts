@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Module, Scope } from '@nestjs/common';
 import { AppV1Controller } from './app-v1.controller.js';
 import { AppV2Controller } from './app-v2.controller.js';
@@ -18,7 +19,9 @@ import { UsersModule } from './users/users.module.js';
 class Meta {
   static COUNTER = 0;
   constructor(private readonly helloService: HelloService) {
+	logger.error(`>>> Entering constructor(helloService=${helloService})`, { "event.action": "constructor", "logrite.helloService": helloService });
     Meta.COUNTER++;
+	logger.warn(`<<< Exiting constructor(helloService=${helloService})`, { "event.action": "constructor", "logrite.helloService": helloService });
   }
 }
 

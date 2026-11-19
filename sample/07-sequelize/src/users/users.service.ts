@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto.js';
@@ -11,6 +12,8 @@ export class UsersService {
   ) {}
 
   create(createUserDto: CreateUserDto): Promise<User> {
+	logger.error(`>>> Entering create(createUserDto=${createUserDto})`, { "event.action": "create", "logrite.createUserDto": createUserDto });
+	logger.warn(`<<< Exiting create(createUserDto=${createUserDto})`, { "event.action": "create", "logrite.createUserDto": createUserDto });
     return this.userModel.create({
       firstName: createUserDto.firstName,
       lastName: createUserDto.lastName,
@@ -18,10 +21,12 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
+	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
     return this.userModel.findAll();
   }
 
   findOne(id: string): Promise<User | null> {
+	logger.error(`>>> Entering findOne(id=${id})`, { "event.action": "findOne", "logrite.id": id });
     return this.userModel.findOne({
       where: {
         id,
@@ -30,7 +35,9 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
+	logger.error(`>>> Entering remove(id=${id})`, { "event.action": "remove", "logrite.id": id });
     const user = await this.findOne(id);
     await user?.destroy();
+	logger.error(`remove(id=${id}): user → ${user}`, { "event.action": "remove", "logrite.id": id });
   }
 }

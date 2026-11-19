@@ -11,6 +11,7 @@ import { AppController } from './app.controller.js';
 
 import * as fs from 'fs';
 import * as path from 'path';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 const caCert = fs
   .readFileSync(path.join(import.meta.dirname, 'ca.cert.pem'))
@@ -21,9 +22,12 @@ class ErrorHandlingProxy extends ClientTCP {
     super({
       tlsOptions: { ca: caCert },
     });
+	logger.warn(`<<< Exiting constructor(configService=${configService})`, { "event.action": "constructor" });
   }
 
   serializeError(err) {
+	logger.error(`>>> Entering serializeError(err=${err})`, { "event.action": "serializeError", "logrite.err": err });
+	logger.warn(`<<< Exiting serializeError(err=${err})`, { "event.action": "serializeError", "logrite.err": err });
     return new RpcException(err);
   }
 }
@@ -34,6 +38,8 @@ class ConfigService {
     transport: Transport.TCP,
   };
   get(key: string, defaultValue?: any) {
+	logger.error(`>>> Entering get(key=${key},defaultValue=${defaultValue})`, { "event.action": "get", "logrite.key": key, "logrite.defaultValue": defaultValue });
+	logger.warn(`<<< Exiting get(key=${key},defaultValue=${defaultValue})`, { "event.action": "get", "logrite.key": key, "logrite.defaultValue": defaultValue });
     return this.config[key] || defaultValue;
   }
 }
@@ -48,6 +54,8 @@ class ConfigModule {}
 class ClientOptionService implements ClientsModuleOptionsFactory {
   constructor(private readonly configService: ConfigService) {}
   createClientOptions(): Promise<ClientOptions> | ClientOptions {
+	logger.error('>>> Entering createClientOptions()', { "event.action": "createClientOptions" });
+	logger.warn('<<< Exiting createClientOptions()', { "event.action": "createClientOptions" });
     return {
       transport: this.configService.get('transport'),
       options: {

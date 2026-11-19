@@ -24,14 +24,17 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
   constructor(protected readonly applicationRef?: HttpServer) {}
 
   catch(exception: T, host: ArgumentsHost) {
+	logger.error(`>>> Entering catch(exception=${exception},host=${host})`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     const applicationRef =
       this.applicationRef ||
       (this.httpAdapterHost && this.httpAdapterHost.httpAdapter)!;
+	logger.error(`Exception in catch(exception=${exception},host=${host}): ${(exception as Error).message}`, exception, { "event.action": "catch", "event.category": "process", "logrite.exception": exception, "logrite.host": host });
 
     if (!(exception instanceof HttpException)) {
       return this.handleUnknownError(exception, host, applicationRef);
     }
     const res = exception.getResponse();
+	logger.error(`catch(exception=${exception},host=${host}): res → ${res}`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     const message = isObject(res)
       ? res
       : {
@@ -39,11 +42,14 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
           message: res,
         };
 
+	logger.error(`catch(exception=${exception},host=${host}): message → ${message}`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     const response = host.getArgByIndex(1);
+	logger.error(`catch(exception=${exception},host=${host}): response → ${response}`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     if (!applicationRef.isHeadersSent(response)) {
       applicationRef.reply(response, message, exception.getStatus());
     } else {
       applicationRef.end(response);
+	logger.warn(`<<< Exiting catch(exception=${exception},host=${host})`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     }
   }
 
@@ -72,9 +78,12 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
     if (!(exception instanceof IntrinsicException)) {
       BaseExceptionFilter.logger.error(exception);
     }
+	logger.warn(`<<< Exiting handleUnknownError(exception=${exception},host=${host},applicationRef=${applicationRef})`, { "event.action": "handleUnknownError", "logrite.exception": exception, "logrite.host": host, "logrite.applicationRef": applicationRef });
   }
 
   public isExceptionObject(err: any): err is Error {
+	logger.error(`>>> Entering isExceptionObject(err=${err})`, { "event.action": "isExceptionObject", "logrite.err": err });
+	logger.warn(`<<< Exiting isExceptionObject(err=${err})`, { "event.action": "isExceptionObject", "logrite.err": err });
     return isObject(err) && !!(err as Error).message;
   }
 
@@ -83,6 +92,7 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
    * @param err error object
    */
   public isHttpError(err: any): err is { statusCode: number; message: string } {
+	logger.error(`>>> Entering isHttpError(err=${err})`, { "event.action": "isHttpError", "logrite.err": err });
     if (!err || typeof err !== 'object') {
       return false;
     }
@@ -107,6 +117,7 @@ export class BaseExceptionFilter<T = any> implements ExceptionFilter<T> {
 
     // Plain "http error"-shaped values (e.g. objects thrown by third-party
     // middleware) that carry a status code and a message
+	logger.warn(`<<< Exiting isHttpError(err=${err})`, { "event.action": "isHttpError", "logrite.err": err });
     return !!(err.statusCode && err.message);
   }
 }

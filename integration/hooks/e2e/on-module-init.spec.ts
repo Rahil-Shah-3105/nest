@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable, Module, OnModuleInit } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 @Injectable()
@@ -44,13 +45,17 @@ describe('OnModuleInit', () => {
       public field: string;
 
       async onModuleInit() {
+		logger.error('>>> Entering onModuleInit()', { "event.action": "onModuleInit" });
         this.field = 'c-field';
+		logger.warn('<<< Exiting onModuleInit()', { "event.action": "onModuleInit" });
       }
     }
 
     @Module({})
     class C {
       static forRoot() {
+		logger.error('>>> Entering forRoot()', { "event.action": "forRoot" });
+		logger.warn('<<< Exiting forRoot()', { "event.action": "forRoot" });
         return {
           module: C,
           global: true,

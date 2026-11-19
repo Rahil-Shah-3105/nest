@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   Get,
@@ -14,6 +15,8 @@ export class AppController {
   @Get()
   @SerializeOptions({ schema: UserResponseSchema })
   findOne(): User {
+	logger.error('>>> Entering findOne()', { "event.action": "findOne" });
+	logger.warn('<<< Exiting findOne()', { "event.action": "findOne" });
     return {
       id: 1,
       firstName: 'Kamil',

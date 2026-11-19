@@ -125,14 +125,17 @@ export class RouterExplorer {
   }
 
   public extractRouterPath(metatype: Type<Controller>): string[] {
+	logger.error(`>>> Entering extractRouterPath(metatype=${metatype})`, { "event.action": "extractRouterPath", "logrite.metatype": metatype });
     const path = Reflect.getMetadata(PATH_METADATA, metatype);
 
+	logger.error(`extractRouterPath(metatype=${metatype}): path → ${path}`, { "event.action": "extractRouterPath", "logrite.metatype": metatype });
     if (isUndefined(path)) {
       throw new UnknownRequestMappingException(metatype);
     }
     if (Array.isArray(path)) {
       return path.map(p => addLeadingSlash(p));
     }
+	logger.warn(`<<< Exiting extractRouterPath(metatype=${metatype})`, { "event.action": "extractRouterPath", "logrite.metatype": metatype });
     return [addLeadingSlash(path)];
   }
 
@@ -469,6 +472,7 @@ export class RouterExplorer {
           instanceWrapper.id,
         )(req, res, next);
       } catch (err) {
+		logger.error(`Exception in createRequestScopedHandler(instanceWrapper=${instanceWrapper},requestMethod=${requestMethod},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName}): ${(err as Error).message}`, err, { "event.action": "createRequestScopedHandler", "event.category": "process", "logrite.instanceWrapper": instanceWrapper, "logrite.requestMethod": requestMethod, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.methodName": methodName });
         let exceptionFilter = this.exceptionFiltersCache.get(
           instance[methodName],
         );

@@ -53,6 +53,7 @@ export class ServerKafka extends Server<never, KafkaStatus> {
 
   constructor(protected readonly options: Required<KafkaOptions>['options']) {
     super();
+	logger.error(`>>> Entering constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
 
     const clientOptions = this.getOptionsProp(
       this.options,
@@ -65,8 +66,10 @@ export class ServerKafka extends Server<never, KafkaStatus> {
       {} as ConsumerConfig,
     );
     const postfixId = this.getOptionsProp(this.options, 'postfixId', '-server');
+	logger.error(`constructor(options=${options}): postfixId → ${postfixId}`, { "event.action": "constructor", "logrite.options": options });
 
     this.brokers = clientOptions.brokers || [KAFKA_DEFAULT_BROKER];
+	logger.debug(`constructor(options=${options}): this.brokers → ${this.brokers}`, { "event.action": "constructor", "logrite.options": options });
 
     // Append a unique id to the clientId and groupId
     // so they don't collide with a microservices client
@@ -78,6 +81,7 @@ export class ServerKafka extends Server<never, KafkaStatus> {
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+	logger.warn(`<<< Exiting constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
   }
 
   public addHandler(
@@ -86,7 +90,9 @@ export class ServerKafka extends Server<never, KafkaStatus> {
     isEventHandler = false,
     extras: Record<string, any> = {},
   ) {
+	logger.error(`>>> Entering addHandler(pattern=${pattern},callback=${callback},isEventHandler=${isEventHandler},extras=${extras})`, { "event.action": "addHandler", "logrite.pattern": pattern, "logrite.callback": callback, "logrite.isEventHandler": isEventHandler, "logrite.extras": extras });
     if (!(pattern instanceof RegExp)) {
+	logger.warn(`<<< Exiting addHandler(pattern=${pattern},callback=${callback},isEventHandler=${isEventHandler},extras=${extras})`, { "event.action": "addHandler", "logrite.pattern": pattern, "logrite.callback": callback, "logrite.isEventHandler": isEventHandler, "logrite.extras": extras });
       return super.addHandler(pattern, callback, isEventHandler, extras);
     }
 
@@ -95,16 +101,21 @@ export class ServerKafka extends Server<never, KafkaStatus> {
       MessageHandler
     >;
     callback.isEventHandler = isEventHandler;
+	logger.debug(`addHandler(pattern=${pattern},callback=${callback},isEventHandler=${isEventHandler},extras=${extras}): callback.isEventHandler → ${callback.isEventHandler}`, { "event.action": "addHandler", "logrite.pattern": pattern, "logrite.callback": callback, "logrite.isEventHandler": isEventHandler, "logrite.extras": extras });
     callback.extras = extras;
+	logger.debug(`addHandler(pattern=${pattern},callback=${callback},isEventHandler=${isEventHandler},extras=${extras}): callback.extras → ${callback.extras}`, { "event.action": "addHandler", "logrite.pattern": pattern, "logrite.callback": callback, "logrite.isEventHandler": isEventHandler, "logrite.extras": extras });
 
     if (messageHandlers.has(pattern) && isEventHandler) {
       const headRef = messageHandlers.get(pattern)!;
       const getTail = (handler: MessageHandler) =>
         handler?.next ? getTail(handler.next) : handler;
+		logger.error(`addHandler(pattern=${pattern},callback=${callback},isEventHandler=${isEventHandler},extras=${extras}): headRef → ${headRef}`, { "event.action": "addHandler", "logrite.pattern": pattern, "logrite.callback": callback, "logrite.isEventHandler": isEventHandler, "logrite.extras": extras });
 
       const tailRef = getTail(headRef);
       tailRef.next = callback;
     } else {
+	logger.error(`getTail(handler=${handler}): tailRef → ${tailRef}`, { "event.action": "getTail", "logrite.handler": handler });
+	logger.debug(`getTail(handler=${handler}): tailRef.next → ${tailRef.next}`, { "event.action": "getTail", "logrite.handler": handler });
       messageHandlers.set(pattern, callback);
     }
   }
@@ -112,20 +123,26 @@ export class ServerKafka extends Server<never, KafkaStatus> {
   public async listen(
     callback: (err?: unknown, ...optionalParams: unknown[]) => void,
   ): Promise<void> {
+	logger.error(`>>> Entering listen(callback=${callback})`, { "event.action": "listen", "logrite.callback": callback });
     try {
       this.client = await this.createClient();
       await this.start(callback);
     } catch (err) {
       callback(err);
+	logger.warn(`<<< Exiting listen(callback=${callback})`, { "event.action": "listen", "logrite.callback": callback });
     }
   }
 
   public async close(): Promise<void> {
+	logger.error('>>> Entering close()', { "event.action": "close" });
     this.consumer && (await this.consumer.disconnect());
     this.producer && (await this.producer.disconnect());
     this.consumer = null;
+	logger.debug(`close(): this.consumer → ${this.consumer}`, { "event.action": "close" });
     this.producer = null;
+	logger.debug(`close(): this.producer → ${this.producer}`, { "event.action": "close" });
     this.client = null;
+	logger.debug(`close(): this.client → ${this.client}`, { "event.action": "close" });
   }
 
   public async start(callback: () => void): Promise<void> {
@@ -145,6 +162,7 @@ export class ServerKafka extends Server<never, KafkaStatus> {
   }
 
   protected registerConsumerEventListeners() {
+	logger.error('>>> Entering registerConsumerEventListeners()', { "event.action": "registerConsumerEventListeners" });
     if (!this.consumer) {
       return;
     }
@@ -163,9 +181,11 @@ export class ServerKafka extends Server<never, KafkaStatus> {
     this.consumer.on(this.consumer.events.CRASH, () =>
       this._status$.next(KafkaStatus.CRASHED),
     );
+	logger.warn('<<< Exiting registerConsumerEventListeners()', { "event.action": "registerConsumerEventListeners" });
   }
 
   protected registerProducerEventListeners() {
+	logger.error('>>> Entering registerProducerEventListeners()', { "event.action": "registerProducerEventListeners" });
     if (!this.producer) {
       return;
     }
@@ -175,14 +195,17 @@ export class ServerKafka extends Server<never, KafkaStatus> {
     this.producer.on(this.producer.events.DISCONNECT, () =>
       this._status$.next(KafkaStatus.DISCONNECTED),
     );
+	logger.warn('<<< Exiting registerProducerEventListeners()', { "event.action": "registerProducerEventListeners" });
   }
 
   public async createClient<T = any>(): Promise<T> {
+	logger.error('>>> Entering createClient()', { "event.action": "createClient" });
     const kafkaPackage = await this.loadPackage(
       'kafkajs',
       ServerKafka.name,
       () => import('kafkajs'),
     );
+	logger.warn('<<< Exiting createClient()', { "event.action": "createClient" });
     return new kafkaPackage.Kafka({
       logCreator: KafkaLogger.bind(null, this.logger),
       ...this.options.client,
@@ -192,8 +215,10 @@ export class ServerKafka extends Server<never, KafkaStatus> {
   }
 
   public async bindEvents(consumer: Consumer) {
+	logger.error(`>>> Entering bindEvents(consumer=${consumer})`, { "event.action": "bindEvents", "logrite.consumer": consumer });
     const registeredPatterns = [...this.messageHandlers.keys()];
     const consumerSubscribeOptions = this.options.subscribe || {};
+	logger.error(`bindEvents(consumer=${consumer}): registeredPatterns → ${registeredPatterns}`, { "event.action": "bindEvents", "logrite.consumer": consumer });
 
     if (registeredPatterns.length > 0) {
       await this.consumer!.subscribe({
@@ -207,15 +232,19 @@ export class ServerKafka extends Server<never, KafkaStatus> {
       eachMessage: this.getMessageHandler(),
     };
     await consumer.run(consumerRunOptions);
+	logger.warn(`<<< Exiting bindEvents(consumer=${consumer})`, { "event.action": "bindEvents", "logrite.consumer": consumer });
   }
 
   public getHandlerByPattern(pattern: string): MessageHandler | null {
+	logger.error(`>>> Entering getHandlerByPattern(pattern=${pattern})`, { "event.action": "getHandlerByPattern", "logrite.pattern": pattern });
     const handler = super.getHandlerByPattern(pattern);
     if (handler) {
+	logger.error(`getHandlerByPattern(pattern=${pattern}): handler → ${handler}`, { "event.action": "getHandlerByPattern", "logrite.pattern": pattern });
       return handler;
     }
 
     const route = this.getRouteFromPattern(pattern);
+	logger.error(`getHandlerByPattern(pattern=${pattern}): route → ${route}`, { "event.action": "getHandlerByPattern", "logrite.pattern": pattern });
     const messageHandlers = this.messageHandlers as Map<
       string | RegExp,
       MessageHandler
@@ -225,10 +254,14 @@ export class ServerKafka extends Server<never, KafkaStatus> {
         registeredPattern instanceof RegExp &&
         this.isPatternMatch(registeredPattern, route)
       ) {
+		logger.error(`>>> Entering isPatternMatch(pattern=${pattern},route=${route})`, { "event.action": "isPatternMatch", "logrite.pattern": pattern, "logrite.route": route });
+		logger.debug(`isPatternMatch(pattern=${pattern},route=${route}): pattern.lastIndex → ${pattern.lastIndex}`, { "event.action": "isPatternMatch", "logrite.pattern": pattern, "logrite.route": route });
+		logger.warn(`<<< Exiting isPatternMatch(pattern=${pattern},route=${route})`, { "event.action": "isPatternMatch", "logrite.pattern": pattern, "logrite.route": route });
         return registeredHandler;
       }
     }
 
+	logger.warn(`<<< Exiting getHandlerByPattern(pattern=${pattern})`, { "event.action": "getHandlerByPattern", "logrite.pattern": pattern });
     return null;
   }
 
@@ -240,6 +273,8 @@ export class ServerKafka extends Server<never, KafkaStatus> {
   }
 
   public getMessageHandler() {
+	logger.error('>>> Entering getMessageHandler()', { "event.action": "getMessageHandler" });
+	logger.warn('<<< Exiting getMessageHandler()', { "event.action": "getMessageHandler" });
     return async (payload: EachMessagePayload) => this.handleMessage(payload);
   }
 
@@ -257,9 +292,11 @@ export class ServerKafka extends Server<never, KafkaStatus> {
         correlationId,
         context,
       );
+	logger.warn(`<<< Exiting getPublisher(replyTopic=${replyTopic},replyPartition=${replyPartition},correlationId=${correlationId},context=${context})`, { "event.action": "getPublisher", "logrite.replyTopic": replyTopic, "logrite.replyPartition": replyPartition, "logrite.correlationId": correlationId });
   }
 
   public async handleMessage(payload: EachMessagePayload) {
+	logger.error(`>>> Entering handleMessage(payload=${payload})`, { "event.action": "handleMessage" });
     const channel = payload.topic;
     const rawMessage = this.parser!.parse<KafkaMessage>(
       Object.assign(payload.message, {
@@ -273,6 +310,7 @@ export class ServerKafka extends Server<never, KafkaStatus> {
     const replyPartition = headers[KafkaHeaders.REPLY_PARTITION];
 
     const packet = await this.deserializer.deserialize(rawMessage, { channel });
+	logger.error(`handleMessage(payload=${payload}): packet → ${packet}`, { "event.action": "handleMessage" });
     const kafkaContext = new KafkaContext([
       rawMessage,
       payload.partition,
@@ -282,9 +320,11 @@ export class ServerKafka extends Server<never, KafkaStatus> {
       this.producer!,
     ]);
     const handler = this.getHandlerByPattern(packet.pattern);
+	logger.error(`handleMessage(payload=${payload}): kafkaContext → ${kafkaContext}`, { "event.action": "handleMessage" });
     // if the correlation id or reply topic is not set
     // then this is an event (events could still have correlation id)
     if (handler?.isEventHandler || !correlationId || !replyTopic) {
+	logger.error(`handleMessage(payload=${payload}): handler → ${handler}`, { "event.action": "handleMessage" });
       return this.handleEvent(packet.pattern, packet, kafkaContext);
     }
 
@@ -301,6 +341,7 @@ export class ServerKafka extends Server<never, KafkaStatus> {
         err: NO_MESSAGE_HANDLER,
       });
     }
+	logger.warn(`<<< Exiting handleMessage(payload=${payload})`, { "event.action": "handleMessage" });
     return this.onProcessingStartHook(
       this.transportId,
       kafkaContext,
@@ -318,11 +359,13 @@ export class ServerKafka extends Server<never, KafkaStatus> {
   }
 
   public unwrap<T>(): T {
+	logger.error('>>> Entering unwrap()', { "event.action": "unwrap" });
     if (!this.client) {
       throw new Error(
         'Not initialized. Please call the "listen"/"startAllMicroservices" method before accessing the server.',
       );
     }
+	logger.warn('<<< Exiting unwrap()', { "event.action": "unwrap" });
     return [this.client, this.consumer, this.producer] as T;
   }
 
@@ -330,6 +373,8 @@ export class ServerKafka extends Server<never, KafkaStatus> {
     EventKey extends string | number | symbol = string | number | symbol,
     EventCallback = any,
   >(event: EventKey, callback: EventCallback) {
+	logger.error(`>>> Entering on(event=${event},callback=${callback})`, { "event.action": "on", "logrite.callback": callback });
+	logger.warn(`<<< Exiting on(event=${event},callback=${callback})`, { "event.action": "on", "logrite.callback": callback });
     throw new Error('Method is not supported for Kafka server');
   }
 
@@ -337,11 +382,14 @@ export class ServerKafka extends Server<never, KafkaStatus> {
     response$: Observable<any>,
     replayStream$: ReplaySubject<unknown>,
   ) {
+	logger.error(`>>> Entering combineStreamsAndThrowIfRetriable(response$=${response$},replayStream$=${replayStream$})`, { "event.action": "combineStreamsAndThrowIfRetriable", "logrite.response$": response$, "logrite.replayStream$": replayStream$ });
+	logger.warn(`<<< Exiting combineStreamsAndThrowIfRetriable(response$=${response$},replayStream$=${replayStream$})`, { "event.action": "combineStreamsAndThrowIfRetriable", "logrite.response$": response$, "logrite.replayStream$": replayStream$ });
     return new Promise<void>((resolve, reject) => {
       let isPromiseResolved = false;
       response$.subscribe({
         next: val => {
           replayStream$.next(val);
+		logger.error(`combineStreamsAndThrowIfRetriable(response$=${response$},replayStream$=${replayStream$}): isPromiseResolved → ${isPromiseResolved}`, { "event.action": "combineStreamsAndThrowIfRetriable", "logrite.response$": response$, "logrite.replayStream$": replayStream$ });
           if (!isPromiseResolved) {
             isPromiseResolved = true;
             resolve();
@@ -388,16 +436,19 @@ export class ServerKafka extends Server<never, KafkaStatus> {
     outgoingResponse: OutgoingResponse,
     outgoingMessage: Message,
   ) {
+	logger.error(`>>> Entering assignIsDisposedHeader(outgoingResponse=${outgoingResponse},outgoingMessage=${outgoingMessage})`, { "event.action": "assignIsDisposedHeader", "logrite.outgoingMessage": outgoingMessage });
     if (!outgoingResponse.isDisposed) {
       return;
     }
     outgoingMessage.headers![KafkaHeaders.NEST_IS_DISPOSED] = Buffer.alloc(1);
+	logger.warn(`<<< Exiting assignIsDisposedHeader(outgoingResponse=${outgoingResponse},outgoingMessage=${outgoingMessage})`, { "event.action": "assignIsDisposedHeader", "logrite.outgoingMessage": outgoingMessage });
   }
 
   public assignErrorHeader(
     outgoingResponse: OutgoingResponse,
     outgoingMessage: Message,
   ) {
+	logger.error(`>>> Entering assignErrorHeader(outgoingResponse=${outgoingResponse},outgoingMessage=${outgoingMessage})`, { "event.action": "assignErrorHeader", "logrite.outgoingMessage": outgoingMessage });
     if (!outgoingResponse.err) {
       return;
     }
@@ -407,24 +458,29 @@ export class ServerKafka extends Server<never, KafkaStatus> {
         : outgoingResponse.err;
     outgoingMessage.headers![KafkaHeaders.NEST_ERR] =
       Buffer.from(stringifiedError);
+	logger.warn(`<<< Exiting assignErrorHeader(outgoingResponse=${outgoingResponse},outgoingMessage=${outgoingMessage})`, { "event.action": "assignErrorHeader", "logrite.outgoingMessage": outgoingMessage });
   }
 
   public assignCorrelationIdHeader(
     correlationId: string,
     outgoingMessage: Message,
   ) {
+	logger.error(`>>> Entering assignCorrelationIdHeader(correlationId=${correlationId},outgoingMessage=${outgoingMessage})`, { "event.action": "assignCorrelationIdHeader", "logrite.correlationId": correlationId, "logrite.outgoingMessage": outgoingMessage });
     outgoingMessage.headers![KafkaHeaders.CORRELATION_ID] =
       Buffer.from(correlationId);
+	logger.warn(`<<< Exiting assignCorrelationIdHeader(correlationId=${correlationId},outgoingMessage=${outgoingMessage})`, { "event.action": "assignCorrelationIdHeader", "logrite.correlationId": correlationId, "logrite.outgoingMessage": outgoingMessage });
   }
 
   public assignReplyPartition(
     replyPartition: string | null | undefined,
     outgoingMessage: Message,
   ) {
+	logger.error(`>>> Entering assignReplyPartition(replyPartition=${replyPartition},outgoingMessage=${outgoingMessage})`, { "event.action": "assignReplyPartition", "logrite.replyPartition": replyPartition, "logrite.outgoingMessage": outgoingMessage });
     if (isNil(replyPartition)) {
       return;
     }
     outgoingMessage.partition = parseFloat(replyPartition);
+	logger.warn(`<<< Exiting assignReplyPartition(replyPartition=${replyPartition},outgoingMessage=${outgoingMessage})`, { "event.action": "assignReplyPartition", "logrite.replyPartition": replyPartition, "logrite.outgoingMessage": outgoingMessage });
   }
 
   public async handleEvent(
@@ -444,14 +500,19 @@ export class ServerKafka extends Server<never, KafkaStatus> {
         this.onProcessingEndHook?.(this.transportId, context);
       }
     });
+	logger.warn(`<<< Exiting handleEvent(pattern=${pattern},packet=${packet},context=${context})`, { "event.action": "handleEvent", "logrite.pattern": pattern, "logrite.packet": packet });
   }
 
   protected initializeSerializer(options: KafkaOptions['options']) {
+	logger.error(`>>> Entering initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
     this.serializer =
       (options && options.serializer) || new KafkaRequestSerializer();
+	logger.warn(`<<< Exiting initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
   }
 
   protected initializeDeserializer(options: KafkaOptions['options']) {
+	logger.error(`>>> Entering initializeDeserializer(options=${options})`, { "event.action": "initializeDeserializer", "logrite.options": options });
     this.deserializer = options?.deserializer ?? new KafkaRequestDeserializer();
+	logger.warn(`<<< Exiting initializeDeserializer(options=${options})`, { "event.action": "initializeDeserializer", "logrite.options": options });
   }
 }

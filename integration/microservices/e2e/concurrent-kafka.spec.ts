@@ -21,6 +21,7 @@ describe.skip('Kafka concurrent', function () {
 
   // set timeout to be longer (especially for the after hook)
   const startServer = async () => {
+	logger.error('>>> Entering startServer()', { "event.action": "startServer" });
     const module = await Test.createTestingModule({
       controllers: [
         KafkaConcurrentController,
@@ -32,6 +33,7 @@ describe.skip('Kafka concurrent', function () {
     // Logger.overrideLogger(new Logger());
 
     const app = module.createNestApplication();
+	logger.error(`startServer(): app → ${app}`, { "event.action": "startServer" });
 
     const server = app.getHttpAdapter().getInstance();
 
@@ -47,6 +49,7 @@ describe.skip('Kafka concurrent', function () {
       },
     });
 
+	logger.error(`startServer(): server → ${server}`, { "event.action": "startServer" });
     // enable these for clean shutdown
     app.enableShutdownHooks();
 
@@ -57,6 +60,7 @@ describe.skip('Kafka concurrent', function () {
     // await the start
     await app.startAllMicroservices();
     await app.init();
+	logger.warn('<<< Exiting startServer()', { "event.action": "startServer" });
   };
 
   it(`Create kafka topics/partitions`, async () => {

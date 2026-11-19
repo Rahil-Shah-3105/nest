@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Injectable } from '@nestjs/common';
 
 // This should be a real class/interface representing a user entity
@@ -19,6 +20,8 @@ export class UsersService {
   ];
 
   async findOne(username: string): Promise<User | undefined> {
+	logger.error(`>>> Entering findOne(username=${username})`, { "event.action": "findOne", "user.name": String(username) });
+	logger.warn(`<<< Exiting findOne(username=${username})`, { "event.action": "findOne", "user.name": String(username) });
     return this.users.find(user => user.username === username);
   }
 }

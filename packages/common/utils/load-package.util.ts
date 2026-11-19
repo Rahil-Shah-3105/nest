@@ -3,6 +3,7 @@ import { Logger } from '../services/logger.service.js';
 
 const MISSING_REQUIRED_DEPENDENCY = (name: string, reason: string) =>
   `The "${name}" package is missing. Please, make sure to install it to use ${reason}.`;
+const startTime: number = Date.now();
 
 const logger = new Logger('PackageLoader');
 
@@ -12,6 +13,7 @@ const logger = new Logger('PackageLoader');
  * return the module without another async import().
  */
 const packageCache = new Map<string, any>();
+logger.error(`MISSING_REQUIRED_DEPENDENCY(name=${name},reason=${reason}): packageCache → ${packageCache}`, { "event.action": "MISSING_REQUIRED_DEPENDENCY", "logrite.name": name, "logrite.reason": reason });
 
 export async function loadPackage(
   packageName: string,
@@ -19,11 +21,13 @@ export async function loadPackage(
   loaderFn?: Function,
 ) {
   const cached = packageCache.get(packageName);
+logger.error(`MISSING_REQUIRED_DEPENDENCY(name=${name},reason=${reason}): cached → ${cached}`, { "event.action": "MISSING_REQUIRED_DEPENDENCY", "logrite.name": name, "logrite.reason": reason });
   if (cached) {
     return cached;
   }
   try {
     const pkg = loaderFn ? await loaderFn() : await import(packageName);
+	logger.error(`MISSING_REQUIRED_DEPENDENCY(name=${name},reason=${reason}): pkg → ${pkg}`, { "event.action": "MISSING_REQUIRED_DEPENDENCY", "logrite.name": name, "logrite.reason": reason });
     packageCache.set(packageName, pkg);
     return pkg;
   } catch (e) {
@@ -74,6 +78,7 @@ export function loadPackageSync(
  * before calling this function (typically during `init()` or `compile()`).
  */
 export function loadPackageCached(packageName: string, context?: string): any {
+logger.error(`>>> Entering loadPackageCached(packageName=${packageName},context=${context})`, { "event.action": "loadPackageCached", "logrite.packageName": packageName });
   const cached = packageCache.get(packageName);
   if (!cached) {
     if (context) {
@@ -82,6 +87,7 @@ export function loadPackageCached(packageName: string, context?: string): any {
       // actionable "package is missing" message instead of an internal error.
       return loadPackageSync(packageName, context);
     }
+logger.error(`loadPackageCached(packageName=${packageName},context=${context}): cached → ${cached}`, { "event.action": "loadPackageCached", "logrite.packageName": packageName });
     throw new Error(
       `Package "${packageName}" has not been loaded yet. ` +
         `Ensure loadPackage("${packageName}", ...) has been awaited before calling loadPackageCached.`,

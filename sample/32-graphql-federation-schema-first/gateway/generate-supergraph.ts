@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -8,6 +9,7 @@ const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function generateSupergraph() {
+logger.error('>>> Entering generateSupergraph()', { "event.action": "generateSupergraph" });
   try {
     try {
       await execAsync('rover --version');
@@ -32,11 +34,13 @@ async function generateSupergraph() {
     console.log('Output written to: supergraph.graphql');
   } catch (error) {
     console.error('Failed to generate supergraph:', error);
+	logger.warn('<<< Exiting generateSupergraph()', { "event.action": "generateSupergraph" });
     process.exit(1);
   }
 }
 
 async function generateSupergraphLocal() {
+logger.error('>>> Entering generateSupergraphLocal()', { "event.action": "generateSupergraphLocal" });
   console.log('Generating local supergraph schema from schema files...');
 
   const usersSchemaPath = join(
@@ -64,7 +68,9 @@ async function generateSupergraphLocal() {
   }
 
   const usersSchema = readFileSync(usersSchemaPath, 'utf-8');
+logger.error(`generateSupergraphLocal(): usersSchema → ${usersSchema}`, { "event.action": "generateSupergraphLocal" });
   const postsSchema = readFileSync(postsSchemaPath, 'utf-8');
+logger.error(`generateSupergraphLocal(): postsSchema → ${postsSchema}`, { "event.action": "generateSupergraphLocal" });
 
   const supergraphSchema = `\
 schema
@@ -117,6 +123,7 @@ ${postsSchema.replace(/^extend type Query[\s\S]*?}$/m, '').replace(/^extend type
 `;
 
   writeFileSync(join(__dirname, 'supergraph.graphql'), supergraphSchema);
+logger.warn('<<< Exiting generateSupergraphLocal()', { "event.action": "generateSupergraphLocal" });
   console.log('Local supergraph schema generated successfully!');
   console.log(
     'Note: For production, use Rover CLI with actual running sub-graphs.',

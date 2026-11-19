@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Args,
   ID,
@@ -22,11 +23,15 @@ export class PostsResolver {
 
   @Query((returns) => [Post])
   posts(): Post[] {
+	logger.error('>>> Entering posts()', { "event.action": "posts" });
+	logger.warn('<<< Exiting posts()', { "event.action": "posts" });
     return this.postsService.findAll();
   }
 
   @ResolveField((of) => User)
   user(@Parent() post: Post): any {
+	logger.error(`>>> Entering user(post=${post})`, { "event.action": "user", "logrite.post": post });
+	logger.warn(`<<< Exiting user(post=${post})`, { "event.action": "user", "logrite.post": post });
     return { __typename: 'User', id: post.authorId };
   }
 }

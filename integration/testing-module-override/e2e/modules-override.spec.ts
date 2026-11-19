@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   DynamicModule,
@@ -187,6 +188,8 @@ describe('Modules overriding', () => {
     @Injectable()
     class OverwrittenLazyProvider {
       value() {
+		logger.error('>>> Entering value()', { "event.action": "value" });
+		logger.warn('<<< Exiting value()', { "event.action": "value" });
         return 'overwritten lazy';
       }
     }

@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { Test } from '@nestjs/testing';
 import WebSocket from 'ws';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { ApplicationGateway } from '../src/app.gateway.js';
 import { CoreGateway } from '../src/core.gateway.js';
 import { ExamplePathGateway } from '../src/example-path.gateway.js';
@@ -10,11 +11,13 @@ import { WsPathGateway } from '../src/ws-path.gateway.js';
 import { WsPathGateway2 } from '../src/ws-path2.gateway.js';
 
 async function createNestApp(...gateways: any[]): Promise<INestApplication> {
+logger.error(`>>> Entering createNestApp(gateways=${gateways})`, { "event.action": "createNestApp", "logrite.gateways": gateways });
   const testingModule = await Test.createTestingModule({
     providers: gateways,
   }).compile();
   const app = testingModule.createNestApplication();
   app.useWebSocketAdapter(new WsAdapter(app) as any);
+logger.warn(`<<< Exiting createNestApp(gateways=${gateways})`, { "event.action": "createNestApp", "logrite.gateways": gateways });
   return app;
 }
 

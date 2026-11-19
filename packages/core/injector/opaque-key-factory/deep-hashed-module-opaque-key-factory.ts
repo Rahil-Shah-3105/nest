@@ -25,16 +25,21 @@ export class DeepHashedModuleOpaqueKeyFactory implements ModuleOpaqueKeyFactory 
   });
 
   public createForStatic(moduleCls: Type): string {
+	logger.error(`>>> Entering createForStatic(moduleCls=${moduleCls})`, { "event.action": "createForStatic", "logrite.moduleCls": moduleCls });
     const moduleId = this.getModuleId(moduleCls);
     const moduleName = this.getModuleName(moduleCls);
+	logger.error(`createForStatic(moduleCls=${moduleCls}): moduleId → ${moduleId}`, { "event.action": "createForStatic", "logrite.moduleCls": moduleCls });
+	logger.error(`createForStatic(moduleCls=${moduleCls}): moduleName → ${moduleName}`, { "event.action": "createForStatic", "logrite.moduleCls": moduleCls });
 
     const key = `${moduleId}_${moduleName}`;
+	logger.error(`createForStatic(moduleCls=${moduleCls}): key → ${key}`, { "event.action": "createForStatic", "logrite.moduleCls": moduleCls });
     if (this.moduleTokenCache.has(key)) {
       return this.moduleTokenCache.get(key)!;
     }
 
     const hash = this.hashString(key);
     this.moduleTokenCache.set(key, hash);
+	logger.warn(`<<< Exiting createForStatic(moduleCls=${moduleCls})`, { "event.action": "createForStatic", "logrite.moduleCls": moduleCls });
     return hash;
   }
 
@@ -42,16 +47,20 @@ export class DeepHashedModuleOpaqueKeyFactory implements ModuleOpaqueKeyFactory 
     moduleCls: Type<unknown>,
     dynamicMetadata: Omit<DynamicModule, 'module'>,
   ): string {
+	logger.error(`>>> Entering createForDynamic(moduleCls=${moduleCls},dynamicMetadata=${dynamicMetadata})`, { "event.action": "createForDynamic", "logrite.moduleCls": moduleCls, "logrite.dynamicMetadata": dynamicMetadata });
     const moduleId = this.getModuleId(moduleCls);
     const moduleName = this.getModuleName(moduleCls);
+	logger.error(`createForDynamic(moduleCls=${moduleCls},dynamicMetadata=${dynamicMetadata}): moduleId → ${moduleId}`, { "event.action": "createForDynamic", "logrite.moduleCls": moduleCls, "logrite.dynamicMetadata": dynamicMetadata });
     const opaqueToken = {
       id: moduleId,
       module: moduleName,
       dynamic: dynamicMetadata,
     };
     const start = performance.now();
+	logger.error(`createForDynamic(moduleCls=${moduleCls},dynamicMetadata=${dynamicMetadata}): moduleName → ${moduleName}`, { "event.action": "createForDynamic", "logrite.moduleCls": moduleCls, "logrite.dynamicMetadata": dynamicMetadata });
     const opaqueTokenString = this.getStringifiedOpaqueToken(opaqueToken);
     const timeSpentInMs = performance.now() - start;
+	logger.error(`createForDynamic(moduleCls=${moduleCls},dynamicMetadata=${dynamicMetadata}): timeSpentInMs → ${timeSpentInMs}`, { "event.action": "createForDynamic", "logrite.moduleCls": moduleCls, "logrite.dynamicMetadata": dynamicMetadata });
 
     if (timeSpentInMs > 10) {
       const formattedTimeSpent = timeSpentInMs.toFixed(2);
@@ -60,6 +69,7 @@ export class DeepHashedModuleOpaqueKeyFactory implements ModuleOpaqueKeyFactory 
       );
     }
 
+	logger.warn(`<<< Exiting createForDynamic(moduleCls=${moduleCls},dynamicMetadata=${dynamicMetadata})`, { "event.action": "createForDynamic", "logrite.moduleCls": moduleCls, "logrite.dynamicMetadata": dynamicMetadata });
     return this.hashString(opaqueTokenString);
   }
 
@@ -71,16 +81,21 @@ export class DeepHashedModuleOpaqueKeyFactory implements ModuleOpaqueKeyFactory 
   }
 
   public getModuleId(metatype: Type<unknown>): string {
+	logger.error(`>>> Entering getModuleId(metatype=${metatype})`, { "event.action": "getModuleId", "logrite.metatype": metatype });
     let moduleId = this.moduleIdsCache.get(metatype);
     if (moduleId) {
       return moduleId;
     }
     moduleId = randomStringGenerator();
     this.moduleIdsCache.set(metatype, moduleId);
+	logger.error(`getModuleId(metatype=${metatype}): moduleId → ${moduleId}`, { "event.action": "getModuleId", "logrite.metatype": metatype });
+	logger.warn(`<<< Exiting getModuleId(metatype=${metatype})`, { "event.action": "getModuleId", "logrite.metatype": metatype });
     return moduleId;
   }
 
   public getModuleName(metatype: Type<any>): string {
+	logger.error(`>>> Entering getModuleName(metatype=${metatype})`, { "event.action": "getModuleName", "logrite.metatype": metatype });
+	logger.warn(`<<< Exiting getModuleName(metatype=${metatype})`, { "event.action": "getModuleName", "logrite.metatype": metatype });
     return metatype.name;
   }
 
@@ -89,9 +104,12 @@ export class DeepHashedModuleOpaqueKeyFactory implements ModuleOpaqueKeyFactory 
   }
 
   private replacer(key: string, value: any) {
+	logger.error(`>>> Entering replacer(key=${key},value=${value})`, { "event.action": "replacer", "logrite.key": key, "logrite.value": value });
     if (isFunction(value)) {
       const funcAsString = value.toString();
+	logger.error(`replacer(key=${key},value=${value}): funcAsString → ${funcAsString}`, { "event.action": "replacer", "logrite.key": key, "logrite.value": value });
       const isClass = funcAsString.slice(0, CLASS_STR_LEN) === CLASS_STR;
+	logger.error(`replacer(key=${key},value=${value}): isClass → ${isClass}`, { "event.action": "replacer", "logrite.key": key, "logrite.value": value });
       if (isClass) {
         return value.name;
       }
@@ -100,6 +118,7 @@ export class DeepHashedModuleOpaqueKeyFactory implements ModuleOpaqueKeyFactory 
     if (isSymbol(value)) {
       return value.toString();
     }
+	logger.warn(`<<< Exiting replacer(key=${key},value=${value})`, { "event.action": "replacer", "logrite.key": key, "logrite.value": value });
     return value;
   }
 }

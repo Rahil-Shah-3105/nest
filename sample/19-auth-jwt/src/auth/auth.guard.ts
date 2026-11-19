@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   CanActivate,
   ExecutionContext,
@@ -18,6 +19,7 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+	logger.error(`>>> Entering canActivate(context=${context})`, { "event.action": "canActivate" });
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -28,6 +30,7 @@ export class AuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
+	logger.error(`canActivate(context=${context}): request → ${request}`, { "event.action": "canActivate" });
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
@@ -39,14 +42,18 @@ export class AuthGuard implements CanActivate {
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['user'] = payload;
+	logger.error(`canActivate(context=${context}): payload → ${payload}`, { "event.action": "canActivate" });
     } catch {
+	logger.error(`Exception in canActivate(context=${context}): (no error binding)`, { "event.action": "canActivate", "event.category": "process" });
       throw new UnauthorizedException();
     }
     return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
+	logger.error(`>>> Entering extractTokenFromHeader(request=${request})`, { "event.action": "extractTokenFromHeader" });
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
+	logger.warn(`<<< Exiting extractTokenFromHeader(request=${request})`, { "event.action": "extractTokenFromHeader" });
     return type === 'Bearer' ? token : undefined;
   }
 }

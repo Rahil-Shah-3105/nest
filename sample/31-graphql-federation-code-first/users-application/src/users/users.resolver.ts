@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Args, ID, Query, Resolver, ResolveReference } from '@nestjs/graphql';
 import { User } from './models/user.model.js';
 import { UsersService } from './users.service.js';
@@ -13,6 +14,8 @@ export class UsersResolver {
 
   @ResolveReference()
   resolveReference(reference: { __typename: string; id: number }): User {
+	logger.error(`>>> Entering resolveReference(reference=${reference})`, { "event.action": "resolveReference", "logrite.reference": reference });
+	logger.warn(`<<< Exiting resolveReference(reference=${reference})`, { "event.action": "resolveReference", "logrite.reference": reference });
     return this.usersService.findById(reference.id);
   }
 }

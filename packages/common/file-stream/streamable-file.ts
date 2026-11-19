@@ -21,6 +21,7 @@ export class StreamableFile {
     err: Error,
     response: StreamableHandlerResponse,
   ) => void = (err: Error, res) => {
+	logger.error(`>>> Entering handleError(err=${err},res=${res})`, { "event.action": "handleError", "logrite.err": err });
     if (res.destroyed) {
       return;
     }
@@ -30,11 +31,15 @@ export class StreamableFile {
     }
 
     res.statusCode = HttpStatus.BAD_REQUEST;
+	logger.debug(`handleError(err=${err},res=${res}): res.statusCode → ${res.statusCode}`, { "event.action": "handleError", "logrite.err": err });
     res.send(err.message);
+	logger.warn(`<<< Exiting handleError(err=${err},res=${res})`, { "event.action": "handleError", "logrite.err": err });
   };
 
   protected logError: (err: Error) => void = (err: Error) => {
+	logger.error(`>>> Entering logError(err=${err})`, { "event.action": "logError", "logrite.err": err });
     this.logger.error(err);
+	logger.warn(`<<< Exiting logError(err=${err})`, { "event.action": "logError", "logrite.err": err });
   };
 
   constructor(buffer: Uint8Array, options?: StreamableFileOptions);
@@ -54,15 +59,19 @@ export class StreamableFile {
   }
 
   getStream(): Readable {
+	logger.error('>>> Entering getStream()', { "event.action": "getStream" });
+	logger.warn('<<< Exiting getStream()', { "event.action": "getStream" });
     return this.stream;
   }
 
   getHeaders() {
+	logger.error('>>> Entering getHeaders()', { "event.action": "getHeaders" });
     const {
       type = 'application/octet-stream',
       disposition = undefined,
       length = undefined,
     } = this.options;
+	logger.warn('<<< Exiting getHeaders()', { "event.action": "getHeaders" });
     return {
       type,
       disposition,
@@ -85,11 +94,14 @@ export class StreamableFile {
   }
 
   get errorLogger() {
+	logger.error('>>> Entering errorLogger()', { "event.action": "errorLogger" });
+	logger.warn('<<< Exiting errorLogger()', { "event.action": "errorLogger" });
     return this.logError;
   }
 
   setErrorLogger(handler: (err: Error) => void) {
     this.logError = handler;
+	logger.debug(`setErrorLogger(handler=${handler}): this.logError → ${this.logError}`, { "event.action": "setErrorLogger", "logrite.handler": handler });
     return this;
   }
 }

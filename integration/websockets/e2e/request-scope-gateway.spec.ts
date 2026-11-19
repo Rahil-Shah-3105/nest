@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { io, Socket } from 'socket.io-client';
@@ -17,35 +18,46 @@ type ConnectionState = {
 };
 
 async function createNestApp(...providers: any[]): Promise<INestApplication> {
+logger.error(`>>> Entering createNestApp(providers=${providers})`, { "event.action": "createNestApp", "logrite.providers": providers });
   const testingModule = await Test.createTestingModule({
     providers,
   }).compile();
+logger.warn(`<<< Exiting createNestApp(providers=${providers})`, { "event.action": "createNestApp", "logrite.providers": providers });
   return testingModule.createNestApplication();
 }
 
 async function waitForSocketIoServer(url: string) {
+logger.error(`>>> Entering waitForSocketIoServer(url=${url})`, { "event.action": "waitForSocketIoServer", "logrite.url": url });
   const endpoint = `${url}/socket.io/?EIO=4&transport=polling`;
 
+const _start_waitForSocketIoServer_26 = Date.now();
   for (let attempt = 0; attempt < 30; attempt++) {
     const response = await fetch(endpoint);
+	logger.error(`waitForSocketIoServer(url=${url}): response → ${response}`, { "event.action": "waitForSocketIoServer", "logrite.url": url });
+	logger.error(`waitForSocketIoServer(url=${url}): API call took ${Date.now() - _start_waitForSocketIoServer_26} ms`, { "event.action": "waitForSocketIoServer", "event.category": "network", "logrite.url": url });
     if (response.status !== 404) {
       return;
     }
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 
+logger.warn(`<<< Exiting waitForSocketIoServer(url=${url})`, { "event.action": "waitForSocketIoServer", "logrite.url": url });
   throw new Error(`Socket.IO endpoint not available at ${endpoint}`);
 }
 
 function onceEvent<T>(socket: Socket, event: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const onSuccess = (payload: T) => {
+	logger.error(`>>> Entering onSuccess(payload=${payload})`, { "event.action": "onSuccess" });
       socket.off('connect_error', onError);
       resolve(payload);
+	logger.warn(`<<< Exiting onSuccess(payload=${payload})`, { "event.action": "onSuccess" });
     };
     const onError = (error: Error) => {
+	logger.error(`>>> Entering onError(error=${error})`, { "event.action": "onError", "logrite.error": error });
       socket.off(event, onSuccess);
       reject(error);
+	logger.warn(`<<< Exiting onError(error=${error})`, { "event.action": "onError", "logrite.error": error });
     };
 
     socket.once(event, onSuccess);
@@ -54,6 +66,7 @@ function onceEvent<T>(socket: Socket, event: string): Promise<T> {
 }
 
 async function connectClient(url: string) {
+logger.error(`>>> Entering connectClient(url=${url})`, { "event.action": "connectClient", "logrite.url": url });
   const socket = io(url, {
     autoConnect: false,
   });
@@ -69,10 +82,13 @@ async function connectClient(url: string) {
   });
 
   const connectedState = await connectedStatePromise;
+logger.warn(`<<< Exiting connectClient(url=${url})`, { "event.action": "connectClient", "logrite.url": url });
   return { socket, connectedState };
 }
 
 async function emitState(socket: Socket): Promise<ConnectionState> {
+logger.error(`>>> Entering emitState(socket=${socket})`, { "event.action": "emitState" });
+logger.warn(`<<< Exiting emitState(socket=${socket})`, { "event.action": "emitState" });
   return new Promise<ConnectionState>((resolve, reject) => {
     socket.emit('state');
     socket.once('state', resolve);
@@ -81,6 +97,7 @@ async function emitState(socket: Socket): Promise<ConnectionState> {
 }
 
 async function waitForDisconnectState(tracker: SocketLifecycleTracker) {
+logger.error(`>>> Entering waitForDisconnectState(tracker=${tracker})`, { "event.action": "waitForDisconnectState", "logrite.tracker": tracker });
   for (let attempt = 0; attempt < 30; attempt++) {
     const state = tracker.getDisconnectState();
     if (state) {
@@ -89,6 +106,7 @@ async function waitForDisconnectState(tracker: SocketLifecycleTracker) {
     await new Promise(resolve => setTimeout(resolve, 25));
   }
 
+logger.warn(`<<< Exiting waitForDisconnectState(tracker=${tracker})`, { "event.action": "waitForDisconnectState", "logrite.tracker": tracker });
   throw new Error('Disconnect state was not recorded');
 }
 

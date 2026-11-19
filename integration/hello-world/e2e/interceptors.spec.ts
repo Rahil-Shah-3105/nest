@@ -10,6 +10,7 @@ import { Test } from '@nestjs/testing';
 import { of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const RETURN_VALUE = 'test';
@@ -17,6 +18,8 @@ const RETURN_VALUE = 'test';
 @Injectable()
 export class OverrideInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
+	logger.error(`>>> Entering intercept(context=${context},next=${next})`, { "event.action": "intercept" });
+	logger.warn(`<<< Exiting intercept(context=${context},next=${next})`, { "event.action": "intercept" });
     return of(RETURN_VALUE);
   }
 }
@@ -57,6 +60,8 @@ export class HeaderInterceptor {
 }
 
 function createTestModule(interceptor) {
+logger.error(`>>> Entering createTestModule(interceptor=${interceptor})`, { "event.action": "createTestModule", "logrite.interceptor": interceptor });
+logger.warn(`<<< Exiting createTestModule(interceptor=${interceptor})`, { "event.action": "createTestModule", "logrite.interceptor": interceptor });
   return Test.createTestingModule({
     imports: [AppModule],
     providers: [

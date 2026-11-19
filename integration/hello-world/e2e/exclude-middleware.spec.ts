@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const RETURN_VALUE = 'test';
@@ -18,46 +19,64 @@ const MIDDLEWARE_VALUE = 'middleware';
 class TestController {
   @Get('test')
   test() {
+	logger.error('>>> Entering test()', { "event.action": "test" });
+	logger.warn('<<< Exiting test()', { "event.action": "test" });
     return RETURN_VALUE;
   }
 
   @Get('test2')
   test2() {
+	logger.error('>>> Entering test2()', { "event.action": "test2" });
+	logger.warn('<<< Exiting test2()', { "event.action": "test2" });
     return RETURN_VALUE;
   }
 
   @Get('middleware')
   middleware() {
+	logger.error('>>> Entering middleware()', { "event.action": "middleware" });
+	logger.warn('<<< Exiting middleware()', { "event.action": "middleware" });
     return RETURN_VALUE;
   }
 
   @Post('middleware')
   noMiddleware() {
+	logger.error('>>> Entering noMiddleware()', { "event.action": "noMiddleware" });
+	logger.warn('<<< Exiting noMiddleware()', { "event.action": "noMiddleware" });
     return RETURN_VALUE;
   }
 
   @Get('wildcard/overview')
   testOverview() {
+	logger.error('>>> Entering testOverview()', { "event.action": "testOverview" });
+	logger.warn('<<< Exiting testOverview()', { "event.action": "testOverview" });
     return RETURN_VALUE;
   }
 
   @Get('legacy-wildcard/overview')
   testLegacyWildcard() {
+	logger.error('>>> Entering testLegacyWildcard()', { "event.action": "testLegacyWildcard" });
+	logger.warn('<<< Exiting testLegacyWildcard()', { "event.action": "testLegacyWildcard" });
     return RETURN_VALUE;
   }
 
   @Get('splat-wildcard/overview')
   testSplatWildcard() {
+	logger.error('>>> Entering testSplatWildcard()', { "event.action": "testSplatWildcard" });
+	logger.warn('<<< Exiting testSplatWildcard()', { "event.action": "testSplatWildcard" });
     return RETURN_VALUE;
   }
 
   @Get('overview/:id')
   overviewById() {
+	logger.error('>>> Entering overviewById()', { "event.action": "overviewById" });
+	logger.warn('<<< Exiting overviewById()', { "event.action": "overviewById" });
     return RETURN_VALUE;
   }
 
   @Get('multiple/exclude')
   multipleExclude() {
+	logger.error('>>> Entering multipleExclude()', { "event.action": "multipleExclude" });
+	logger.warn('<<< Exiting multipleExclude()', { "event.action": "multipleExclude" });
     return RETURN_VALUE;
   }
 }
@@ -68,6 +87,7 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     consumer
       .apply((req, res, next) => res.send(MIDDLEWARE_VALUE))
       .exclude(
@@ -83,6 +103,7 @@ class TestModule {
       )
       .exclude('multiple/exclude')
       .forRoutes('*path');
+	logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
   }
 }
 

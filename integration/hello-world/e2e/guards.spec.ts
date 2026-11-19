@@ -6,19 +6,24 @@ import {
 import { APP_GUARD } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 @Injectable()
 export class AuthGuard {
   canActivate() {
+	logger.error('>>> Entering canActivate()', { "event.action": "canActivate" });
     const x = true;
     if (x) {
+	logger.warn('<<< Exiting canActivate()', { "event.action": "canActivate" });
       throw new UnauthorizedException();
     }
   }
 }
 
 function createTestModule(guard) {
+logger.error(`>>> Entering createTestModule(guard=${guard})`, { "event.action": "createTestModule", "logrite.guard": guard });
+logger.warn(`<<< Exiting createTestModule(guard=${guard})`, { "event.action": "createTestModule", "logrite.guard": guard });
   return Test.createTestingModule({
     imports: [AppModule],
     providers: [

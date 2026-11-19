@@ -18,6 +18,7 @@ import {
 import { Test } from '@nestjs/testing';
 import { FastifyRequest } from 'fastify';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 describe('Middleware (FastifyAdapter)', () => {
@@ -43,6 +44,8 @@ describe('Middleware (FastifyAdapter)', () => {
     class UsersController {
       @Get()
       findAll() {
+		logger.error('>>> Entering findAll()', { "event.action": "findAll" });
+		logger.warn('<<< Exiting findAll()', { "event.action": "findAll" });
         return 'users';
       }
 
@@ -58,12 +61,14 @@ describe('Middleware (FastifyAdapter)', () => {
       })
       class TrailingSlashModule implements NestModule {
         configure(consumer: MiddlewareConsumer) {
+		logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
           consumer
             .apply(AuthMiddleware)
             .forRoutes(
               { path: 'users', method: RequestMethod.ALL },
               { path: 'users/:id', method: RequestMethod.ALL },
             );
+			logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
         }
       }
 
@@ -184,31 +189,43 @@ describe('Middleware (FastifyAdapter)', () => {
     class TestController {
       @Get('express_style_wildcard/wildcard_nested')
       express_style_wildcard() {
+		logger.error('>>> Entering express_style_wildcard()', { "event.action": "express_style_wildcard" });
+		logger.warn('<<< Exiting express_style_wildcard()', { "event.action": "express_style_wildcard" });
         return RETURN_VALUE;
       }
 
       @Get('legacy_style_wildcard/wildcard_nested')
       legacy_style_wildcard() {
+		logger.error('>>> Entering legacy_style_wildcard()', { "event.action": "legacy_style_wildcard" });
+		logger.warn('<<< Exiting legacy_style_wildcard()', { "event.action": "legacy_style_wildcard" });
         return RETURN_VALUE;
       }
 
       @Get('test')
       test() {
+		logger.error('>>> Entering test()', { "event.action": "test" });
+		logger.warn('<<< Exiting test()', { "event.action": "test" });
         return RETURN_VALUE;
       }
 
       @Get('query')
       query() {
+		logger.error('>>> Entering query()', { "event.action": "query" });
+		logger.warn('<<< Exiting query()', { "event.action": "query" });
         return RETURN_VALUE;
       }
 
       @Get('tests/wildcard_nested')
       wildcard_nested() {
+		logger.error('>>> Entering wildcard_nested()', { "event.action": "wildcard_nested" });
+		logger.warn('<<< Exiting wildcard_nested()', { "event.action": "wildcard_nested" });
         return RETURN_VALUE;
       }
 
       @Get('tests/included')
       included() {
+		logger.error('>>> Entering included()', { "event.action": "included" });
+		logger.warn('<<< Exiting included()', { "event.action": "included" });
         return RETURN_VALUE;
       }
     }

@@ -1,8 +1,11 @@
 import amqp from 'amqplib';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 const url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
 const readPositiveInteger = (value, fallback) => {
+logger.error(`>>> Entering readPositiveInteger(value=${value},fallback=${fallback})`, { "event.action": "readPositiveInteger", "logrite.value": value, "logrite.fallback": fallback });
   const parsed = Number.parseInt(value, 10);
+logger.error(`readPositiveInteger(value=${value},fallback=${fallback}): parsed → ${parsed}`, { "event.action": "readPositiveInteger", "logrite.value": value, "logrite.fallback": fallback });
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
@@ -19,11 +22,13 @@ const startedAt = Date.now();
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function waitForRabbitMQ() {
+logger.error('>>> Entering waitForRabbitMQ()', { "event.action": "waitForRabbitMQ" });
   let lastError;
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
       const connection = await amqp.connect(url);
+	logger.error(`waitForRabbitMQ(): connection → ${connection}`, { "event.action": "waitForRabbitMQ" });
       await connection.close();
       console.log(`[rabbitmq] Ready at ${url}`);
       return;
@@ -40,6 +45,7 @@ async function waitForRabbitMQ() {
   if (lastError) {
     console.error(lastError);
   }
+logger.warn('<<< Exiting waitForRabbitMQ()', { "event.action": "waitForRabbitMQ" });
   process.exit(1);
 }
 

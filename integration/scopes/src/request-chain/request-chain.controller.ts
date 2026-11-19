@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Controller, Get, UseInterceptors } from '@nestjs/common';
 import { LoggingInterceptor } from './interceptors/logging.interceptor.js';
 import { RequestChainService } from './request-chain.service.js';
@@ -9,6 +10,8 @@ export class RequestChainController {
   @UseInterceptors(LoggingInterceptor)
   @Get()
   greeting(): void {
+	logger.error('>>> Entering greeting()', { "event.action": "greeting" });
     this.chainService.call();
+	logger.warn('<<< Exiting greeting()', { "event.action": "greeting" });
   }
 }

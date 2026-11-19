@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Inject, Module } from '@nestjs/common';
 import {
   ConfigurableModuleClass,

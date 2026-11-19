@@ -46,6 +46,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
 
   constructor(protected readonly options: Required<NatsOptions>['options']) {
     super();
+	logger.error(`>>> Entering constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
     natsPackage = loadPackageSync(
       '@nats-io/transport-node',
       ClientNats.name,
@@ -54,32 +55,40 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+	logger.warn(`<<< Exiting constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
   }
 
   public async close() {
+	logger.error('>>> Entering close()', { "event.action": "close" });
     await this.natsClient?.close();
     this.statusEventEmitter.removeAllListeners();
 
     this.natsClient = null;
+	logger.debug(`close(): this.natsClient → ${this.natsClient}`, { "event.action": "close" });
     this.connectionPromise = null;
+	logger.debug(`close(): this.connectionPromise → ${this.connectionPromise}`, { "event.action": "close" });
   }
 
   public async connect(): Promise<any> {
+	logger.error('>>> Entering connect()', { "event.action": "connect" });
     if (this.connectionPromise) {
       return this.connectionPromise;
     }
     this.connectionPromise = this.createClient();
     this.natsClient = await this.connectionPromise.catch(err => {
+	logger.error('Exception in connect()', { "event.action": "connect", "event.category": "process" });
       this.connectionPromise = null;
       throw err;
     });
 
     this._status$.next(NatsStatus.CONNECTED);
     void this.handleStatusUpdates(this.natsClient);
+	logger.warn('<<< Exiting connect()', { "event.action": "connect" });
     return this.natsClient;
   }
 
   public async createClient(): Promise<Client> {
+	logger.error('>>> Entering createClient()', { "event.action": "createClient" });
     // Eagerly initialize serializer/deserializer so they can be used synchronously
     if (
       this.serializer &&
@@ -95,6 +104,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
     }
 
     const options = this.options || ({} as NatsOptions);
+	logger.warn('<<< Exiting createClient()', { "event.action": "createClient" });
     return natsPackage.connect({
       servers: NATS_DEFAULT_URL,
       ...options,
@@ -102,6 +112,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
   }
 
   public async handleStatusUpdates(client: Client) {
+	logger.error(`>>> Entering handleStatusUpdates(client=${client})`, { "event.action": "handleStatusUpdates", "logrite.client": client });
     for await (const status of client.status()) {
       switch (status.type) {
         case 'error':
@@ -116,6 +127,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
           );
           // Prevent unhandled promise rejection
           this.connectionPromise.catch(() => {});
+		logger.error(`Exception in handleStatusUpdates(client=${client}): (no error binding)`, { "event.action": "handleStatusUpdates", "event.category": "process", "logrite.client": client });
 
           this.logger.error(`NatsError: type: "${status.type}".`);
 
@@ -170,6 +182,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
             `NatsStatus: type: "${status.type}", data: "${data}".`,
           );
           break;
+		logger.warn(`<<< Exiting handleStatusUpdates(client=${client})`, { "event.action": "handleStatusUpdates", "logrite.client": client });
         }
       }
     }
@@ -179,15 +192,19 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
     EventKey extends keyof NatsEvents = keyof NatsEvents,
     EventCallback extends NatsEvents[EventKey] = NatsEvents[EventKey],
   >(event: EventKey, callback: EventCallback) {
+	logger.error(`>>> Entering on(event=${event},callback=${callback})`, { "event.action": "on", "logrite.callback": callback });
     this.statusEventEmitter.on(event as string | symbol, callback as any);
+	logger.warn(`<<< Exiting on(event=${event},callback=${callback})`, { "event.action": "on", "logrite.callback": callback });
   }
 
   public unwrap<T>(): T {
+	logger.error('>>> Entering unwrap()', { "event.action": "unwrap" });
     if (!this.natsClient) {
       throw new Error(
         'Not initialized. Please call the "connect" method first.',
       );
     }
+	logger.warn('<<< Exiting unwrap()', { "event.action": "unwrap" });
     return this.natsClient as T;
   }
 
@@ -227,18 +244,22 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
         response,
       });
     };
+	logger.warn(`<<< Exiting createSubscriptionHandler(packet=${packet},callback=${callback})`, { "event.action": "createSubscriptionHandler", "logrite.packet": packet, "logrite.callback": callback });
   }
 
   protected publish(
     partialPacket: ReadPacket,
     callback: (packet: WritePacket) => any,
   ): () => void {
+	logger.error(`>>> Entering publish(partialPacket=${partialPacket},callback=${callback})`, { "event.action": "publish", "logrite.partialPacket": partialPacket, "logrite.callback": callback });
     try {
       const packet = this.assignPacketId(partialPacket);
+	logger.error(`publish(partialPacket=${partialPacket},callback=${callback}): packet → ${packet}`, { "event.action": "publish", "logrite.partialPacket": partialPacket, "logrite.callback": callback });
       const channel = this.normalizePattern(partialPacket.pattern);
       const serializedPacket: NatsRecord = this.serializer.serialize(
         packet,
       ) as NatsRecord;
+	logger.error(`publish(partialPacket=${partialPacket},callback=${callback}): channel → ${channel}`, { "event.action": "publish", "logrite.partialPacket": partialPacket, "logrite.callback": callback });
       const inbox = natsPackage.createInbox(this.options.inboxPrefix);
 
       const subscriptionHandler = this.createSubscriptionHandler(
@@ -253,12 +274,14 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
         ) => Promise<never>,
       });
 
+	logger.error(`publish(partialPacket=${partialPacket},callback=${callback}): inbox → ${inbox}`, { "event.action": "publish", "logrite.partialPacket": partialPacket, "logrite.callback": callback });
       const headers = this.mergeHeaders(serializedPacket.headers);
       this.natsClient!.publish(channel, serializedPacket.data, {
         reply: inbox,
         headers,
       });
 
+	logger.warn(`<<< Exiting publish(partialPacket=${partialPacket},callback=${callback})`, { "event.action": "publish", "logrite.partialPacket": partialPacket, "logrite.callback": callback });
       return () => subscription.unsubscribe();
     } catch (err) {
       callback({ err });
@@ -267,11 +290,15 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
   }
 
   protected async dispatchEvent(packet: ReadPacket): Promise<any> {
+	logger.error(`>>> Entering dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     const pattern = this.normalizePattern(packet.pattern);
     const serializedPacket: NatsRecord =
       await this.serializer.serialize(packet);
+	logger.error(`dispatchEvent(packet=${packet}): pattern → ${pattern}`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     const headers = this.mergeHeaders(serializedPacket.headers);
+	logger.error(`dispatchEvent(packet=${packet}): headers → ${headers}`, { "event.action": "dispatchEvent", "logrite.packet": packet });
 
+	logger.warn(`<<< Exiting dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     return new Promise<void>((resolve, reject) => {
       try {
         this.natsClient!.publish(pattern, serializedPacket.data, {
@@ -279,26 +306,33 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
         });
         resolve();
       } catch (err) {
+		logger.error(`Exception in dispatchEvent(packet=${packet}): ${(err as Error).message}`, err, { "event.action": "dispatchEvent", "event.category": "process", "logrite.packet": packet });
         reject(err);
       }
     });
   }
 
   protected initializeSerializer(options: NatsOptions['options']) {
+	logger.error(`>>> Entering initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
     this.serializer = options?.serializer ?? new NatsRecordSerializer();
+	logger.warn(`<<< Exiting initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
   }
 
   protected initializeDeserializer(options: NatsOptions['options']) {
+	logger.error(`>>> Entering initializeDeserializer(options=${options})`, { "event.action": "initializeDeserializer", "logrite.options": options });
     this.deserializer =
       options?.deserializer ?? new NatsResponseJSONDeserializer();
+	logger.warn(`<<< Exiting initializeDeserializer(options=${options})`, { "event.action": "initializeDeserializer", "logrite.options": options });
   }
 
   protected mergeHeaders<THeaders = any>(requestHeaders?: THeaders) {
+	logger.error(`>>> Entering mergeHeaders(requestHeaders=${requestHeaders})`, { "event.action": "mergeHeaders", "logrite.requestHeaders": requestHeaders });
     if (!requestHeaders && !this.options?.headers) {
       return undefined;
     }
 
     const headers = requestHeaders ?? natsPackage.headers();
+	logger.error(`mergeHeaders(requestHeaders=${requestHeaders}): headers → ${headers}`, { "event.action": "mergeHeaders", "logrite.requestHeaders": requestHeaders });
 
     for (const [key, value] of Object.entries(this.options?.headers || {})) {
       if (!headers.has(key)) {
@@ -306,6 +340,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
       }
     }
 
+	logger.warn(`<<< Exiting mergeHeaders(requestHeaders=${requestHeaders})`, { "event.action": "mergeHeaders", "logrite.requestHeaders": requestHeaders });
     return headers;
   }
 }

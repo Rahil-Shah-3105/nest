@@ -89,6 +89,7 @@ export class ClientKafka
 
   constructor(protected readonly options: Required<KafkaOptions>['options']) {
     super();
+	logger.error(`>>> Entering constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
 
     const clientOptions = this.getOptionsProp(
       this.options,
@@ -107,7 +108,9 @@ export class ClientKafka
       false,
     );
 
+	logger.error(`constructor(options=${options}): postfixId → ${postfixId}`, { "event.action": "constructor", "logrite.options": options });
     this.brokers = clientOptions.brokers || [KAFKA_DEFAULT_BROKER];
+	logger.debug(`constructor(options=${options}): this.brokers → ${this.brokers}`, { "event.action": "constructor", "logrite.options": options });
 
     // Append a unique id to the clientId and groupId
     // so they don't collide with a microservices client
@@ -118,31 +121,42 @@ export class ClientKafka
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+	logger.warn(`<<< Exiting constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
   }
 
   public subscribeToResponseOf(pattern: unknown): void {
+	logger.error(`>>> Entering subscribeToResponseOf(pattern=${pattern})`, { "event.action": "subscribeToResponseOf", "logrite.pattern": pattern });
     const request = this.normalizePattern(pattern as MsPattern);
     this.responsePatterns.push(this.getResponsePatternName(request));
+	logger.error(`subscribeToResponseOf(pattern=${pattern}): request → ${request}`, { "event.action": "subscribeToResponseOf", "logrite.pattern": pattern });
   }
 
   public async close(): Promise<void> {
+	logger.error('>>> Entering close()', { "event.action": "close" });
     this._producer && (await this._producer.disconnect());
     this._consumer && (await this._consumer.disconnect());
     this._producer = null;
+	logger.debug(`close(): this._producer → ${this._producer}`, { "event.action": "close" });
     this._consumer = null;
+	logger.debug(`close(): this._consumer → ${this._consumer}`, { "event.action": "close" });
     this.initialized = null;
+	logger.debug(`close(): this.initialized → ${this.initialized}`, { "event.action": "close" });
     this.client = null;
+	logger.debug(`close(): this.client → ${this.client}`, { "event.action": "close" });
   }
 
   public async connect(): Promise<Producer> {
+	logger.error('>>> Entering connect()', { "event.action": "connect" });
     if (this.initialized) {
       return this.initialized.then(() => this._producer!);
     }
     this.initialized = this.initializeClientAndConnections();
+	logger.warn('<<< Exiting connect()', { "event.action": "connect" });
     return this.initialized.then(() => this._producer!);
   }
 
   private async initializeClientAndConnections(): Promise<void> {
+	logger.error('>>> Entering initializeClientAndConnections()', { "event.action": "initializeClientAndConnections" });
     this.client = await this.createClient();
     if (!this.producerOnlyMode) {
       const partitionAssigners = [
@@ -172,9 +186,11 @@ export class ClientKafka
     this._producer = this.client!.producer(this.options.producer || {});
     this.registerProducerEventListeners();
     await this._producer.connect();
+	logger.warn('<<< Exiting initializeClientAndConnections()', { "event.action": "initializeClientAndConnections" });
   }
 
   public async bindTopics(): Promise<void> {
+	logger.error('>>> Entering bindTopics()', { "event.action": "bindTopics" });
     if (!this._consumer) {
       throw Error('No consumer initialized');
     }
@@ -182,6 +198,7 @@ export class ClientKafka
     const consumerSubscribeOptions = this.options.subscribe || {};
 
     if (this.responsePatterns.length > 0) {
+	logger.warn('<<< Exiting bindTopics()', { "event.action": "bindTopics" });
       await this._consumer.subscribe({
         ...consumerSubscribeOptions,
         topics: this.responsePatterns,
@@ -195,6 +212,7 @@ export class ClientKafka
   }
 
   public async createClient<T = any>(): Promise<T> {
+	logger.error('>>> Entering createClient()', { "event.action": "createClient" });
     const kafkaPackage = await loadPackage(
       'kafkajs',
       ClientKafka.name,
@@ -208,6 +226,7 @@ export class ClientKafka
       clientId: this.clientId,
     };
 
+	logger.warn('<<< Exiting createClient()', { "event.action": "createClient" });
     return new kafkaPackage.Kafka(kafkaConfig);
   }
 
@@ -225,6 +244,7 @@ export class ClientKafka
       const { err, response, isDisposed, id } =
         await this.deserializer.deserialize(rawMessage);
       const callback = this.routingMap.get(id);
+	logger.error(`createResponseCallback(): callback → ${callback}`, { "event.action": "createResponseCallback" });
       if (!callback) {
         return;
       }
@@ -243,6 +263,8 @@ export class ClientKafka
   }
 
   public getConsumerAssignments() {
+	logger.error('>>> Entering getConsumerAssignments()', { "event.action": "getConsumerAssignments" });
+	logger.warn('<<< Exiting getConsumerAssignments()', { "event.action": "getConsumerAssignments" });
     return this.consumerAssignments;
   }
 
@@ -261,12 +283,16 @@ export class ClientKafka
       resetOnDisconnect: false,
     });
     connectableSource.connect();
+	logger.error(`>>> Entering dispatchBatchEvent(packets=${packets})`, { "event.action": "dispatchBatchEvent", "logrite.packets": packets });
+	logger.error(`dispatchBatchEvent(packets=${packets}): pattern → ${pattern}`, { "event.action": "dispatchBatchEvent", "logrite.packets": packets });
+	logger.warn(`<<< Exiting dispatchBatchEvent(packets=${packets})`, { "event.action": "dispatchBatchEvent", "logrite.packets": packets });
     return connectableSource;
   }
 
   public commitOffsets(
     topicPartitions: TopicPartitionOffsetAndMetadata[],
   ): Promise<void> {
+	logger.error(`>>> Entering commitOffsets(topicPartitions=${topicPartitions})`, { "event.action": "commitOffsets", "logrite.topicPartitions": topicPartitions });
     if (this._consumer) {
       return this._consumer.commitOffsets(topicPartitions);
     } else {
@@ -275,11 +301,13 @@ export class ClientKafka
   }
 
   public unwrap<T>(): T {
+	logger.error('>>> Entering unwrap()', { "event.action": "unwrap" });
     if (!this.client) {
       throw new Error(
         'Not initialized. Please call the "connect" method first.',
       );
     }
+	logger.warn('<<< Exiting unwrap()', { "event.action": "unwrap" });
     return this.client as T;
   }
 
@@ -291,6 +319,7 @@ export class ClientKafka
   }
 
   protected registerConsumerEventListeners() {
+	logger.error('>>> Entering registerConsumerEventListeners()', { "event.action": "registerConsumerEventListeners" });
     if (!this._consumer) {
       return;
     }
@@ -309,9 +338,11 @@ export class ClientKafka
     this._consumer.on(this._consumer.events.CRASH, () =>
       this._status$.next(KafkaStatus.CRASHED),
     );
+	logger.warn('<<< Exiting registerConsumerEventListeners()', { "event.action": "registerConsumerEventListeners" });
   }
 
   protected registerProducerEventListeners() {
+	logger.error('>>> Entering registerProducerEventListeners()', { "event.action": "registerProducerEventListeners" });
     if (!this._producer) {
       return;
     }
@@ -321,6 +352,7 @@ export class ClientKafka
     this._producer.on(this._producer.events.DISCONNECT, () =>
       this._status$.next(KafkaStatus.DISCONNECTED),
     );
+	logger.warn('<<< Exiting registerProducerEventListeners()', { "event.action": "registerProducerEventListeners" });
   }
 
   protected async dispatchBatchEvent<TInput = any>(
@@ -346,6 +378,7 @@ export class ClientKafka
   }
 
   protected async dispatchEvent(packet: OutgoingEvent): Promise<any> {
+	logger.error(`>>> Entering dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     const pattern = this.normalizePattern(packet.pattern);
     const outgoingEvent = await this.serializer.serialize(packet.data, {
       pattern,
@@ -356,16 +389,20 @@ export class ClientKafka
       ...(this.options.send || {}),
     };
 
+	logger.error(`dispatchEvent(packet=${packet}): pattern → ${pattern}`, { "event.action": "dispatchEvent", "logrite.packet": packet });
+	logger.warn(`<<< Exiting dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     return this._producer!.send(message);
   }
 
   protected getReplyTopicPartition(topic: string): string {
+	logger.error(`>>> Entering getReplyTopicPartition(topic=${topic})`, { "event.action": "getReplyTopicPartition", "logrite.topic": topic });
     const minimumPartition = this.consumerAssignments[topic];
     if (isUndefined(minimumPartition)) {
       throw new InvalidKafkaClientTopicException(topic);
     }
 
     // Get the minimum partition
+	logger.warn(`<<< Exiting getReplyTopicPartition(topic=${topic})`, { "event.action": "getReplyTopicPartition", "logrite.topic": topic });
     return minimumPartition.toString();
   }
 
@@ -376,10 +413,15 @@ export class ClientKafka
     const packet = this.assignPacketId(partialPacket);
     this.routingMap.set(packet.id, callback);
 
-    const cleanup = () => this.routingMap.delete(packet.id);
+    const cleanup = () => {
+        logger.error('>>> Entering cleanup()', { "event.action": "cleanup" });
+        return this.routingMap.delete(packet.id);
+    };
     const errorCallback = (err: unknown) => {
+	logger.error(`>>> Entering errorCallback(err=${err})`, { "event.action": "errorCallback", "logrite.err": err });
       cleanup();
       callback({ err });
+	logger.warn(`<<< Exiting errorCallback(err=${err})`, { "event.action": "errorCallback", "logrite.err": err });
     };
 
     try {
@@ -412,10 +454,13 @@ export class ClientKafka
   }
 
   protected getResponsePatternName(pattern: string): string {
+	logger.error(`>>> Entering getResponsePatternName(pattern=${pattern})`, { "event.action": "getResponsePatternName", "logrite.pattern": pattern });
+	logger.warn(`<<< Exiting getResponsePatternName(pattern=${pattern})`, { "event.action": "getResponsePatternName", "logrite.pattern": pattern });
     return `${pattern}.reply`;
   }
 
   protected setConsumerAssignments(data: ConsumerGroupJoinEvent): void {
+	logger.error(`>>> Entering setConsumerAssignments(data=${data})`, { "event.action": "setConsumerAssignments" });
     const consumerAssignments: { [key: string]: number } = {};
 
     // Only need to set the minimum
@@ -428,15 +473,20 @@ export class ClientKafka
     }
 
     this.consumerAssignments = consumerAssignments;
+	logger.debug(`setConsumerAssignments(data=${data}): this.consumerAssignments → ${this.consumerAssignments}`, { "event.action": "setConsumerAssignments" });
   }
 
   protected initializeSerializer(options: KafkaOptions['options']) {
+	logger.error(`>>> Entering initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
     this.serializer =
       (options && options.serializer) || new KafkaRequestSerializer();
+	logger.warn(`<<< Exiting initializeSerializer(options=${options})`, { "event.action": "initializeSerializer", "logrite.options": options });
   }
 
   protected initializeDeserializer(options: KafkaOptions['options']) {
+	logger.error(`>>> Entering initializeDeserializer(options=${options})`, { "event.action": "initializeDeserializer", "logrite.options": options });
     this.deserializer =
       (options && options.deserializer) || new KafkaResponseDeserializer();
+	logger.warn(`<<< Exiting initializeDeserializer(options=${options})`, { "event.action": "initializeDeserializer", "logrite.options": options });
   }
 }

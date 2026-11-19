@@ -13,17 +13,22 @@ import {
 } from '@nestjs/microservices';
 import { Test } from '@nestjs/testing';
 import * as net from 'net';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 
 @Controller()
 class PingController {
   @MessagePattern({ cmd: 'ping' })
   ping(): string {
+	logger.error('>>> Entering ping()', { "event.action": "ping" });
+	logger.warn('<<< Exiting ping()', { "event.action": "ping" });
     return 'pong';
   }
 }
 
 function frame(obj: unknown): string {
+logger.error(`>>> Entering frame(obj=${obj})`, { "event.action": "frame", "logrite.obj": obj });
   const json = JSON.stringify(obj);
+logger.error(`frame(obj=${obj}): json → ${json}`, { "event.action": "frame", "logrite.obj": obj });
   return `${json.length}#${json}`;
 }
 
@@ -35,17 +40,22 @@ function parseFrames(raw: string): {
   frames: Record<string, unknown>[];
   remaining: string;
 } {
+logger.error(`>>> Entering parseFrames(raw=${raw})`, { "event.action": "parseFrames", "logrite.raw": raw });
   const frames: Record<string, unknown>[] = [];
   let buf = raw;
+logger.error(`parseFrames(raw=${raw}): buf → ${buf}`, { "event.action": "parseFrames", "logrite.raw": raw });
 
   while (true) {
     const delim = buf.indexOf('#');
+	logger.error(`parseFrames(raw=${raw}): delim → ${delim}`, { "event.action": "parseFrames", "logrite.raw": raw });
     if (delim === -1) break;
 
     const len = parseInt(buf.substring(0, delim), 10);
+	logger.error(`parseFrames(raw=${raw}): len → ${len}`, { "event.action": "parseFrames", "logrite.raw": raw });
     if (isNaN(len)) break;
 
     const payload = buf.substring(delim + 1);
+	logger.error(`parseFrames(raw=${raw}): payload → ${payload}`, { "event.action": "parseFrames", "logrite.raw": raw });
     if (payload.length < len) break;
 
     frames.push(
@@ -54,6 +64,7 @@ function parseFrames(raw: string): {
     buf = payload.substring(len);
   }
 
+logger.warn(`<<< Exiting parseFrames(raw=${raw})`, { "event.action": "parseFrames", "logrite.raw": raw });
   return { frames, remaining: buf };
 }
 
@@ -106,8 +117,10 @@ describe('TCP pipelined frames – stack-overflow regression (CVE fix)', () => {
       const socket = new net.Socket();
 
       const done = (err?: Error) => {
+		logger.error(`>>> Entering done(err=${err})`, { "event.action": "done", "logrite.err": err });
         socket.destroy();
         err ? reject(err) : resolve();
+		logger.warn(`<<< Exiting done(err=${err})`, { "event.action": "done", "logrite.err": err });
       };
 
       const timeout = setTimeout(

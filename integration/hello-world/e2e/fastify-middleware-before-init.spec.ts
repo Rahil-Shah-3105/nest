@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import {
   Controller,
   Get,
@@ -18,6 +19,8 @@ describe('Middleware before init (FastifyAdapter)', () => {
   @Injectable()
   class TestService {
     getData(): string {
+	logger.error('>>> Entering getData()', { "event.action": "getData" });
+	logger.warn('<<< Exiting getData()', { "event.action": "getData" });
       return 'test_data';
     }
   }
@@ -28,11 +31,15 @@ describe('Middleware before init (FastifyAdapter)', () => {
 
     @Get('test')
     test() {
+	logger.error('>>> Entering test()', { "event.action": "test" });
+	logger.warn('<<< Exiting test()', { "event.action": "test" });
       return { data: this.testService.getData() };
     }
 
     @Get('health')
     health() {
+	logger.error('>>> Entering health()', { "event.action": "health" });
+	logger.warn('<<< Exiting health()', { "event.action": "health" });
       return { status: 'ok' };
     }
   }
@@ -43,12 +50,14 @@ describe('Middleware before init (FastifyAdapter)', () => {
   })
   class TestModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
       consumer
         .apply((req, res, next) => {
           res.setHeader('x-middleware', 'applied');
           next();
         })
         .forRoutes('*');
+		logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     }
   }
 

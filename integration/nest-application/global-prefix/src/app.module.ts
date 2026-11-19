@@ -1,3 +1,4 @@
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 
@@ -10,6 +11,7 @@ export const MIDDLEWARE_PARAM_VALUE = 'middleware_param';
 export class AppModule {
   private count = 0;
   configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     consumer
       .apply((req, res, next) => res.end(MIDDLEWARE_VALUE))
       .forRoutes({ path: MIDDLEWARE_VALUE, method: RequestMethod.GET })
@@ -41,5 +43,6 @@ export class AppModule {
         next();
       })
       .forRoutes('*path');
+	logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
   }
 }

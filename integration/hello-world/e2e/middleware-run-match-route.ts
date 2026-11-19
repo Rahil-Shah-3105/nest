@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Test } from '../../../packages/testing.js';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 /**
  * Number of times that the middleware was executed.
  */
@@ -16,8 +17,10 @@ let triggerCounter = 0;
 @Injectable()
 class Middleware implements NestMiddleware {
   use(req, res, next) {
+	logger.error(`>>> Entering use(req=${req},res=${res},next=${next})`, { "event.action": "use" });
     triggerCounter++;
     next();
+	logger.warn(`<<< Exiting use(req=${req},res=${res},next=${next})`, { "event.action": "use" });
   }
 }
 
@@ -41,7 +44,9 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     consumer.apply(Middleware).forRoutes(TestController);
+	logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
   }
 }
 

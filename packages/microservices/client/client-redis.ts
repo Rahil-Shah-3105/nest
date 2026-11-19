@@ -46,37 +46,50 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
   }
 
   public getRequestPattern(pattern: string): string {
+	logger.error(`>>> Entering getRequestPattern(pattern=${pattern})`, { "event.action": "getRequestPattern", "logrite.pattern": pattern });
+	logger.warn(`<<< Exiting getRequestPattern(pattern=${pattern})`, { "event.action": "getRequestPattern", "logrite.pattern": pattern });
     return pattern;
   }
 
   public getReplyPattern(pattern: string): string {
+	logger.error(`>>> Entering getReplyPattern(pattern=${pattern})`, { "event.action": "getReplyPattern", "logrite.pattern": pattern });
+	logger.warn(`<<< Exiting getReplyPattern(pattern=${pattern})`, { "event.action": "getReplyPattern", "logrite.pattern": pattern });
     return `${pattern}.reply`;
   }
 
   public async close() {
+	logger.error('>>> Entering close()', { "event.action": "close" });
     this.isManuallyClosed = true;
     this.handleClose();
+	logger.debug(`close(): this.isManuallyClosed → ${this.isManuallyClosed}`, { "event.action": "close" });
     this.pubClient && (await this.pubClient.quit());
     this.subClient && (await this.subClient.quit());
     this.pubClient = this.subClient = null;
+	logger.debug(`close(): this.pubClient → ${this.pubClient}`, { "event.action": "close" });
     this.connectionPromise = null;
+	logger.debug(`close(): this.connectionPromise → ${this.connectionPromise}`, { "event.action": "close" });
     this.pendingEventListeners = [];
+	logger.debug(`close(): this.pendingEventListeners → ${this.pendingEventListeners}`, { "event.action": "close" });
   }
 
   public connect(): Promise<any> {
+	logger.error('>>> Entering connect()', { "event.action": "connect" });
     if (this.connectionPromise) {
       return this.connectionPromise;
     }
     this.connectionPromise = this.handleConnection();
+	logger.warn('<<< Exiting connect()', { "event.action": "connect" });
     return this.connectionPromise;
   }
 
   private async handleConnection(): Promise<any> {
+	logger.error('>>> Entering handleConnection()', { "event.action": "handleConnection" });
     this.pubClient = await this.createClient();
     this.subClient = await this.createClient();
 
     [this.pubClient, this.subClient].forEach((client, index) => {
       const type = index === 0 ? 'pub' : 'sub';
+	logger.error(`handleConnection(): type → ${type}`, { "event.action": "handleConnection" });
       this.registerErrorListener(client);
       this.registerReconnectListener(client);
       this.registerReadyListener(client);
@@ -86,11 +99,14 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
       );
     });
     this.pendingEventListeners = [];
+	logger.debug(`handleConnection(): this.pendingEventListeners → ${this.pendingEventListeners}`, { "event.action": "handleConnection" });
 
     await Promise.all([this.subClient.connect(), this.pubClient.connect()]);
+	logger.warn('<<< Exiting handleConnection()', { "event.action": "handleConnection" });
   }
 
   public async createClient(): Promise<Redis> {
+	logger.error('>>> Entering createClient()', { "event.action": "createClient" });
     const clientInfoTag = this.getOptionsProp(this.options, 'clientInfoTag');
     const redisPackage = await loadPackage(
       'ioredis',
@@ -98,6 +114,7 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
       () => import('ioredis'),
     );
     const RedisClient = redisPackage.default || redisPackage;
+	logger.warn('<<< Exiting createClient()', { "event.action": "createClient" });
     return new RedisClient({
       host: REDIS_DEFAULT_HOST,
       port: REDIS_DEFAULT_PORT,
@@ -108,14 +125,17 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
   }
 
   public registerErrorListener(client: Redis) {
+	logger.error(`>>> Entering registerErrorListener(client=${client})`, { "event.action": "registerErrorListener", "logrite.client": client });
     client.addListener(RedisEventsMap.ERROR, (err: any) =>
       this.logger.error(err),
     );
+	logger.warn(`<<< Exiting registerErrorListener(client=${client})`, { "event.action": "registerErrorListener", "logrite.client": client });
   }
 
   public registerReconnectListener(client: {
     on: (event: string, fn: () => void) => void;
   }) {
+	logger.error(`>>> Entering registerReconnectListener(client=${client})`, { "event.action": "registerReconnectListener", "logrite.client": client });
     client.on(RedisEventsMap.RECONNECTING, () => {
       if (this.isManuallyClosed) {
         return;
@@ -127,18 +147,22 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
 
       // Prevent unhandled rejections
       this.connectionPromise.catch(() => {});
+	logger.error(`Exception in registerReconnectListener(client=${client}): (no error binding)`, { "event.action": "registerReconnectListener", "event.category": "process", "logrite.client": client });
 
       this._status$.next(RedisStatus.RECONNECTING);
 
       if (this.wasInitialConnectionSuccessful) {
         this.logger.log('Reconnecting to Redis...');
+		logger.warn(`<<< Exiting registerReconnectListener(client=${client})`, { "event.action": "registerReconnectListener", "logrite.client": client });
       }
     });
+	logger.warn(`<<< Exiting on(event=${event},callback=${callback})`, { "event.action": "on", "logrite.callback": callback });
   }
 
   public registerReadyListener(client: {
     on: (event: string, fn: () => void) => void;
   }) {
+	logger.error(`>>> Entering registerReadyListener(client=${client})`, { "event.action": "registerReadyListener", "logrite.client": client });
     client.on(RedisEventsMap.READY, () => {
       this.connectionPromise = Promise.resolve();
       this._status$.next(RedisStatus.CONNECTED);
@@ -146,6 +170,7 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
       this.logger.log('Connected to Redis. Subscribing to channels...');
 
       if (!this.wasInitialConnectionSuccessful) {
+		logger.warn(`<<< Exiting registerReadyListener(client=${client})`, { "event.action": "registerReadyListener", "logrite.client": client });
         this.wasInitialConnectionSuccessful = true;
         this.subClient.on(
           this.options.returnBuffers ? 'messageBuffer' : 'message',
@@ -153,11 +178,13 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
         );
       }
     });
+	logger.debug(`registerReadyListener(client=${client}): this.wasInitialConnectionSuccessful → ${this.wasInitialConnectionSuccessful}`, { "event.action": "registerReadyListener", "logrite.client": client });
   }
 
   public registerEndListener(client: {
     on: (event: string, fn: () => void) => void;
   }) {
+	logger.error(`>>> Entering registerEndListener(client=${client})`, { "event.action": "registerEndListener", "logrite.client": client });
     client.on('end', () => {
       if (this.isManuallyClosed) {
         return;
@@ -171,6 +198,7 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
 
         // Clean up client instances and just recreate them when connect is called
         this.pubClient = this.subClient = null;
+		logger.debug(`registerEndListener(client=${client}): this.pubClient → ${this.pubClient}`, { "event.action": "registerEndListener", "logrite.client": client });
         this.connectionPromise = null;
       } else {
         this.logger.error('Disconnected from Redis.');
@@ -180,23 +208,32 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
 
         // Prevent unhandled rejections
         this.connectionPromise.catch(() => {});
+		logger.error(`Exception in registerEndListener(client=${client}): (no error binding)`, { "event.action": "registerEndListener", "event.category": "process", "logrite.client": client });
       }
     });
   }
 
   public handleClose() {
+	logger.error('>>> Entering handleClose()', { "event.action": "handleClose" });
     if (this.routingMap.size > 0) {
       const err = new Error('Connection closed');
+	logger.error(`handleClose(): err → ${err}`, { "event.action": "handleClose" });
       for (const callback of this.routingMap.values()) {
         callback({ err });
       }
       this.routingMap.clear();
     }
     this.subscriptionsCount.clear();
+	logger.warn('<<< Exiting handleClose()', { "event.action": "handleClose" });
   }
 
   public getClientOptions(): Partial<RedisOptions['options']> {
-    const retryStrategy = (times: number) => this.createRetryStrategy(times);
+	logger.error('>>> Entering getClientOptions()', { "event.action": "getClientOptions" });
+    const retryStrategy = (times: number) => {
+        logger.error(`>>> Entering retryStrategy(times=${times})`, { "event.action": "retryStrategy", "logrite.times": times });
+	logger.warn('<<< Exiting getClientOptions()', { "event.action": "getClientOptions" });
+        return this.createRetryStrategy(times);
+    };
 
     return {
       ...(this.options || {}),
@@ -217,15 +254,18 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
   }
 
   public unwrap<T>(): T {
+	logger.error('>>> Entering unwrap()', { "event.action": "unwrap" });
     if (!this.pubClient || !this.subClient) {
       throw new Error(
         'Not initialized. Please call the "connect" method first.',
       );
     }
+	logger.warn('<<< Exiting unwrap()', { "event.action": "unwrap" });
     return [this.pubClient, this.subClient] as T;
   }
 
   public createRetryStrategy(times: number): undefined | number {
+	logger.error(`>>> Entering createRetryStrategy(times=${times})`, { "event.action": "createRetryStrategy", "logrite.times": times });
     if (this.isManuallyClosed) {
       return undefined;
     }
@@ -239,6 +279,7 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
       this.logger.error('Retry time exhausted');
       return;
     }
+	logger.warn(`<<< Exiting createRetryStrategy(times=${times})`, { "event.action": "createRetryStrategy", "logrite.times": times });
     return this.getOptionsProp(this.options, 'retryDelay', 5000);
   }
 
@@ -246,6 +287,7 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
     channel: string,
     buffer: string,
   ) => Promise<void> {
+	logger.error('>>> Entering createResponseCallback()', { "event.action": "createResponseCallback" });
     return async (channel: string, buffer: string) => {
       let packet: any;
       try {
@@ -260,6 +302,7 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
         await this.deserializer.deserialize(packet);
 
       const callback = this.routingMap.get(id);
+	logger.error(`createResponseCallback(): callback → ${callback}`, { "event.action": "createResponseCallback" });
       if (!callback) {
         if (Buffer.isBuffer(buffer))
           this.logger.debug(
@@ -282,6 +325,7 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
         response,
       });
     };
+	logger.warn('<<< Exiting createResponseCallback()', { "event.action": "createResponseCallback" });
   }
 
   protected publish(
@@ -297,8 +341,10 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
         this.subscriptionsCount.get(responseChannel) || 0;
 
       const publishPacket = () => {
+		logger.error('>>> Entering publishPacket()', { "event.action": "publishPacket" });
         subscriptionsCount = this.subscriptionsCount.get(responseChannel) || 0;
         this.subscriptionsCount.set(responseChannel, subscriptionsCount + 1);
+		logger.warn('<<< Exiting publishPacket()', { "event.action": "publishPacket" });
         this.routingMap.set(packet.id, callback);
         this.pubClient.publish(
           this.getRequestPattern(pattern),
@@ -326,9 +372,11 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
   }
 
   protected dispatchEvent(packet: ReadPacket): Promise<any> {
+	logger.error(`>>> Entering dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     const pattern = this.normalizePattern(packet.pattern);
     const serializedPacket = this.serializer.serialize(packet);
 
+	logger.error(`dispatchEvent(packet=${packet}): pattern → ${pattern}`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     return new Promise<void>((resolve, reject) =>
       this.pubClient.publish(pattern, JSON.stringify(serializedPacket), err =>
         err ? reject(err) : resolve(),
@@ -337,11 +385,14 @@ export class ClientRedis extends ClientProxy<RedisEvents, RedisStatus> {
   }
 
   protected unsubscribeFromChannel(channel: string) {
+	logger.error(`>>> Entering unsubscribeFromChannel(channel=${channel})`, { "event.action": "unsubscribeFromChannel", "logrite.channel": channel });
     const subscriptionCount = this.subscriptionsCount.get(channel)!;
     this.subscriptionsCount.set(channel, subscriptionCount - 1);
+	logger.error(`unsubscribeFromChannel(channel=${channel}): subscriptionCount → ${subscriptionCount}`, { "event.action": "unsubscribeFromChannel", "logrite.channel": channel });
 
     if (subscriptionCount - 1 <= 0) {
       this.subClient.unsubscribe(channel);
+	logger.warn(`<<< Exiting unsubscribeFromChannel(channel=${channel})`, { "event.action": "unsubscribeFromChannel", "logrite.channel": channel });
     }
   }
 }

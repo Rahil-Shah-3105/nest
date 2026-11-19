@@ -10,6 +10,7 @@ import {
 import { Test } from '@nestjs/testing';
 import { Response } from 'express';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { AppModule } from '../src/app.module.js';
 
 const INCLUDED_VALUE = 'test_included';
@@ -19,7 +20,9 @@ const WILDCARD_VALUE = 'test_wildcard';
 @Injectable()
 class Middleware {
   use(req, res, next) {
+	logger.error(`>>> Entering use(req=${req},res=${res},next=${next})`, { "event.action": "use" });
     res.send(WILDCARD_VALUE);
+	logger.warn(`<<< Exiting use(req=${req},res=${res},next=${next})`, { "event.action": "use" });
   }
 }
 
@@ -27,6 +30,8 @@ class Middleware {
 class TestController {
   @Get('test')
   test() {
+	logger.error('>>> Entering test()', { "event.action": "test" });
+	logger.warn('<<< Exiting test()', { "event.action": "test" });
     return RETURN_VALUE;
   }
 }
@@ -37,11 +42,13 @@ class TestController {
 })
 class TestModule {
   configure(consumer: MiddlewareConsumer) {
+	logger.error(`>>> Entering configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
     consumer
       .apply((req, res: Response, next) => res.status(201).end(INCLUDED_VALUE))
       .forRoutes({ path: 'tests/included', method: RequestMethod.POST })
       .apply(Middleware)
       .forRoutes('*');
+	logger.warn(`<<< Exiting configure(consumer=${consumer})`, { "event.action": "configure", "logrite.consumer": consumer });
   }
 }
 

@@ -2,6 +2,7 @@ import { INestApplication, Injectable, Scope } from '@nestjs/common';
 import { createContextId } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { NestedTransientModule } from '../src/nested-transient/nested-transient.module.js';
 import { Guard } from '../src/transient/guards/request-scoped.guard.js';
 import { HelloController } from '../src/transient/hello.controller.js';
@@ -13,7 +14,10 @@ import { UsersService } from '../src/transient/users/users.service.js';
 class Meta {
   static COUNTER = 0;
   constructor() {
+	logger.error('>>> Entering constructor()', { "event.action": "constructor" });
+	logger.error(`>>> Entering constructor(nested=${nested})`, { "event.action": "constructor", "logrite.nested": nested });
     Meta.COUNTER++;
+	logger.warn(`<<< Exiting constructor(loggerService=${loggerService})`, { "event.action": "constructor", "logrite.loggerService": loggerService });
   }
 }
 
@@ -102,7 +106,9 @@ describe('Transient scope', () => {
     @Injectable({ scope: Scope.TRANSIENT })
     class SecondService {
       constructor(public readonly loggerService: LoggerService) {
+		logger.error(`>>> Entering constructor(loggerService=${loggerService})`, { "event.action": "constructor", "logrite.loggerService": loggerService });
         this.loggerService.context = 'SecondService';
+		logger.warn(`<<< Exiting constructor(loggerService=${loggerService})`, { "event.action": "constructor", "logrite.loggerService": loggerService });
       }
     }
 
@@ -150,6 +156,7 @@ describe('Transient scope', () => {
 
       constructor() {
         DeepNestedTransient.constructorCalled = true;
+		logger.debug(`constructor(): this.instanceId → ${this.instanceId}`, { "event.action": "constructor" });
       }
     }
 
@@ -197,6 +204,8 @@ describe('Transient scope', () => {
       constructor() {
         IsolatedNestedTransient.instanceCount++;
         this.instanceId = IsolatedNestedTransient.instanceCount;
+		logger.error(`>>> Entering constructor(logger=${logger})`, { "event.action": "constructor", "logrite.nested": nested });
+		logger.debug(`constructor(nested=${nested}): this.instanceId → ${this.instanceId}`, { "event.action": "constructor", "logrite.nested": nested });
       }
     }
 
@@ -275,6 +284,8 @@ describe('Transient scope', () => {
         DepthSixTransient.constructorCalled = true;
         DepthSixTransient.instanceCount++;
         this.instanceId = DepthSixTransient.instanceCount;
+		logger.error(`>>> Entering constructor(next=${next})`, { "event.action": "constructor" });
+		logger.debug(`constructor(next=${next}): this.instanceId → ${this.instanceId}`, { "event.action": "constructor" });
       }
     }
 

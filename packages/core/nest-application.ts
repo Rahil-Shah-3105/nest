@@ -90,10 +90,13 @@ export class NestApplication
   }
 
   protected async prepareClose(): Promise<void> {
+	logger.error('>>> Entering prepareClose()', { "event.action": "prepareClose" });
     this.httpAdapter && (await this.httpAdapter.beforeClose?.());
+	logger.warn('<<< Exiting prepareClose()', { "event.action": "prepareClose" });
   }
 
   protected async dispose(): Promise<void> {
+	logger.error('>>> Entering dispose()', { "event.action": "dispose" });
     await this.socketModule?.close();
     await this.microservicesModule?.close();
     await this.httpAdapter?.close();
@@ -102,23 +105,31 @@ export class NestApplication
       iterate(this.microservices).map(async microservice => {
         microservice.setIsTerminated(true);
         await microservice.close();
+		logger.warn('<<< Exiting dispose()', { "event.action": "dispose" });
       }),
     );
   }
 
   public getHttpAdapter(): AbstractHttpAdapter {
+	logger.error('>>> Entering getHttpAdapter()', { "event.action": "getHttpAdapter" });
+	logger.warn('<<< Exiting getHttpAdapter()', { "event.action": "getHttpAdapter" });
     return this.httpAdapter as AbstractHttpAdapter;
   }
 
   public registerHttpServer() {
+	logger.error('>>> Entering registerHttpServer()', { "event.action": "registerHttpServer" });
     this.httpServer = this.createServer();
+	logger.warn('<<< Exiting registerHttpServer()', { "event.action": "registerHttpServer" });
   }
 
   public getUnderlyingHttpServer<T>(): T {
+	logger.error('>>> Entering getUnderlyingHttpServer()', { "event.action": "getUnderlyingHttpServer" });
+	logger.warn('<<< Exiting getUnderlyingHttpServer()', { "event.action": "getUnderlyingHttpServer" });
     return this.httpAdapter.getHttpServer();
   }
 
   public applyOptions() {
+	logger.error('>>> Entering applyOptions()', { "event.action": "applyOptions" });
     if (!this.appOptions || !this.appOptions.cors) {
       return undefined;
     }
@@ -127,15 +138,19 @@ export class NestApplication
     if (!passCustomOptions) {
       return this.enableCors();
     }
+	logger.warn('<<< Exiting applyOptions()', { "event.action": "applyOptions" });
     return this.enableCors(this.appOptions.cors);
   }
 
   public createServer<T = any>(): T {
+	logger.error('>>> Entering createServer()', { "event.action": "createServer" });
     this.httpAdapter.initHttpServer(this.appOptions);
+	logger.warn('<<< Exiting createServer()', { "event.action": "createServer" });
     return this.httpAdapter.getHttpServer() as T;
   }
 
   public async registerModules() {
+	logger.error('>>> Entering registerModules()', { "event.action": "registerModules" });
     await this.registerWsModule();
 
     if (this.microservicesModule) {
@@ -146,6 +161,7 @@ export class NestApplication
         this.appOptions,
       );
       this.microservicesModule.setupClients(this.container);
+	logger.warn('<<< Exiting registerModules()', { "event.action": "registerModules" });
     }
 
     await this.middlewareModule.register(
@@ -160,6 +176,7 @@ export class NestApplication
   }
 
   public async registerWsModule() {
+	logger.error('>>> Entering registerWsModule()', { "event.action": "registerWsModule" });
     if (!this.socketModule) {
       return;
     }
@@ -171,9 +188,11 @@ export class NestApplication
       this.httpServer,
     );
     this.isWsModuleRegistered = true;
+	logger.debug(`registerWsModule(): this.isWsModuleRegistered → ${this.isWsModuleRegistered}`, { "event.action": "registerWsModule" });
   }
 
   public async init(): Promise<this> {
+	logger.error('>>> Entering init()', { "event.action": "init" });
     if (this.isInitialized) {
       return this;
     }
@@ -197,24 +216,34 @@ export class NestApplication
     await this.callBootstrapHook();
 
     this.isInitialized = true;
+	logger.debug(`init(): this.isInitialized → ${this.isInitialized}`, { "event.action": "init" });
     this.logger.log(MESSAGES.APPLICATION_READY);
+	logger.warn('<<< Exiting init()', { "event.action": "init" });
     return this;
   }
 
   public registerParserMiddleware() {
+	logger.error('>>> Entering registerParserMiddleware()', { "event.action": "registerParserMiddleware" });
     const prefix = this.config.getGlobalPrefix();
     const rawBody = !!this.appOptions?.rawBody;
+	logger.error(`registerParserMiddleware(): prefix → ${prefix}`, { "event.action": "registerParserMiddleware" });
     this.httpAdapter.registerParserMiddleware(prefix, rawBody);
+	logger.warn('<<< Exiting registerParserMiddleware()', { "event.action": "registerParserMiddleware" });
   }
 
   public async registerRouter() {
+	logger.error('>>> Entering registerRouter()', { "event.action": "registerRouter" });
     await this.registerMiddleware(this.httpAdapter);
 
     const prefix = this.config.getGlobalPrefix();
+	logger.error(`registerRouter(): prefix → ${prefix}`, { "event.action": "registerRouter" });
     const basePath = addLeadingSlash(prefix);
+	logger.error(`registerRouter(): basePath → ${basePath}`, { "event.action": "registerRouter" });
 
     const conflictPolicy = this.config.getRouteConflictPolicy();
+	logger.error(`registerRouter(): conflictPolicy → ${conflictPolicy}`, { "event.action": "registerRouter" });
     const resolutionStrategy = this.config.getRouteResolutionStrategy();
+	logger.error(`registerRouter(): resolutionStrategy → ${resolutionStrategy}`, { "event.action": "registerRouter" });
     const adapterIsOrderSensitive =
       this.httpAdapter.isRouteOrderSensitive?.() ?? true;
     const shouldSortBySpecificity =
@@ -251,6 +280,7 @@ export class NestApplication
       : resolvedRoutes;
 
     const routesToSkip = new Set<ResolvedRoute>();
+	logger.error(`registerRouter(): routesToSkip → ${routesToSkip}`, { "event.action": "registerRouter" });
     if (conflictPolicy) {
       const filteredPolicy = adapterIsOrderSensitive
         ? conflictPolicy
@@ -301,17 +331,21 @@ export class NestApplication
       if (routesToSkip.has(route)) return;
       this.routesResolver.registerResolvedRoute(this.httpAdapter, route);
     });
+	logger.warn('<<< Exiting registerRouter()', { "event.action": "registerRouter" });
   }
 
   public async registerRouterHooks() {
+	logger.error('>>> Entering registerRouterHooks()', { "event.action": "registerRouterHooks" });
     this.routesResolver.registerNotFoundHandler();
     this.routesResolver.registerExceptionHandler();
+	logger.warn('<<< Exiting registerRouterHooks()', { "event.action": "registerRouterHooks" });
   }
 
   public connectMicroservice<T extends object>(
     microserviceOptions: T,
     hybridAppOptions: NestHybridApplicationOptions = {},
   ): INestMicroservice {
+	logger.error(`>>> Entering connectMicroservice(microserviceOptions=${microserviceOptions},hybridAppOptions=${hybridAppOptions})`, { "event.action": "connectMicroservice", "logrite.microserviceOptions": microserviceOptions, "logrite.hybridAppOptions": hybridAppOptions });
     const { NestMicroservice } = loadPackageCached(
       '@nestjs/microservices',
       'NestFactory',
@@ -328,6 +362,7 @@ export class NestApplication
       applicationConfig,
     );
 
+	logger.error(`connectMicroservice(microserviceOptions=${microserviceOptions},hybridAppOptions=${hybridAppOptions}): instance → ${instance}`, { "event.action": "connectMicroservice", "logrite.microserviceOptions": microserviceOptions, "logrite.hybridAppOptions": hybridAppOptions });
     if (!hybridAppOptions.deferInitialization) {
       instance.registerListeners();
       instance.setIsInitialized(true);
@@ -335,29 +370,39 @@ export class NestApplication
     }
 
     this.microservices.push(instance);
+	logger.warn(`<<< Exiting connectMicroservice(microserviceOptions=${microserviceOptions},hybridAppOptions=${hybridAppOptions})`, { "event.action": "connectMicroservice", "logrite.microserviceOptions": microserviceOptions, "logrite.hybridAppOptions": hybridAppOptions });
     return instance;
   }
 
   public getMicroservices(): INestMicroservice[] {
+	logger.error('>>> Entering getMicroservices()', { "event.action": "getMicroservices" });
+	logger.warn('<<< Exiting getMicroservices()', { "event.action": "getMicroservices" });
     return this.microservices;
   }
 
   public getHttpServer() {
+	logger.error('>>> Entering getHttpServer()', { "event.action": "getHttpServer" });
+	logger.warn('<<< Exiting getHttpServer()', { "event.action": "getHttpServer" });
     return this.httpServer;
   }
 
   public async startAllMicroservices(): Promise<this> {
+	logger.error('>>> Entering startAllMicroservices()', { "event.action": "startAllMicroservices" });
     this.assertNotInPreviewMode('startAllMicroservices');
     await Promise.all(this.microservices.map(msvc => msvc.listen()));
+	logger.warn('<<< Exiting startAllMicroservices()', { "event.action": "startAllMicroservices" });
     return this;
   }
 
   public use(...args: [any, any?]): this {
+	logger.error(`>>> Entering use(args=${args})`, { "event.action": "use" });
     this.httpAdapter.use(...this.applyFunctionDecoratorIfRegistered(args));
+	logger.warn(`<<< Exiting use(args=${args})`, { "event.action": "use" });
     return this;
   }
 
   public useBodyParser(...args: [any, any?]): this {
+	logger.error(`>>> Entering useBodyParser(args=${args})`, { "event.action": "useBodyParser" });
     if (!('useBodyParser' in this.httpAdapter)) {
       this.logger.warn('Your HTTP Adapter does not support `.useBodyParser`.');
       return this;
@@ -368,23 +413,29 @@ export class NestApplication
 
     this.httpAdapter.useBodyParser?.(...[parserType, rawBody, ...otherArgs]);
 
+	logger.warn(`<<< Exiting useBodyParser(args=${args})`, { "event.action": "useBodyParser" });
     return this;
   }
 
   public enableCors(options?: any): void {
+	logger.error(`>>> Entering enableCors(options=${options})`, { "event.action": "enableCors", "logrite.options": options });
     this.httpAdapter.enableCors(options);
+	logger.warn(`<<< Exiting enableCors(options=${options})`, { "event.action": "enableCors", "logrite.options": options });
   }
 
   public enableVersioning(
     options: VersioningOptions = { type: VersioningType.URI },
   ): this {
+	logger.error(`>>> Entering enableVersioning(options=${options})`, { "event.action": "enableVersioning", "logrite.options": options });
     this.config.enableVersioning(options);
+	logger.warn(`<<< Exiting enableVersioning(options=${options})`, { "event.action": "enableVersioning", "logrite.options": options });
     return this;
   }
 
   public async listen(port: number | string): Promise<any>;
   public async listen(port: number | string, hostname: string): Promise<any>;
   public async listen(port: number | string, ...args: any[]): Promise<any> {
+	logger.error(`>>> Entering listen(port=${port},args=${args})`, { "event.action": "listen", "logrite.port": port });
     this.assertNotInPreviewMode('listen');
 
     if (!this.isInitialized) {
@@ -392,14 +443,19 @@ export class NestApplication
     }
 
     const httpAdapterHost = this.container.getHttpAdapterHostRef();
+	logger.error(`listen(port=${port},args=${args}): httpAdapterHost → ${httpAdapterHost}`, { "event.action": "listen", "logrite.port": port });
+	logger.warn(`<<< Exiting listen(port=${port},args=${args})`, { "event.action": "listen", "logrite.port": port });
     return new Promise((resolve, reject) => {
       const errorHandler = (e: any) => {
+		logger.error(`>>> Entering errorHandler(e=${e})`, { "event.action": "errorHandler", "logrite.e": e });
         this.logger.error(e?.toString?.());
         reject(e);
+		logger.warn(`<<< Exiting errorHandler(e=${e})`, { "event.action": "errorHandler", "logrite.e": e });
       };
       this.httpServer.once('error', errorHandler);
 
       const isCallbackInOriginalArgs = isFunction(args[args.length - 1]);
+	logger.error(`listen(port=${port},args=${args}): isCallbackInOriginalArgs → ${isCallbackInOriginalArgs}`, { "event.action": "listen", "logrite.port": port });
       const listenFnArgs = isCallbackInOriginalArgs
         ? args.slice(0, args.length - 1)
         : args;
@@ -419,6 +475,7 @@ export class NestApplication
           if (address) {
             this.httpServer.removeListener('error', errorHandler);
             this.isListening = true;
+			logger.debug(`listen(port=${port},args=${args}): this.isListening → ${this.isListening}`, { "event.action": "listen", "logrite.port": port });
 
             httpAdapterHost.listening = true;
             resolve(this.httpServer);
@@ -432,6 +489,7 @@ export class NestApplication
   }
 
   public async getUrl(): Promise<string> {
+	logger.error('>>> Entering getUrl()', { "event.action": "getUrl" });
     return new Promise((resolve, reject) => {
       if (!this.isListening) {
         this.logger.error(MESSAGES.CALL_LISTEN_FIRST);
@@ -441,6 +499,7 @@ export class NestApplication
       const address = this.httpServer.address();
       resolve(this.formatAddress(address));
     });
+	logger.warn('<<< Exiting getUrl()', { "event.action": "getUrl" });
   }
 
   private formatAddress(address: any): string {
@@ -461,12 +520,15 @@ export class NestApplication
       }
     } else if (host === '0.0.0.0') {
       host = '127.0.0.1';
+	logger.error('>>> Entering host()', { "event.action": "host" });
+	logger.warn('<<< Exiting host()', { "event.action": "host" });
     }
 
     return `${this.getProtocol()}://${host}:${address.port}`;
   }
 
   public setGlobalPrefix(prefix: string, options?: GlobalPrefixOptions): this {
+	logger.error(`>>> Entering setGlobalPrefix(prefix=${prefix},options=${options})`, { "event.action": "setGlobalPrefix", "logrite.prefix": prefix, "logrite.options": options });
     this.config.setGlobalPrefix(prefix);
     if (options) {
       const exclude = options?.exclude
@@ -477,20 +539,24 @@ export class NestApplication
         exclude,
       });
     }
+	logger.warn(`<<< Exiting setGlobalPrefix(prefix=${prefix},options=${options})`, { "event.action": "setGlobalPrefix", "logrite.prefix": prefix, "logrite.options": options });
     return this;
   }
 
   public useWebSocketAdapter(adapter: WebSocketAdapter): this {
+	logger.error(`>>> Entering useWebSocketAdapter(adapter=${adapter})`, { "event.action": "useWebSocketAdapter", "logrite.adapter": adapter });
     if (this.isWsModuleRegistered) {
       this.logger.warn(
         'useWebSocketAdapter() was called after WebSocket gateways were already initialized. The provided adapter will be stored but will NOT be applied to existing gateways — they remain bound to the previously installed adapter. To install a custom adapter, call app.useWebSocketAdapter(...) BEFORE app.init() (or app.listen()).',
       );
     }
     this.config.setIoAdapter(adapter);
+	logger.warn(`<<< Exiting useWebSocketAdapter(adapter=${adapter})`, { "event.action": "useWebSocketAdapter", "logrite.adapter": adapter });
     return this;
   }
 
   public useGlobalFilters(...filters: ExceptionFilter[]): this {
+	logger.error(`>>> Entering useGlobalFilters(filters=${filters})`, { "event.action": "useGlobalFilters", "logrite.filters": filters });
     filters = this.applyInstanceDecoratorIfRegistered<ExceptionFilter>(
       ...filters,
     );
@@ -501,10 +567,12 @@ export class NestApplication
         ref: item,
       }),
     );
+	logger.warn(`<<< Exiting useGlobalFilters(filters=${filters})`, { "event.action": "useGlobalFilters", "logrite.filters": filters });
     return this;
   }
 
   public useGlobalPipes(...pipes: PipeTransform<any>[]): this {
+	logger.error(`>>> Entering useGlobalPipes(pipes=${pipes})`, { "event.action": "useGlobalPipes", "logrite.pipes": pipes });
     pipes = this.applyInstanceDecoratorIfRegistered<PipeTransform<any>>(
       ...pipes,
     );
@@ -515,10 +583,12 @@ export class NestApplication
         ref: item,
       }),
     );
+	logger.warn(`<<< Exiting useGlobalPipes(pipes=${pipes})`, { "event.action": "useGlobalPipes", "logrite.pipes": pipes });
     return this;
   }
 
   public useGlobalInterceptors(...interceptors: NestInterceptor[]): this {
+	logger.error(`>>> Entering useGlobalInterceptors(interceptors=${interceptors})`, { "event.action": "useGlobalInterceptors", "logrite.interceptors": interceptors });
     interceptors = this.applyInstanceDecoratorIfRegistered<NestInterceptor>(
       ...interceptors,
     );
@@ -529,10 +599,12 @@ export class NestApplication
         ref: item,
       }),
     );
+	logger.warn(`<<< Exiting useGlobalInterceptors(interceptors=${interceptors})`, { "event.action": "useGlobalInterceptors", "logrite.interceptors": interceptors });
     return this;
   }
 
   public useGlobalGuards(...guards: CanActivate[]): this {
+	logger.error(`>>> Entering useGlobalGuards(guards=${guards})`, { "event.action": "useGlobalGuards", "logrite.guards": guards });
     guards = this.applyInstanceDecoratorIfRegistered<CanActivate>(...guards);
     this.config.useGlobalGuards(...guards);
     guards.forEach(item =>
@@ -541,23 +613,30 @@ export class NestApplication
         ref: item,
       }),
     );
+	logger.warn(`<<< Exiting useGlobalGuards(guards=${guards})`, { "event.action": "useGlobalGuards", "logrite.guards": guards });
     return this;
   }
 
   public useStaticAssets(options: any): this;
   public useStaticAssets(path: string, options?: any): this;
   public useStaticAssets(pathOrOptions: any, options?: any): this {
+	logger.error(`>>> Entering useStaticAssets(pathOrOptions=${pathOrOptions},options=${options})`, { "event.action": "useStaticAssets", "logrite.pathOrOptions": pathOrOptions, "logrite.options": options });
     this.httpAdapter.useStaticAssets?.(pathOrOptions, options);
+	logger.warn(`<<< Exiting useStaticAssets(pathOrOptions=${pathOrOptions},options=${options})`, { "event.action": "useStaticAssets", "logrite.pathOrOptions": pathOrOptions, "logrite.options": options });
     return this;
   }
 
   public setBaseViewsDir(path: string | string[]): this {
+	logger.error(`>>> Entering setBaseViewsDir(path=${path})`, { "event.action": "setBaseViewsDir", "logrite.path": path });
     this.httpAdapter.setBaseViewsDir?.(path);
+	logger.warn(`<<< Exiting setBaseViewsDir(path=${path})`, { "event.action": "setBaseViewsDir", "logrite.path": path });
     return this;
   }
 
   public setViewEngine(engineOrOptions: any): this {
+	logger.error(`>>> Entering setViewEngine(engineOrOptions=${engineOrOptions})`, { "event.action": "setViewEngine", "logrite.engineOrOptions": engineOrOptions });
     this.httpAdapter.setViewEngine?.(engineOrOptions);
+	logger.warn(`<<< Exiting setViewEngine(engineOrOptions=${engineOrOptions})`, { "event.action": "setViewEngine", "logrite.engineOrOptions": engineOrOptions });
     return this;
   }
 
@@ -566,6 +645,7 @@ export class NestApplication
    * createNestMicroservice and createHttpAdapter can stay synchronous.
    */
   public async preloadLazyPackages(): Promise<void> {
+	logger.error('>>> Entering preloadLazyPackages()', { "event.action": "preloadLazyPackages" });
     // Best-effort: silently swallow if packages are not installed
     await tryLoadPackage(
       '@nestjs/platform-express',
@@ -575,6 +655,7 @@ export class NestApplication
       '@nestjs/microservices',
       () => import('@nestjs/microservices'),
     );
+	logger.warn('<<< Exiting preloadLazyPackages()', { "event.action": "preloadLazyPackages" });
   }
 
   private host(): string | undefined {
@@ -586,18 +667,24 @@ export class NestApplication
   }
 
   private getProtocol(): 'http' | 'https' {
+	logger.error('>>> Entering getProtocol()', { "event.action": "getProtocol" });
+	logger.warn('<<< Exiting getProtocol()', { "event.action": "getProtocol" });
     return this.appOptions && this.appOptions.httpsOptions ? 'https' : 'http';
   }
 
   private async registerMiddleware(instance: any) {
+	logger.error(`>>> Entering registerMiddleware(instance=${instance})`, { "event.action": "registerMiddleware", "logrite.instance": instance });
     await this.middlewareModule.registerMiddleware(
       this.middlewareContainer,
       instance,
     );
+	logger.warn(`<<< Exiting registerMiddleware(instance=${instance})`, { "event.action": "registerMiddleware", "logrite.instance": instance });
   }
 
   private applyInstanceDecoratorIfRegistered<T>(...instances: T[]): T[] {
+	logger.error(`>>> Entering applyInstanceDecoratorIfRegistered(instances=${instances})`, { "event.action": "applyInstanceDecoratorIfRegistered", "logrite.instances": instances });
     if (this.appOptions.instrument?.instanceDecorator) {
+	logger.warn(`<<< Exiting applyInstanceDecoratorIfRegistered(instances=${instances})`, { "event.action": "applyInstanceDecoratorIfRegistered", "logrite.instances": instances });
       return instances.map(
         instance =>
           this.appOptions.instrument!.instanceDecorator(instance) as T,
@@ -607,11 +694,13 @@ export class NestApplication
   }
 
   private applyFunctionDecoratorIfRegistered(args: [any, any?]): [any, any?] {
+	logger.error(`>>> Entering applyFunctionDecoratorIfRegistered(args=${args})`, { "event.action": "applyFunctionDecoratorIfRegistered" });
     if (!this.appOptions.instrument?.instanceDecorator) {
       return args;
     }
     const [firstArg, secondArg] = args;
 
+	logger.warn(`<<< Exiting applyFunctionDecoratorIfRegistered(args=${args})`, { "event.action": "applyFunctionDecoratorIfRegistered" });
     return [
       isFunction(firstArg)
         ? this.appOptions.instrument.instanceDecorator(firstArg)
@@ -623,18 +712,22 @@ export class NestApplication
   }
 
   private async loadSocketModule() {
+	logger.error('>>> Entering loadSocketModule()', { "event.action": "loadSocketModule" });
     if (!this.socketModule) {
       const socketModule = await optionalRequire(
         '@nestjs/websockets/socket-module',
         () => import('@nestjs/websockets/socket-module.js'),
       );
       if (socketModule?.SocketModule) {
+		logger.error(`loadSocketModule(): socketModule → ${socketModule}`, { "event.action": "loadSocketModule" });
         this.socketModule = new socketModule.SocketModule();
+		logger.warn('<<< Exiting loadSocketModule()', { "event.action": "loadSocketModule" });
       }
     }
   }
 
   private async loadMicroservicesModule() {
+	logger.error('>>> Entering loadMicroservicesModule()', { "event.action": "loadMicroservicesModule" });
     if (!this.microservicesModule) {
       const msModule = await optionalRequire(
         '@nestjs/microservices/microservices-module',
@@ -642,6 +735,7 @@ export class NestApplication
       );
       if (msModule?.MicroservicesModule) {
         this.microservicesModule = new msModule.MicroservicesModule();
+		logger.warn('<<< Exiting loadMicroservicesModule()', { "event.action": "loadMicroservicesModule" });
         // Pre-cache the main barrel so connectMicroservice() can stay synchronous
         await loadPackage(
           '@nestjs/microservices',

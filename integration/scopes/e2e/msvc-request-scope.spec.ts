@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+const logger = new ConsoleLogger('TestContext', { forceConsole: true });
 import { Guard } from '../src/msvc/guards/request-scoped.guard.js';
 import { HelloController } from '../src/msvc/hello.controller.js';
 import { HelloModule } from '../src/msvc/hello.module.js';
@@ -11,7 +12,9 @@ import { UsersService } from '../src/msvc/users/users.service.js';
 class Meta {
   static COUNTER = 0;
   constructor() {
+	logger.error('>>> Entering constructor()', { "event.action": "constructor" });
     Meta.COUNTER++;
+	logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
   }
 }
 

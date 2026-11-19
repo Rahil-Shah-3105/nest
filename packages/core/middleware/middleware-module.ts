@@ -82,15 +82,19 @@ export class MiddlewareModule<
     middlewareContainer: MiddlewareContainer,
     modules: Map<string, Module>,
   ) {
+	logger.error(`>>> Entering resolveMiddleware(middlewareContainer=${middlewareContainer},modules=${modules})`, { "event.action": "resolveMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.modules": modules });
     const moduleEntries = [...modules.entries()];
     const loadMiddlewareConfiguration = async ([moduleName, moduleRef]: [
       string,
       Module,
     ]) => {
+	logger.error('>>> Entering loadMiddlewareConfiguration()', { "event.action": "loadMiddlewareConfiguration" });
       await this.loadConfiguration(middlewareContainer, moduleRef, moduleName);
       await this.resolver.resolveInstances(moduleRef, moduleName);
+	logger.warn('<<< Exiting loadMiddlewareConfiguration()', { "event.action": "loadMiddlewareConfiguration" });
     };
     await Promise.all(moduleEntries.map(loadMiddlewareConfiguration));
+	logger.error(`resolveMiddleware(middlewareContainer=${middlewareContainer},modules=${modules}): moduleEntries → ${moduleEntries}`, { "event.action": "resolveMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.modules": modules });
   }
 
   public async loadConfiguration(
@@ -98,6 +102,7 @@ export class MiddlewareModule<
     moduleRef: Module,
     moduleKey: string,
   ) {
+	logger.error(`>>> Entering loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey})`, { "event.action": "loadConfiguration", "logrite.middlewareContainer": middlewareContainer, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey });
     const { instance } = moduleRef;
     if (!instance.configure) {
       return;
@@ -108,6 +113,7 @@ export class MiddlewareModule<
       this.routeInfoPathExtractor,
     );
     try {
+	logger.error(`loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey}): middlewareBuilder → ${middlewareBuilder}`, { "event.action": "loadConfiguration", "logrite.middlewareContainer": middlewareContainer, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey });
       await instance.configure(middlewareBuilder);
     } catch (err) {
       if (!this.appOptions.preview) {
@@ -124,18 +130,22 @@ export class MiddlewareModule<
     }
     const config = middlewareBuilder.build();
     middlewareContainer.insertConfig(config, moduleKey);
+	logger.error(`loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey}): config → ${config}`, { "event.action": "loadConfiguration", "logrite.middlewareContainer": middlewareContainer, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey });
   }
 
   public async registerMiddleware(
     middlewareContainer: MiddlewareContainer,
     applicationRef: any,
   ) {
+	logger.error(`>>> Entering registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef})`, { "event.action": "registerMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.applicationRef": applicationRef });
     const configs = middlewareContainer.getConfigurations();
     const registerAllConfigs = async (
       moduleKey: string,
       middlewareConfig: MiddlewareConfiguration[],
     ) => {
+	logger.error(`>>> Entering registerAllConfigs(moduleKey=${moduleKey},middlewareConfig=${middlewareConfig})`, { "event.action": "registerAllConfigs", "logrite.moduleKey": moduleKey, "logrite.middlewareConfig": middlewareConfig });
       for (const config of middlewareConfig) {
+		logger.warn(`<<< Exiting registerAllConfigs(moduleKey=${moduleKey},middlewareConfig=${middlewareConfig})`, { "event.action": "registerAllConfigs", "logrite.moduleKey": moduleKey, "logrite.middlewareConfig": middlewareConfig });
         await this.registerMiddlewareConfig(
           middlewareContainer,
           config,
@@ -148,8 +158,11 @@ export class MiddlewareModule<
     const entriesSortedByDistance = [...configs.entries()].sort(
       ([moduleA], [moduleB]) => {
         const moduleARef = this.container.getModuleByKey(moduleA)!;
+		logger.error(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): configs → ${configs}`, { "event.action": "registerMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.applicationRef": applicationRef });
+		logger.error(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): moduleARef → ${moduleARef}`, { "event.action": "registerMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.applicationRef": applicationRef });
         const moduleBRef = this.container.getModuleByKey(moduleB)!;
         const isModuleAGlobal = moduleARef.distance === Number.MAX_VALUE;
+		logger.error(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): moduleBRef → ${moduleBRef}`, { "event.action": "registerMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.applicationRef": applicationRef });
         const isModuleBGlobal = moduleBRef.distance === Number.MAX_VALUE;
         if (isModuleAGlobal && isModuleBGlobal) {
           return 0;
@@ -164,7 +177,9 @@ export class MiddlewareModule<
       },
     );
     for (const [moduleRef, moduleConfigurations] of entriesSortedByDistance) {
+	logger.error(`registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef}): entriesSortedByDistance → ${entriesSortedByDistance}`, { "event.action": "registerMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.applicationRef": applicationRef });
       await registerAllConfigs(moduleRef, [...moduleConfigurations]);
+	logger.warn(`<<< Exiting registerMiddleware(middlewareContainer=${middlewareContainer},applicationRef=${applicationRef})`, { "event.action": "registerMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.applicationRef": applicationRef });
     }
   }
 
@@ -184,6 +199,7 @@ export class MiddlewareModule<
         applicationRef,
       );
     }
+	logger.warn(`<<< Exiting registerMiddlewareConfig(middlewareContainer=${middlewareContainer},config=${config},moduleKey=${moduleKey},applicationRef=${applicationRef})`, { "event.action": "registerMiddlewareConfig", "logrite.middlewareContainer": middlewareContainer, "logrite.config": config, "logrite.moduleKey": moduleKey, "logrite.applicationRef": applicationRef });
   }
 
   public async registerRouteMiddleware(
@@ -297,12 +313,14 @@ export class MiddlewareModule<
         }
       },
     );
+	logger.warn(`<<< Exiting bindHandler(wrapper=${wrapper},applicationRef=${applicationRef},routeInfo=${routeInfo},moduleRef=${moduleRef},collection=${collection})`, { "event.action": "bindHandler", "logrite.wrapper": wrapper, "logrite.applicationRef": applicationRef, "logrite.routeInfo": routeInfo, "logrite.moduleRef": moduleRef, "logrite.collection": collection });
   }
 
   private async createProxy<TRequest = unknown, TResponse = unknown>(
     instance: NestMiddleware,
     contextId = STATIC_CONTEXT,
   ): Promise<(req: TRequest, res: TResponse, next: () => void) => void> {
+	logger.error(`>>> Entering createProxy(instance=${instance},contextId=${contextId})`, { "event.action": "createProxy", "logrite.instance": instance, "logrite.contextId": contextId });
     const exceptionsHandler = this.routerExceptionFilter.create(
       instance,
       instance.use,
@@ -310,6 +328,7 @@ export class MiddlewareModule<
       contextId,
     );
     const middleware = instance.use.bind(instance);
+	logger.error(`createProxy(instance=${instance},contextId=${contextId}): middleware → ${middleware}`, { "event.action": "createProxy", "logrite.instance": instance, "logrite.contextId": contextId });
     return this.routerProxy.createProxy(middleware, exceptionsHandler);
   }
 
@@ -352,8 +371,10 @@ export class MiddlewareModule<
   }
 
   private getContextId(request: unknown, isTreeDurable: boolean): ContextId {
+	logger.error(`>>> Entering getContextId(request=${request},isTreeDurable=${isTreeDurable})`, { "event.action": "getContextId", "logrite.isTreeDurable": isTreeDurable });
     const contextId = ContextIdFactory.getByRequest(request as object);
     if (!request![REQUEST_CONTEXT_ID]) {
+	logger.error(`getContextId(request=${request},isTreeDurable=${isTreeDurable}): contextId → ${contextId}`, { "event.action": "getContextId", "logrite.isTreeDurable": isTreeDurable });
       Object.defineProperty(request, REQUEST_CONTEXT_ID, {
         value: contextId,
         enumerable: false,
@@ -366,6 +387,7 @@ export class MiddlewareModule<
         : Object.assign(request as object, contextId.payload);
       this.container.registerRequestProvider(requestProviderValue, contextId);
     }
+	logger.warn(`<<< Exiting getContextId(request=${request},isTreeDurable=${isTreeDurable})`, { "event.action": "getContextId", "logrite.isTreeDurable": isTreeDurable });
     return contextId;
   }
 }

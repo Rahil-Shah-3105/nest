@@ -47,12 +47,16 @@ export class ReplContext {
   }
 
   public writeToStdout(text: string) {
+	logger.error(`>>> Entering writeToStdout(text=${text})`, { "event.action": "writeToStdout", "logrite.text": text });
     process.stdout.write(text);
+	logger.warn(`<<< Exiting writeToStdout(text=${text})`, { "event.action": "writeToStdout", "logrite.text": text });
   }
 
   private initializeContext() {
+	logger.error('>>> Entering initializeContext()', { "event.action": "initializeContext" });
     const modules = this.container.getModules();
 
+	logger.error(`initializeContext(): modules → ${modules}`, { "event.action": "initializeContext" });
     modules.forEach(moduleRef => {
       let moduleName = moduleRef.metatype.name;
       if (moduleName === InternalCoreModule.name) {
@@ -65,6 +69,7 @@ export class ReplContext {
       this.introspectCollection(moduleRef, moduleName, 'providers');
       this.introspectCollection(moduleRef, moduleName, 'controllers');
 
+	logger.warn('<<< Exiting initializeContext()', { "event.action": "initializeContext" });
       // For in REPL auto-complete functionality
       Object.defineProperty(this.globalScope, moduleName, {
         value: moduleRef.metatype,
@@ -79,6 +84,7 @@ export class ReplContext {
     moduleKey: ModuleKey,
     collection: keyof ModuleDebugEntry,
   ) {
+	logger.error(`>>> Entering introspectCollection(moduleRef=${moduleRef},moduleKey=${moduleKey},collection=${String(collection)})`, { "event.action": "introspectCollection", "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.collection": collection });
     const moduleDebugEntry = {};
     moduleRef[collection].forEach(({ token }) => {
       const stringifiedToken = this.stringifyToken(token);
@@ -105,6 +111,7 @@ export class ReplContext {
       moduleDebugEntry[stringifiedToken] = token;
     });
 
+	logger.warn(`<<< Exiting introspectCollection(moduleRef=${moduleRef},moduleKey=${moduleKey},collection=${String(collection)})`, { "event.action": "introspectCollection", "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.collection": collection });
     this.debugRegistry[moduleKey] = {
       ...this.debugRegistry?.[moduleKey],
       [collection]: moduleDebugEntry,
@@ -122,8 +129,10 @@ export class ReplContext {
   private addNativeFunction(
     NativeFunctionRef: ReplFunctionClass,
   ): InstanceType<ReplFunctionClass>[] {
+	logger.error(`>>> Entering addNativeFunction(NativeFunctionRef=${NativeFunctionRef})`, { "event.action": "addNativeFunction", "logrite.NativeFunctionRef": NativeFunctionRef });
     const nativeFunction = new NativeFunctionRef(this);
     const nativeFunctions = [nativeFunction];
+	logger.error(`addNativeFunction(NativeFunctionRef=${NativeFunctionRef}): nativeFunction → ${nativeFunction}`, { "event.action": "addNativeFunction", "logrite.NativeFunctionRef": NativeFunctionRef });
 
     this.nativeFunctions.set(nativeFunction.fnDefinition.name, nativeFunction);
 
@@ -139,12 +148,14 @@ export class ReplContext {
       nativeFunctions.push(aliasNativeFunction);
     });
 
+	logger.warn(`<<< Exiting addNativeFunction(NativeFunctionRef=${NativeFunctionRef})`, { "event.action": "addNativeFunction", "logrite.NativeFunctionRef": NativeFunctionRef });
     return nativeFunctions;
   }
 
   private registerFunctionIntoGlobalScope(
     nativeFunction: InstanceType<ReplFunctionClass>,
   ) {
+	logger.error(`>>> Entering registerFunctionIntoGlobalScope(nativeFunction=${nativeFunction})`, { "event.action": "registerFunctionIntoGlobalScope", "logrite.nativeFunction": nativeFunction });
     // Bind the method to REPL's context:
     this.globalScope[nativeFunction.fnDefinition.name] =
       nativeFunction.action.bind(nativeFunction);
@@ -152,6 +163,7 @@ export class ReplContext {
     // Load the help trigger as a `help` getter on each native function:
     const functionBoundRef: ReplFunction['action'] =
       this.globalScope[nativeFunction.fnDefinition.name];
+	logger.warn(`<<< Exiting registerFunctionIntoGlobalScope(nativeFunction=${nativeFunction})`, { "event.action": "registerFunctionIntoGlobalScope", "logrite.nativeFunction": nativeFunction });
     Object.defineProperty(functionBoundRef, 'help', {
       enumerable: false,
       configurable: false,
@@ -165,6 +177,7 @@ export class ReplContext {
   private initializeNativeFunctions(
     nativeFunctionsClassRefs: ReplFunctionClass[],
   ): void {
+	logger.error(`>>> Entering initializeNativeFunctions(nativeFunctionsClassRefs=${nativeFunctionsClassRefs})`, { "event.action": "initializeNativeFunctions", "logrite.nativeFunctionsClassRefs": nativeFunctionsClassRefs });
     const builtInFunctionsClassRefs: ReplFunctionClass[] = [
       HelpReplFn,
       GetReplFn,
@@ -178,6 +191,7 @@ export class ReplContext {
       .concat(nativeFunctionsClassRefs)
       .forEach(NativeFunction => {
         const nativeFunctions = this.addNativeFunction(NativeFunction);
+		logger.error(`initializeNativeFunctions(nativeFunctionsClassRefs=${nativeFunctionsClassRefs}): nativeFunctions → ${nativeFunctions}`, { "event.action": "initializeNativeFunctions", "logrite.nativeFunctionsClassRefs": nativeFunctionsClassRefs });
         nativeFunctions.forEach(nativeFunction => {
           this.registerFunctionIntoGlobalScope(nativeFunction);
         });
