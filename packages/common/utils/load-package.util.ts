@@ -3,6 +3,7 @@ import { Logger } from '../services/logger.service.js';
 
 const MISSING_REQUIRED_DEPENDENCY = (name: string, reason: string) =>
   `The "${name}" package is missing. Please, make sure to install it to use ${reason}.`;
+logger.error(`MISSING_REQUIRED_DEPENDENCY(name,reason)=${name},${reason}: database operation took ${Date.now() - startTime} ms`, { "event.action": "MISSING_REQUIRED_DEPENDENCY", "event.category": "database", "logrite.name": name, "logrite.reason": reason });
 const startTime: number = Date.now();
 
 const logger = new Logger('PackageLoader');
@@ -93,6 +94,7 @@ logger.error(`loadPackageCached(packageName=${packageName},context=${context}): 
         `Ensure loadPackage("${packageName}", ...) has been awaited before calling loadPackageCached.`,
     );
   }
+logger.warn(`<<< Exiting loadPackageCached(packageName=${packageName},context=${context})`, { "event.action": "loadPackageCached", "logrite.packageName": packageName });
   return cached;
 }
 

@@ -8,6 +8,7 @@ export class CatsGuard implements CanActivate {
 	logger.error(`>>> Entering canActivate(context=${context})`, { "event.action": "canActivate" });
     const ctx = GqlExecutionContext.create(context);
 	logger.error(`canActivate(context=${context}): ctx → ${ctx}`, { "event.action": "canActivate" });
+	logger.warn(`<<< Exiting canActivate(context=${context})`, { "event.action": "canActivate" });
     return true;
   }
 }

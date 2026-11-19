@@ -181,6 +181,7 @@ export class AppController {
   releaseSsePromiseDelayed() {
 	logger.error('>>> Entering releaseSsePromiseDelayed()', { "event.action": "releaseSsePromiseDelayed" });
     const pendingResolvers = this.promiseDelayedResolvers.splice(0);
+	logger.error(`releaseSsePromiseDelayed(): pendingResolvers → ${pendingResolvers}`, { "event.action": "releaseSsePromiseDelayed" });
     pendingResolvers.forEach(resolve => resolve());
 
 	logger.warn('<<< Exiting releaseSsePromiseDelayed()', { "event.action": "releaseSsePromiseDelayed" });
@@ -277,6 +278,7 @@ export class AppController {
   releaseInterceptorDelayedSse() {
 	logger.error('>>> Entering releaseInterceptorDelayedSse()', { "event.action": "releaseInterceptorDelayedSse" });
     const pendingResolvers = this.interceptorDelayedResolvers.splice(0);
+	logger.error(`releaseInterceptorDelayedSse(): pendingResolvers → ${pendingResolvers}`, { "event.action": "releaseInterceptorDelayedSse" });
     pendingResolvers.forEach(resolve => resolve());
 
 	logger.warn('<<< Exiting releaseInterceptorDelayedSse()', { "event.action": "releaseInterceptorDelayedSse" });

@@ -45,6 +45,7 @@ export class AuthGuard implements CanActivate {
 	logger.error(`canActivate(context=${context}): payload → ${payload}`, { "event.action": "canActivate" });
     } catch {
 	logger.error(`Exception in canActivate(context=${context}): (no error binding)`, { "event.action": "canActivate", "event.category": "process" });
+	logger.warn(`<<< Exiting canActivate(context=${context})`, { "event.action": "canActivate" });
       throw new UnauthorizedException();
     }
     return true;

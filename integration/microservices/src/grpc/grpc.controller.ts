@@ -61,6 +61,7 @@ export class GrpcController {
 	logger.error(`>>> Entering call(data=${data})`, { "event.action": "call" });
     const svc = this.client.getService<any>('Math');
 	logger.error(`call(data=${data}): svc → ${svc}`, { "event.action": "call" });
+	logger.warn(`<<< Exiting call(data=${data})`, { "event.action": "call" });
     return svc.sum({ data });
   }
 
@@ -71,6 +72,7 @@ export class GrpcController {
 	logger.error(`>>> Entering callWithOptions(data=${data})`, { "event.action": "callWithOptions" });
     const svc = this.client.getService<any>('Math');
 	logger.error(`callWithOptions(data=${data}): svc → ${svc}`, { "event.action": "callWithOptions" });
+	logger.warn(`<<< Exiting callWithOptions(data=${data})`, { "event.action": "callWithOptions" });
     return svc.Sum({ data });
   }
 
@@ -157,6 +159,7 @@ export class GrpcController {
 	logger.error(`>>> Entering callMultiSum(data=${data})`, { "event.action": "callMultiSum" });
     const svc = this.clientMulti.getService<any>('Math');
 	logger.error(`callMultiSum(data=${data}): svc → ${svc}`, { "event.action": "callMultiSum" });
+	logger.warn(`<<< Exiting callMultiSum(data=${data})`, { "event.action": "callMultiSum" });
     return svc.sum({ data });
   }
 
@@ -166,6 +169,7 @@ export class GrpcController {
 	logger.error(`>>> Entering callMultiSum2(data=${data})`, { "event.action": "callMultiSum2" });
     const svc = this.clientMulti.getService<any>('Math2');
 	logger.error(`callMultiSum2(data=${data}): svc → ${svc}`, { "event.action": "callMultiSum2" });
+	logger.warn(`<<< Exiting callMultiSum2(data=${data})`, { "event.action": "callMultiSum2" });
     return svc.sum2({ data });
   }
 

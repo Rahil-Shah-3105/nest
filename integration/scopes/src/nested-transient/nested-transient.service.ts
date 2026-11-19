@@ -12,12 +12,14 @@ export class NestedTransientService {
     NestedTransientService.COUNTER++;
     this.instanceId = NestedTransientService.COUNTER;
 	logger.debug(`constructor(): this.instanceId → ${this.instanceId}`, { "event.action": "constructor" });
+	logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
   }
 
   setContext(ctx: string) {
 	logger.error(`>>> Entering setContext(ctx=${ctx})`, { "event.action": "setContext" });
     this.context = ctx;
 	logger.debug(`setContext(ctx=${ctx}): this.context → ${this.context}`, { "event.action": "setContext" });
+	logger.warn(`<<< Exiting setContext(ctx=${ctx})`, { "event.action": "setContext" });
   }
 
   getContext(): string | undefined {

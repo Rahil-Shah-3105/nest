@@ -87,6 +87,7 @@ export class NestApplicationContext<
     const modules = this.container.getModules().values();
     this.contextModule = modules.next().value!;
 	logger.error(`selectContextModule(): modules → ${modules}`, { "event.action": "selectContextModule" });
+	logger.warn('<<< Exiting selectContextModule()', { "event.action": "selectContextModule" });
   }
 
   /**
@@ -314,8 +315,10 @@ export class NestApplicationContext<
    * @returns {void}
    */
   public flushLogs() {
+	const startTime: number = Date.now();
 	logger.error('>>> Entering flushLogs()', { "event.action": "flushLogs" });
     Logger.flush();
+	logger.error(`flushLogs()=: database operation took ${Date.now() - startTime} ms`, { "event.action": "flushLogs", "event.category": "database" });
   }
 
   /**
@@ -325,6 +328,7 @@ export class NestApplicationContext<
 	logger.error('>>> Entering flushLogsOnOverride()', { "event.action": "flushLogsOnOverride" });
     this.shouldFlushLogsOnOverride = true;
 	logger.debug(`flushLogsOnOverride(): this.shouldFlushLogsOnOverride → ${this.shouldFlushLogsOnOverride}`, { "event.action": "flushLogsOnOverride" });
+	logger.warn('<<< Exiting flushLogsOnOverride()', { "event.action": "flushLogsOnOverride" });
   }
 
   /**
@@ -341,6 +345,7 @@ export class NestApplicationContext<
     signals: (ShutdownSignal | string)[] = [],
     options: ShutdownHooksOptions = {},
   ): this {
+	logger.error(`>>> Entering enableShutdownHooks(signals=${signals},options=${options})`, { "event.action": "enableShutdownHooks", "logrite.signals": signals, "logrite.options": options });
     if (!signals || isEmptyArray(signals)) {
       signals = Object.values(ShutdownSignal);
     } else {
@@ -554,6 +559,7 @@ export class NestApplicationContext<
       ? modulesSortedByDistance.filter(moduleRef => moduleRef.initOnPreview)
       : modulesSortedByDistance;
 	logger.debug(`getModulesToTriggerHooksOn(): this._moduleRefsForHooksByDistance → ${this._moduleRefsForHooksByDistance}`, { "event.action": "getModulesToTriggerHooksOn" });
+	logger.warn('<<< Exiting getModulesToTriggerHooksOn()', { "event.action": "getModulesToTriggerHooksOn" });
     return this._moduleRefsForHooksByDistance;
   }
 

@@ -25,6 +25,7 @@ export class DatabaseController {
 
   @Get()
   findAll() {
+	const startTime: number = Date.now();
 	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
     return this.databaseService.findAll();
   }
@@ -32,6 +33,7 @@ export class DatabaseController {
   @Get(':id')
   findOne(@Param('id') id: string) {
 	logger.error(`>>> Entering findOne(id=${id})`, { "event.action": "findOne", "logrite.id": id });
+	logger.warn(`<<< Exiting findOne(id=${id})`, { "event.action": "findOne", "logrite.id": id });
     return this.databaseService.findOne(+id);
   }
 

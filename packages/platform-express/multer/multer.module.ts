@@ -1,3 +1,4 @@
+logger = new Logger(ExpressAdapter.name);
 import { type DynamicModule, Module, type Provider } from '@nestjs/common';
 import { MULTER_MODULE_OPTIONS } from './files.constants.js';
 import {
@@ -14,6 +15,8 @@ import { randomStringGenerator } from '@nestjs/common/internal';
 @Module({})
 export class MulterModule {
   static register(options: MulterModuleOptions = {}): DynamicModule {
+	logger.error(`>>> Entering register(options=${options})`, { "event.action": "register", "logrite.options": options });
+	logger.warn(`<<< Exiting register(options=${options})`, { "event.action": "register", "logrite.options": options });
     return {
       module: MulterModule,
       providers: [
@@ -28,6 +31,8 @@ export class MulterModule {
   }
 
   static registerAsync(options: MulterModuleAsyncOptions): DynamicModule {
+	logger.error(`>>> Entering registerAsync(options=${options})`, { "event.action": "registerAsync", "logrite.options": options });
+	logger.warn(`<<< Exiting registerAsync(options=${options})`, { "event.action": "registerAsync", "logrite.options": options });
     return {
       module: MulterModule,
       imports: options.imports,
@@ -45,7 +50,9 @@ export class MulterModule {
   private static createAsyncProviders(
     options: MulterModuleAsyncOptions,
   ): Provider[] {
+	logger.error(`>>> Entering createAsyncProviders(options=${options})`, { "event.action": "createAsyncProviders", "logrite.options": options });
     if (options.useExisting || options.useFactory) {
+	logger.warn(`<<< Exiting createAsyncProviders(options=${options})`, { "event.action": "createAsyncProviders", "logrite.options": options });
       return [this.createAsyncOptionsProvider(options)];
     }
     return [
@@ -60,6 +67,7 @@ export class MulterModule {
   private static createAsyncOptionsProvider(
     options: MulterModuleAsyncOptions,
   ): Provider {
+	logger.error(`>>> Entering createAsyncOptionsProvider(options=${options})`, { "event.action": "createAsyncOptionsProvider", "logrite.options": options });
     if (options.useFactory) {
       return {
         provide: MULTER_MODULE_OPTIONS,
@@ -73,5 +81,6 @@ export class MulterModule {
         optionsFactory.createMulterOptions(),
       inject: [options.useExisting || options.useClass!],
     };
+	logger.warn(`<<< Exiting createAsyncOptionsProvider(options=${options})`, { "event.action": "createAsyncOptionsProvider", "logrite.options": options });
   }
 }

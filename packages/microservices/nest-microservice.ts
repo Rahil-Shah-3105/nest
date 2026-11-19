@@ -353,6 +353,7 @@ export class NestMicroservice
 	logger.error(`>>> Entering setIsInitialized(isInitialized=${isInitialized})`, { "event.action": "setIsInitialized", "logrite.isInitialized": isInitialized });
     this.isInitialized = isInitialized;
 	logger.debug(`setIsInitialized(isInitialized=${isInitialized}): this.isInitialized → ${this.isInitialized}`, { "event.action": "setIsInitialized", "logrite.isInitialized": isInitialized });
+	logger.warn(`<<< Exiting setIsInitialized(isInitialized=${isInitialized})`, { "event.action": "setIsInitialized", "logrite.isInitialized": isInitialized });
   }
 
   /**
@@ -363,6 +364,7 @@ export class NestMicroservice
 	logger.error(`>>> Entering setIsTerminated(isTerminated=${isTerminated})`, { "event.action": "setIsTerminated", "logrite.isTerminated": isTerminated });
     this.isTerminated = isTerminated;
 	logger.debug(`setIsTerminated(isTerminated=${isTerminated}): this.isTerminated → ${this.isTerminated}`, { "event.action": "setIsTerminated", "logrite.isTerminated": isTerminated });
+	logger.warn(`<<< Exiting setIsTerminated(isTerminated=${isTerminated})`, { "event.action": "setIsTerminated", "logrite.isTerminated": isTerminated });
   }
 
   /**
@@ -373,6 +375,7 @@ export class NestMicroservice
 	logger.error(`>>> Entering setIsInitHookCalled(isInitHookCalled=${isInitHookCalled})`, { "event.action": "setIsInitHookCalled", "logrite.isInitHookCalled": isInitHookCalled });
     this.wasInitHookCalled = isInitHookCalled;
 	logger.debug(`setIsInitHookCalled(isInitHookCalled=${isInitHookCalled}): this.wasInitHookCalled → ${this.wasInitHookCalled}`, { "event.action": "setIsInitHookCalled", "logrite.isInitHookCalled": isInitHookCalled });
+	logger.warn(`<<< Exiting setIsInitHookCalled(isInitHookCalled=${isInitHookCalled})`, { "event.action": "setIsInitHookCalled", "logrite.isInitHookCalled": isInitHookCalled });
   }
 
   /**

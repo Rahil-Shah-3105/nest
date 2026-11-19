@@ -62,6 +62,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   async mathSumSyncKafkaMessage(
     @Body() data: number[],
   ): Promise<Observable<any>> {
+	const _start_mathSumSyncKafkaMessage_62 = Date.now();
 	logger.error(`>>> Entering mathSumSyncKafkaMessage(data=${data})`, { "event.action": "mathSumSyncKafkaMessage" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.kafka.message', {
@@ -72,6 +73,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 	logger.warn(`<<< Exiting mathSumSyncKafkaMessage(data=${data})`, { "event.action": "mathSumSyncKafkaMessage" });
+	logger.error(`mathSumSyncKafkaMessage(data=${data}): API call took ${Date.now() - _start_mathSumSyncKafkaMessage_62} ms`, { "event.action": "mathSumSyncKafkaMessage", "event.category": "network" });
     return result;
   }
 
@@ -81,6 +83,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   async mathSumSyncWithoutKey(
     @Body() data: number[],
   ): Promise<Observable<any>> {
+	const _start_mathSumSyncWithoutKey_81 = Date.now();
 	logger.error(`>>> Entering mathSumSyncWithoutKey(data=${data})`, { "event.action": "mathSumSyncWithoutKey" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.without.key', {
@@ -90,6 +93,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 	logger.warn(`<<< Exiting mathSumSyncWithoutKey(data=${data})`, { "event.action": "mathSumSyncWithoutKey" });
+	logger.error(`mathSumSyncWithoutKey(data=${data}): API call took ${Date.now() - _start_mathSumSyncWithoutKey_81} ms`, { "event.action": "mathSumSyncWithoutKey", "event.category": "network" });
     return result;
   }
 
@@ -99,6 +103,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   async mathSumSyncPlainObject(
     @Body() data: number[],
   ): Promise<Observable<any>> {
+	const _start_mathSumSyncPlainObject_99 = Date.now();
 	logger.error(`>>> Entering mathSumSyncPlainObject(data=${data})`, { "event.action": "mathSumSyncPlainObject" });
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.plain.object', {
@@ -106,6 +111,8 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 	logger.error(`mathSumSyncPlainObject(data=${data}): result → ${result}`, { "event.action": "mathSumSyncPlainObject" });
+	logger.error(`mathSumSyncPlainObject(data=${data}): API call took ${Date.now() - _start_mathSumSyncPlainObject_99} ms`, { "event.action": "mathSumSyncPlainObject", "event.category": "network" });
+	logger.warn(`<<< Exiting mathSumSyncPlainObject(data=${data})`, { "event.action": "mathSumSyncPlainObject" });
     return result;
   }
 
@@ -118,6 +125,8 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       this.client.send('math.sum.sync.array', data),
     );
 	logger.error(`mathSumSyncArray(data=${data}): result → ${result}`, { "event.action": "mathSumSyncArray" });
+	const _start_mathSumSyncArray_115 = Date.now();
+	logger.error(`mathSumSyncArray(data=${data}): API call took ${Date.now() - _start_mathSumSyncArray_115} ms`, { "event.action": "mathSumSyncArray", "event.category": "network" });
     return result;
   }
 
@@ -125,10 +134,12 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
   @HttpCode(200)
   async mathSumSyncString(@Body() data: number[]): Promise<Observable<any>> {
 	logger.error(`>>> Entering mathSumSyncString(data=${data})`, { "event.action": "mathSumSyncString" });
+	const _start_mathSumSyncString_126 = Date.now();
     // this.logger.error(util.format('mathSumSyncString() data: %o', data));
     const result = await lastValueFrom(
       this.client.send('math.sum.sync.string', data.toString()),
     );
+	logger.error(`mathSumSyncString(data=${data}): API call took ${Date.now() - _start_mathSumSyncString_126} ms`, { "event.action": "mathSumSyncString", "event.category": "network" });
     return result;
   }
 
@@ -140,6 +151,8 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       this.client.send('math.sum.sync.number', data[0]),
     );
 	logger.error(`mathSumSyncNumber(data=${data}): result → ${result}`, { "event.action": "mathSumSyncNumber" });
+	const _start_mathSumSyncNumber_137 = Date.now();
+	logger.error(`mathSumSyncNumber(data=${data}): API call took ${Date.now() - _start_mathSumSyncNumber_137} ms`, { "event.action": "mathSumSyncNumber", "event.category": "network" });
     return result;
   }
 
@@ -153,6 +166,8 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 	logger.error(`mathSumSyncRegex(data=${data}): result → ${result}`, { "event.action": "mathSumSyncRegex" });
+	const _start_mathSumSyncRegex_148 = Date.now();
+	logger.error(`mathSumSyncRegex(data=${data}): API call took ${Date.now() - _start_mathSumSyncRegex_148} ms`, { "event.action": "mathSumSyncRegex", "event.category": "network" });
     return result;
   }
 
@@ -178,6 +193,8 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 	logger.error(`createUser(user=${user}): result → ${result}`, { "event.action": "createUser", "user.name": String(user) });
+	const _start_createUser_170 = Date.now();
+	logger.error(`createUser(user=${user}): API call took ${Date.now() - _start_createUser_170} ms`, { "event.action": "createUser", "event.category": "network", "user.name": String(user) });
     return result;
   }
 
@@ -195,6 +212,7 @@ export class KafkaController implements OnModuleInit, OnModuleDestroy {
       }),
     );
 	logger.error(`createBusiness(business=${business}): result → ${result}`, { "event.action": "createBusiness", "logrite.business": business });
+	logger.warn(`<<< Exiting createBusiness(business=${business})`, { "event.action": "createBusiness", "logrite.business": business });
     return result;
   }
 }

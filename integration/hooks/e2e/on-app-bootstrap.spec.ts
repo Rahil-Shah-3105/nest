@@ -50,6 +50,7 @@ describe('OnApplicationBootstrap', () => {
       async onApplicationBootstrap() {
 		logger.error('>>> Entering onApplicationBootstrap()', { "event.action": "onApplicationBootstrap" });
         this.field = 'b-field';
+		logger.debug(`onApplicationBootstrap(): this.field → ${this.field}`, { "event.action": "onApplicationBootstrap" });
 		logger.warn('<<< Exiting onApplicationBootstrap()', { "event.action": "onApplicationBootstrap" });
       }
     }

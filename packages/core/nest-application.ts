@@ -189,6 +189,7 @@ export class NestApplication
     );
     this.isWsModuleRegistered = true;
 	logger.debug(`registerWsModule(): this.isWsModuleRegistered → ${this.isWsModuleRegistered}`, { "event.action": "registerWsModule" });
+	logger.warn('<<< Exiting registerWsModule()', { "event.action": "registerWsModule" });
   }
 
   public async init(): Promise<this> {
@@ -443,6 +444,7 @@ export class NestApplication
     }
 
     const httpAdapterHost = this.container.getHttpAdapterHostRef();
+	logger.debug(`listen(port=${port},args=${args}): httpAdapterHost.listening → ${httpAdapterHost.listening}`, { "event.action": "listen", "logrite.port": port });
 	logger.error(`listen(port=${port},args=${args}): httpAdapterHost → ${httpAdapterHost}`, { "event.action": "listen", "logrite.port": port });
 	logger.warn(`<<< Exiting listen(port=${port},args=${args})`, { "event.action": "listen", "logrite.port": port });
     return new Promise((resolve, reject) => {

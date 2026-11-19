@@ -44,6 +44,8 @@ export class PostsResolvers {
   @Mutation('deletePost')
   async delete(@Args('id') args: string): Promise<Post> {
 	logger.error(`>>> Entering delete(args=${args})`, { "event.action": "delete" });
+	const _start_delete_45 = Date.now();
+	logger.error(`delete(args=${args}): API call took ${Date.now() - _start_delete_45} ms`, { "event.action": "delete", "event.category": "network" });
     return this.postService.delete(args);
   }
 

@@ -41,6 +41,7 @@ export class HeroController implements OnModuleInit {
 
     const stream = this.heroesService.findMany(ids$.asObservable());
 	logger.error(`getMany(): stream → ${stream}`, { "event.action": "getMany" });
+	logger.warn('<<< Exiting getMany()', { "event.action": "getMany" });
     return stream.pipe(toArray());
   }
 
@@ -68,9 +69,11 @@ export class HeroController implements OnModuleInit {
       const item = this.items.find(({ id }) => id === heroById.id)!;
       hero$.next(item);
 	logger.error(`onNext(heroById=${heroById}): item → ${item}`, { "event.action": "onNext", "logrite.heroById": heroById });
+	logger.warn(`<<< Exiting onNext(heroById=${heroById})`, { "event.action": "onNext", "logrite.heroById": heroById });
     };
     const onComplete = () => {
         logger.error('>>> Entering onComplete()', { "event.action": "onComplete" });
+		logger.warn('<<< Exiting onComplete()', { "event.action": "onComplete" });
         return hero$.complete();
     };
     data$.subscribe({

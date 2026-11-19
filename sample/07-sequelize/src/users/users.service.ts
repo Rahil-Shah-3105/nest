@@ -21,6 +21,7 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
+	const startTime: number = Date.now();
 	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
     return this.userModel.findAll();
   }
@@ -39,5 +40,6 @@ export class UsersService {
     const user = await this.findOne(id);
     await user?.destroy();
 	logger.error(`remove(id=${id}): user → ${user}`, { "event.action": "remove", "logrite.id": id });
+	logger.warn(`<<< Exiting remove(id=${id})`, { "event.action": "remove", "logrite.id": id });
   }
 }

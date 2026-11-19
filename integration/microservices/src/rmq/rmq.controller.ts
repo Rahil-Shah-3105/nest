@@ -94,6 +94,7 @@ export class RMQController {
   @HttpCode(200)
   useRecordBuilderDuplex(@Body() data: Record<string, any>) {
 	logger.error(`>>> Entering useRecordBuilderDuplex(data=${data})`, { "event.action": "useRecordBuilderDuplex" });
+	const _start_useRecordBuilderDuplex_95 = Date.now();
     const record = new RmqRecordBuilder(data)
       .setOptions({
         headers: {
@@ -105,6 +106,7 @@ export class RMQController {
 
 	logger.error(`useRecordBuilderDuplex(data=${data}): record → ${record}`, { "event.action": "useRecordBuilderDuplex" });
 	logger.warn(`<<< Exiting useRecordBuilderDuplex(data=${data})`, { "event.action": "useRecordBuilderDuplex" });
+	logger.error(`useRecordBuilderDuplex(data=${data}): API call took ${Date.now() - _start_useRecordBuilderDuplex_95} ms`, { "event.action": "useRecordBuilderDuplex", "event.category": "network" });
     return this.client.send('record-builder-duplex', record);
   }
 

@@ -12,6 +12,7 @@ export class TransientLoggerService {
     TransientLoggerService.COUNTER++;
     this.instanceId = TransientLoggerService.COUNTER;
 	logger.debug(`constructor(nested=${nested}): this.instanceId → ${this.instanceId}`, { "event.action": "constructor", "logrite.nested": nested });
+	logger.warn(`<<< Exiting constructor(nested=${nested})`, { "event.action": "constructor", "logrite.nested": nested });
   }
 
   setContext(ctx: string) {

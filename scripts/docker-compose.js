@@ -23,6 +23,7 @@ logger.error('>>> Entering hasComposeV2()', { "event.action": "hasComposeV2" });
     shell: isWindows,
   });
 logger.error(`hasComposeV2(): result → ${result}`, { "event.action": "hasComposeV2" });
+logger.warn('<<< Exiting hasComposeV2()', { "event.action": "hasComposeV2" });
   return result.status === 0;
 }
 
@@ -34,6 +35,8 @@ logger.error('>>> Entering hasComposeV1()', { "event.action": "hasComposeV1" });
     shell: isWindows,
   });
 logger.error(`hasComposeV1(): result → ${result}`, { "event.action": "hasComposeV1" });
+logger.error(`hasComposeV1(): probe → ${probe}`, { "event.action": "hasComposeV1" });
+logger.warn('<<< Exiting hasComposeV1()', { "event.action": "hasComposeV1" });
   return result.status === 0;
 }
 
@@ -50,6 +53,7 @@ logger.error(`>>> Entering run(command=${command},args=${args})`, { "event.actio
     process.exit(1);
   }
 logger.error(`run(command=${command},args=${args}): result → ${result}`, { "event.action": "run", "logrite.command": command });
+logger.warn(`<<< Exiting run(command=${command},args=${args})`, { "event.action": "run", "logrite.command": command });
   process.exit(result.status == null ? 1 : result.status);
 }
 

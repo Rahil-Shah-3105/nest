@@ -41,6 +41,7 @@ export class InternalCoreModuleFactory {
         logger,
       );
 	logger.warn('<<< Exiting lazyModuleLoaderFactory()', { "event.action": "lazyModuleLoaderFactory" });
+	logger.error(`lazyModuleLoaderFactory(): injector → ${injector}`, { "event.action": "lazyModuleLoaderFactory" });
       return new LazyModuleLoader(
         scanner,
         instanceLoader,

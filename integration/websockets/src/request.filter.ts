@@ -14,5 +14,6 @@ export class RequestFilter implements ExceptionFilter {
 	logger.error(`catch(exception=${exception},host=${host}): pattern → ${pattern}`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
 	logger.error(`catch(exception=${exception},host=${host}): client → ${client}`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
     client.emit('exception', { pattern, message: exception.message });
+	logger.warn(`<<< Exiting catch(exception=${exception},host=${host})`, { "event.action": "catch", "logrite.exception": exception, "logrite.host": host });
   }
 }

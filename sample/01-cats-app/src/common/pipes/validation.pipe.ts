@@ -24,6 +24,7 @@ export class ValidationPipe implements PipeTransform<any> {
 	logger.error(`transform(value=${value},metadata=${metadata}): errors → ${errors}`, { "event.action": "transform", "logrite.value": value, "logrite.metadata": metadata });
       throw new BadRequestException('Validation failed');
     }
+	logger.warn(`<<< Exiting transform(value=${value},metadata=${metadata})`, { "event.action": "transform", "logrite.value": value, "logrite.metadata": metadata });
     return value;
   }
 

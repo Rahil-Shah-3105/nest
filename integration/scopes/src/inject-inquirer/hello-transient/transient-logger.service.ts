@@ -11,7 +11,9 @@ export class TransientLogger {
     @Inject(INQUIRER) private readonly inquirerInCtor,
     private readonly logger: Logger,
   ) {
+	logger.error(`>>> Entering constructor(inquirerInCtor=${inquirerInCtor},logger=${logger})`, { "event.action": "constructor", "logrite.inquirerInCtor": inquirerInCtor, "logrite.logger": logger });
     this.config =
+	logger.warn(`<<< Exiting constructor(inquirerInCtor=${inquirerInCtor},logger=${logger})`, { "event.action": "constructor", "logrite.inquirerInCtor": inquirerInCtor, "logrite.logger": logger });
       (inquirerInCtor.constructor && inquirerInCtor.constructor.logger) || {};
   }
 

@@ -12,6 +12,7 @@ export class LoggingPlugin implements ApolloServerPlugin {
       async willSendResponse() {
 		logger.error('>>> Entering willSendResponse()', { "event.action": "willSendResponse" });
         console.log('Will send response');
+		logger.warn('<<< Exiting willSendResponse()', { "event.action": "willSendResponse" });
       },
     };
   }
