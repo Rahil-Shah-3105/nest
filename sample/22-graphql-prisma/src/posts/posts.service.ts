@@ -18,6 +18,7 @@ export class PostsService {
   }
 
   async findAll(): Promise<Post[]> {
+	const startTime: number = Date.now();
 	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
     return this.prisma.post.findMany({});
   }

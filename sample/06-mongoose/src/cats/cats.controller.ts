@@ -40,6 +40,8 @@ export class CatsController {
   @Delete(':id')
   async delete(@Param('id') id: string) {
 	logger.error(`>>> Entering delete(id=${id})`, { "event.action": "delete", "logrite.id": id });
+	const _start_delete_41 = Date.now();
+	logger.error(`delete(id=${id}): API call took ${Date.now() - _start_delete_41} ms`, { "event.action": "delete", "event.category": "network", "logrite.id": id });
 	logger.warn(`<<< Exiting delete(id=${id})`, { "event.action": "delete", "logrite.id": id });
     return this.catsService.delete(id);
   }

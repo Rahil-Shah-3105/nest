@@ -34,6 +34,7 @@ export class SocketLifecycleTracker {
 	logger.error('>>> Entering reset()', { "event.action": "reset" });
     this.latestDisconnectState = undefined;
 	logger.debug(`reset(): this.latestDisconnectState → ${this.latestDisconnectState}`, { "event.action": "reset" });
+	logger.warn('<<< Exiting reset()', { "event.action": "reset" });
   }
 
   public recordDisconnect(client: TrackableSocket) {
@@ -44,6 +45,7 @@ export class SocketLifecycleTracker {
       hasRequestContextId: REQUEST_CONTEXT_ID in client,
     };
 	logger.debug(`recordDisconnect(client=${client}): this.latestDisconnectState → ${this.latestDisconnectState}`, { "event.action": "recordDisconnect", "logrite.client": client });
+	logger.warn(`<<< Exiting recordDisconnect(client=${client})`, { "event.action": "recordDisconnect", "logrite.client": client });
   }
 
   public getDisconnectState() {
@@ -65,6 +67,7 @@ export class ConnectionStateService {
   public snapshot(client: { id?: string }, source: 'connection' | 'message') {
 	logger.error(`>>> Entering snapshot(client=${client},source=${source})`, { "event.action": "snapshot", "logrite.client": client, "logrite.source": source });
 	logger.warn(`<<< Exiting snapshot(client=${client},source=${source})`, { "event.action": "snapshot", "logrite.client": client, "logrite.source": source });
+	logger.warn(`<<< Exiting constructor(client=${client})`, { "event.action": "constructor", "logrite.client": client });
     return {
       instanceId: this.instanceId,
       sequence: ++this.sequence,

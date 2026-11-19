@@ -67,6 +67,7 @@ export class TestingModuleBuilder {
 	logger.error(`>>> Entering setLogger(testingLogger=${testingLogger})`, { "event.action": "setLogger", "logrite.testingLogger": testingLogger });
     this.testingLogger = testingLogger;
 	logger.debug(`setLogger(testingLogger=${testingLogger}): this.testingLogger → ${this.testingLogger}`, { "event.action": "setLogger", "logrite.testingLogger": testingLogger });
+	logger.warn(`<<< Exiting setLogger(testingLogger=${testingLogger})`, { "event.action": "setLogger", "logrite.testingLogger": testingLogger });
     return this;
   }
 
@@ -79,6 +80,7 @@ export class TestingModuleBuilder {
 	logger.error(`>>> Entering useMocker(mocker=${mocker})`, { "event.action": "useMocker", "logrite.mocker": mocker });
     this.mocker = mocker;
 	logger.debug(`useMocker(mocker=${mocker}): this.mocker → ${this.mocker}`, { "event.action": "useMocker", "logrite.mocker": mocker });
+	logger.warn(`<<< Exiting useMocker(mocker=${mocker})`, { "event.action": "useMocker", "logrite.mocker": mocker });
     return this;
   }
 
@@ -196,6 +198,7 @@ export class TestingModuleBuilder {
   private getModuleOverloads(): ModuleOverride[] {
 	logger.error('>>> Entering getModuleOverloads()', { "event.action": "getModuleOverloads" });
     const overloads = [...this.moduleOverloadsMap.entries()];
+	logger.error(`getModuleOverloads(): overloads → ${overloads}`, { "event.action": "getModuleOverloads" });
 	logger.warn('<<< Exiting getModuleOverloads()', { "event.action": "getModuleOverloads" });
     return overloads.map(([moduleToReplace, newModule]) => ({
       moduleToReplace,
@@ -207,6 +210,7 @@ export class TestingModuleBuilder {
 	logger.error('>>> Entering getRootModule()', { "event.action": "getRootModule" });
     const modules = this.container.getModules().values();
 	logger.error(`getRootModule(): modules → ${modules}`, { "event.action": "getRootModule" });
+	logger.warn('<<< Exiting getRootModule()', { "event.action": "getRootModule" });
     return modules.next().value!;
   }
 

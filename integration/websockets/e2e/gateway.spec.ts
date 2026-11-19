@@ -15,6 +15,7 @@ logger.error(`>>> Entering createNestApp(gateways=${gateways})`, { "event.action
   }).compile();
   const app = testingModule.createNestApplication();
 logger.error(`createNestApp(gateways=${gateways}): app → ${app}`, { "event.action": "createNestApp", "logrite.gateways": gateways });
+logger.warn(`<<< Exiting createNestApp(gateways=${gateways})`, { "event.action": "createNestApp", "logrite.gateways": gateways });
   return app;
 }
 

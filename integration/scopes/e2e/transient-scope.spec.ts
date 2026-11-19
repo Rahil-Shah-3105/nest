@@ -18,6 +18,8 @@ class Meta {
 	logger.error(`>>> Entering constructor(nested=${nested})`, { "event.action": "constructor", "logrite.nested": nested });
     Meta.COUNTER++;
 	logger.warn(`<<< Exiting constructor(loggerService=${loggerService})`, { "event.action": "constructor", "logrite.loggerService": loggerService });
+	logger.error(`>>> Entering constructor(chain=${chain})`, { "event.action": "constructor", "logrite.chain": chain });
+	logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
   }
 }
 
@@ -95,6 +97,7 @@ describe('Transient scope', () => {
 
       constructor() {
         this.initialized = true;
+		logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
       }
     }
 
@@ -109,6 +112,7 @@ describe('Transient scope', () => {
 		logger.error(`>>> Entering constructor(loggerService=${loggerService})`, { "event.action": "constructor", "logrite.loggerService": loggerService });
         this.loggerService.context = 'SecondService';
 		logger.warn(`<<< Exiting constructor(loggerService=${loggerService})`, { "event.action": "constructor", "logrite.loggerService": loggerService });
+		logger.error(`>>> Entering constructor(nested=${nested})`, { "event.action": "constructor" });
       }
     }
 
@@ -119,7 +123,9 @@ describe('Transient scope', () => {
         public readonly loggerService: LoggerService,
         public readonly deepTransient: DeepTransient,
       ) {
+		logger.error(`>>> Entering constructor(secondService=${secondService},loggerService=${loggerService},deepTransient=${deepTransient})`, { "event.action": "constructor", "logrite.secondService": secondService, "logrite.loggerService": loggerService, "logrite.deepTransient": deepTransient });
         this.loggerService.context = 'FirstService';
+		logger.warn(`<<< Exiting constructor(secondService=${secondService},loggerService=${loggerService},deepTransient=${deepTransient})`, { "event.action": "constructor", "logrite.secondService": secondService, "logrite.loggerService": loggerService, "logrite.deepTransient": deepTransient });
       }
     }
 

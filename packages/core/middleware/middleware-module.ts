@@ -131,6 +131,7 @@ export class MiddlewareModule<
     const config = middlewareBuilder.build();
     middlewareContainer.insertConfig(config, moduleKey);
 	logger.error(`loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey}): config → ${config}`, { "event.action": "loadConfiguration", "logrite.middlewareContainer": middlewareContainer, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey });
+	logger.warn(`<<< Exiting loadConfiguration(middlewareContainer=${middlewareContainer},moduleRef=${moduleRef},moduleKey=${moduleKey})`, { "event.action": "loadConfiguration", "logrite.middlewareContainer": middlewareContainer, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey });
   }
 
   public async registerMiddleware(
@@ -189,6 +190,7 @@ export class MiddlewareModule<
     moduleKey: string,
     applicationRef: any,
   ) {
+	logger.error(`>>> Entering registerMiddlewareConfig(middlewareContainer=${middlewareContainer},config=${config},moduleKey=${moduleKey},applicationRef=${applicationRef})`, { "event.action": "registerMiddlewareConfig", "logrite.middlewareContainer": middlewareContainer, "logrite.config": config, "logrite.moduleKey": moduleKey, "logrite.applicationRef": applicationRef });
     const { forRoutes } = config;
     for (const routeInfo of forRoutes) {
       await this.registerRouteMiddleware(
@@ -255,6 +257,7 @@ export class MiddlewareModule<
         collection,
       );
     }
+	logger.warn(`<<< Exiting registerRouteMiddleware(middlewareContainer=${middlewareContainer},routeInfo=${routeInfo},config=${config},moduleKey=${moduleKey},applicationRef=${applicationRef})`, { "event.action": "registerRouteMiddleware", "logrite.middlewareContainer": middlewareContainer, "logrite.routeInfo": routeInfo, "logrite.config": config, "logrite.moduleKey": moduleKey, "logrite.applicationRef": applicationRef });
   }
 
   private async bindHandler(
@@ -264,6 +267,7 @@ export class MiddlewareModule<
     moduleRef: Module,
     collection: Map<InjectionToken, InstanceWrapper>,
   ) {
+	logger.error(`>>> Entering bindHandler(wrapper=${wrapper},applicationRef=${applicationRef},routeInfo=${routeInfo},moduleRef=${moduleRef},collection=${collection})`, { "event.action": "bindHandler", "logrite.wrapper": wrapper, "logrite.applicationRef": applicationRef, "logrite.routeInfo": routeInfo, "logrite.moduleRef": moduleRef, "logrite.collection": collection });
     const { instance, metatype } = wrapper;
 
     if (isUndefined(instance?.use)) {
@@ -299,6 +303,7 @@ export class MiddlewareModule<
           );
           return proxy(req, res, next);
         } catch (err) {
+		logger.error(`Exception in bindHandler(wrapper=${wrapper},applicationRef=${applicationRef},routeInfo=${routeInfo},moduleRef=${moduleRef},collection=${collection}): ${(err as Error).message}`, err, { "event.action": "bindHandler", "event.category": "process", "logrite.wrapper": wrapper, "logrite.applicationRef": applicationRef, "logrite.routeInfo": routeInfo, "logrite.moduleRef": moduleRef, "logrite.collection": collection });
           let exceptionsHandler = this.exceptionFiltersCache.get(instance.use);
           if (!exceptionsHandler) {
             exceptionsHandler = this.routerExceptionFilter.create(
@@ -329,6 +334,7 @@ export class MiddlewareModule<
     );
     const middleware = instance.use.bind(instance);
 	logger.error(`createProxy(instance=${instance},contextId=${contextId}): middleware → ${middleware}`, { "event.action": "createProxy", "logrite.instance": instance, "logrite.contextId": contextId });
+	logger.warn(`<<< Exiting createProxy(instance=${instance},contextId=${contextId})`, { "event.action": "createProxy", "logrite.instance": instance, "logrite.contextId": contextId });
     return this.routerProxy.createProxy(middleware, exceptionsHandler);
   }
 

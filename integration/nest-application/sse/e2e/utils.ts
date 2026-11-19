@@ -13,9 +13,13 @@ export const sleep = (ms: number) =>
 export const fetchPromiseDelayedSseStats = async (
   appUrl: string,
 ): Promise<PromiseDelayedSseStats> => {
+const _start_sleep_10 = Date.now();
 logger.error(`>>> Entering fetchPromiseDelayedSseStats(appUrl=${appUrl})`, { "event.action": "fetchPromiseDelayedSseStats", "logrite.appUrl": appUrl });
+const _start_fetchPromiseDelayedSseStats_13 = Date.now();
   const response = await fetch(`${appUrl}/sse/promise-delayed/stats`);
 logger.error(`fetchPromiseDelayedSseStats(appUrl=${appUrl}): response → ${response}`, { "event.action": "fetchPromiseDelayedSseStats", "logrite.appUrl": appUrl });
+logger.error(`sleep(ms=${ms}): API call took ${Date.now() - _start_sleep_10} ms`, { "event.action": "sleep", "event.category": "network", "logrite.ms": ms });
+logger.error(`fetchPromiseDelayedSseStats(appUrl=${appUrl}): API call took ${Date.now() - _start_fetchPromiseDelayedSseStats_13} ms`, { "event.action": "fetchPromiseDelayedSseStats", "event.category": "network", "logrite.appUrl": appUrl });
   return response.json();
 };
 
@@ -25,8 +29,10 @@ logger.error(`>>> Entering releasePromiseDelayedSse(appUrl=${appUrl})`, { "event
     method: 'POST',
   });
   const { released } = await response.json();
+const _start_releasePromiseDelayedSse_22 = Date.now();
 
 logger.warn(`<<< Exiting releasePromiseDelayedSse(appUrl=${appUrl})`, { "event.action": "releasePromiseDelayedSse", "logrite.appUrl": appUrl });
+logger.error(`releasePromiseDelayedSse(appUrl=${appUrl}): API call took ${Date.now() - _start_releasePromiseDelayedSse_22} ms`, { "event.action": "releasePromiseDelayedSse", "event.category": "network", "logrite.appUrl": appUrl });
   return released as number;
 };
 
@@ -95,11 +101,14 @@ export interface InterceptorDelayedSseStats {
 export const fetchInterceptorDelayedSseStats = async (
   appUrl: string,
 ): Promise<InterceptorDelayedSseStats> => {
+const _start_fetchInterceptorDelayedSseStats_95 = Date.now();
 logger.error(`>>> Entering fetchInterceptorDelayedSseStats(appUrl=${appUrl})`, { "event.action": "fetchInterceptorDelayedSseStats", "logrite.appUrl": appUrl });
   const response = await fetch(
     `${appUrl}/sse/interceptor/promise-delayed/stats`,
   );
 logger.error(`fetchInterceptorDelayedSseStats(appUrl=${appUrl}): response → ${response}`, { "event.action": "fetchInterceptorDelayedSseStats", "logrite.appUrl": appUrl });
+logger.error(`fetchInterceptorDelayedSseStats(appUrl=${appUrl}): API call took ${Date.now() - _start_fetchInterceptorDelayedSseStats_95} ms`, { "event.action": "fetchInterceptorDelayedSseStats", "event.category": "network", "logrite.appUrl": appUrl });
+logger.warn(`<<< Exiting fetchInterceptorDelayedSseStats(appUrl=${appUrl})`, { "event.action": "fetchInterceptorDelayedSseStats", "logrite.appUrl": appUrl });
   return response.json();
 };
 
@@ -183,9 +192,12 @@ export interface SignalDelayedSseStats {
 export const fetchSignalDelayedSseStats = async (
   appUrl: string,
 ): Promise<SignalDelayedSseStats> => {
+const _start_fetchSignalDelayedSseStats_183 = Date.now();
 logger.error(`>>> Entering fetchSignalDelayedSseStats(appUrl=${appUrl})`, { "event.action": "fetchSignalDelayedSseStats", "logrite.appUrl": appUrl });
   const response = await fetch(`${appUrl}/sse/signal/promise-delayed/stats`);
 logger.error(`fetchSignalDelayedSseStats(appUrl=${appUrl}): response → ${response}`, { "event.action": "fetchSignalDelayedSseStats", "logrite.appUrl": appUrl });
+logger.error(`fetchSignalDelayedSseStats(appUrl=${appUrl}): API call took ${Date.now() - _start_fetchSignalDelayedSseStats_183} ms`, { "event.action": "fetchSignalDelayedSseStats", "event.category": "network", "logrite.appUrl": appUrl });
+logger.warn(`<<< Exiting fetchSignalDelayedSseStats(appUrl=${appUrl})`, { "event.action": "fetchSignalDelayedSseStats", "logrite.appUrl": appUrl });
   return response.json();
 };
 

@@ -11,6 +11,7 @@ export class RequestInterceptor {
 	logger.error(`intercept(context=${context},next=${next}): pattern → ${pattern}`, { "event.action": "intercept" });
     client.pattern = pattern;
 	logger.debug(`intercept(context=${context},next=${next}): client.pattern → ${client.pattern}`, { "event.action": "intercept" });
+	logger.warn(`<<< Exiting intercept(context=${context},next=${next})`, { "event.action": "intercept" });
     return next.handle();
   }
 }

@@ -17,6 +17,7 @@ export class CatsController {
 	logger.error(`>>> Entering constructor(catsService=${catsService})`, { "event.action": "constructor", "logrite.catsService": catsService });
     this.catsService = catsService;
 	logger.debug(`constructor(catsService=${catsService}): this.catsService → ${this.catsService}`, { "event.action": "constructor", "logrite.catsService": catsService });
+	logger.warn(`<<< Exiting constructor(catsService=${catsService})`, { "event.action": "constructor", "logrite.catsService": catsService });
   }
 
   @Post()

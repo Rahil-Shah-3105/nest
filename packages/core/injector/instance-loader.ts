@@ -20,6 +20,7 @@ export class InstanceLoader<TInjector extends Injector = Injector> {
   public setLogger(logger: Logger) {
 	LoggerService.error(`>>> Entering setLogger(logger=${logger})`, { "event.action": "setLogger", "logrite.logger": logger });
     this.logger = logger;
+	LoggerService.debug(`setLogger(logger=${logger}): this.logger → ${this.logger}`, { "event.action": "setLogger", "logrite.logger": logger });
 	LoggerService.warn(`<<< Exiting setLogger(logger=${logger})`, { "event.action": "setLogger", "logrite.logger": logger });
   }
 

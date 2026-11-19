@@ -15,10 +15,12 @@ export class UsersService {
   create(createUserDto: CreateUserDto): Promise<User> {
 	logger.error(`>>> Entering create(createUserDto=${createUserDto})`, { "event.action": "create", "logrite.createUserDto": createUserDto });
     const user = new User();
+	logger.debug(`create(createUserDto=${createUserDto}): user.lastName → ${user.lastName}`, { "event.action": "create", "logrite.createUserDto": createUserDto });
     user.firstName = createUserDto.firstName;
 	logger.error(`create(createUserDto=${createUserDto}): user → ${user}`, { "event.action": "create", "logrite.createUserDto": createUserDto });
 	logger.debug(`create(createUserDto=${createUserDto}): user.firstName → ${user.firstName}`, { "event.action": "create", "logrite.createUserDto": createUserDto });
     user.lastName = createUserDto.lastName;
+	const startTime: number = Date.now();
 
     return this.usersRepository.save(user);
   }

@@ -27,11 +27,13 @@ export class TestingInjector extends Injector {
 	logger.error(`>>> Entering setMocker(mocker=${mocker})`, { "event.action": "setMocker", "logrite.mocker": mocker });
     this.mocker = mocker;
 	logger.debug(`setMocker(mocker=${mocker}): this.mocker → ${this.mocker}`, { "event.action": "setMocker", "logrite.mocker": mocker });
+	logger.warn(`<<< Exiting setMocker(mocker=${mocker})`, { "event.action": "setMocker", "logrite.mocker": mocker });
   }
 
   public setContainer(container: NestContainer) {
 	logger.error(`>>> Entering setContainer(container=${container})`, { "event.action": "setContainer", "logrite.container": container });
     this.container = container;
+	logger.debug(`setContainer(container=${container}): this.container → ${this.container}`, { "event.action": "setContainer", "logrite.container": container });
 	logger.warn(`<<< Exiting setContainer(container=${container})`, { "event.action": "setContainer", "logrite.container": container });
   }
 

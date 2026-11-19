@@ -13,7 +13,9 @@ export class BusinessEntity {
       id: business.user.id,
     };
     this.created = new Date();
+	logger.debug(`constructor(business=${business}): this.createdBy → ${this.createdBy}`, { "event.action": "constructor", "logrite.business": business });
 	logger.debug(`constructor(business=${business}): this.phone → ${this.phone}`, { "event.action": "constructor", "logrite.business": business });
+	logger.warn(`<<< Exiting constructor(business=${business})`, { "event.action": "constructor", "logrite.business": business });
   }
   id: number;
   name: string;

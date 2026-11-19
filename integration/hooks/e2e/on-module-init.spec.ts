@@ -47,6 +47,7 @@ describe('OnModuleInit', () => {
       async onModuleInit() {
 		logger.error('>>> Entering onModuleInit()', { "event.action": "onModuleInit" });
         this.field = 'c-field';
+		logger.debug(`onModuleInit(): this.field → ${this.field}`, { "event.action": "onModuleInit" });
 		logger.warn('<<< Exiting onModuleInit()', { "event.action": "onModuleInit" });
       }
     }

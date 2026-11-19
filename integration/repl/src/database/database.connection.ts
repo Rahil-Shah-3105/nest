@@ -18,6 +18,7 @@ export class DatabaseConnection implements OnModuleDestroy {
 	logger.error('>>> Entering onModuleDestroy()', { "event.action": "onModuleDestroy" });
     this.keepAlive = false;
 	logger.debug(`onModuleDestroy(): this.keepAlive → ${this.keepAlive}`, { "event.action": "onModuleDestroy" });
+	logger.warn('<<< Exiting onModuleDestroy()', { "event.action": "onModuleDestroy" });
   }
 
   maintainConnection() {

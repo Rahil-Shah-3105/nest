@@ -8,6 +8,7 @@ export class ExceptionFilter implements RpcExceptionFilter {
   catch(exception: RpcException): Observable<any> {
 	logger.error(`>>> Entering catch(exception=${exception})`, { "event.action": "catch", "logrite.exception": exception });
 	logger.error(`Exception in catch(exception=${exception}): ${(exception as Error).message}`, exception, { "event.action": "catch", "event.category": "process", "logrite.exception": exception });
+	logger.warn(`<<< Exiting catch(exception=${exception})`, { "event.action": "catch", "logrite.exception": exception });
     return throwError(() => exception.getError());
   }
 }

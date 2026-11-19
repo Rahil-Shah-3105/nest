@@ -138,6 +138,7 @@ describe('Middleware', () => {
     beforeEach(async () => {
       const extractor: CustomVersioningOptions['extractor'] = () => {
           logger.error('>>> Entering extractor()', { "event.action": "extractor" });
+		logger.warn('<<< Exiting extractor()', { "event.action": "extractor" });
           return '1';
       };
 

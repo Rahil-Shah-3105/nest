@@ -8,6 +8,7 @@ import {
   type Type,
 } from '@nestjs/common';
 import multer from 'multer';
+logger = new Logger(ExpressAdapter.name);
 import { Observable } from 'rxjs';
 import { MULTER_MODULE_OPTIONS } from '../files.constants.js';
 import { MulterModuleOptions } from '../interfaces/index.js';
@@ -46,6 +47,7 @@ export function FileFieldsInterceptor(
       context: ExecutionContext,
       next: CallHandler,
     ): Promise<Observable<any>> {
+	logger.error(`>>> Entering intercept(context=${context},next=${next})`, { "event.action": "intercept" });
       const ctx = context.switchToHttp();
 
       await new Promise<void>((resolve, reject) =>
@@ -54,13 +56,16 @@ export function FileFieldsInterceptor(
           ctx.getResponse(),
           (err: any) => {
             if (err) {
+			logger.error(`intercept(context=${context},next=${next}): ctx → ${ctx}`, { "event.action": "intercept" });
               const error = transformException(err);
+			logger.error(`intercept(context=${context},next=${next}): error → ${error}`, { "event.action": "intercept" });
               return reject(error);
             }
             resolve();
           },
         ),
       );
+	logger.warn(`<<< Exiting intercept(context=${context},next=${next})`, { "event.action": "intercept" });
       return next.handle();
     }
   }

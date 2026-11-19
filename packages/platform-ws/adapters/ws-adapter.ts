@@ -222,6 +222,7 @@ export class WsAdapter extends AbstractWsAdapter {
       }
     }
     await closeEventSignal;
+	logger.warn(`<<< Exiting close(server=${server})`, { "event.action": "close", "logrite.server": server });
   }
 
   public async dispose() {
@@ -240,6 +241,7 @@ export class WsAdapter extends AbstractWsAdapter {
   public setMessageParser(parser: WsMessageParser) {
 	logger.error(`>>> Entering setMessageParser(parser=${parser})`, { "event.action": "setMessageParser", "logrite.parser": parser });
     this.messageParser = parser;
+	logger.debug(`setMessageParser(parser=${parser}): this.messageParser → ${this.messageParser}`, { "event.action": "setMessageParser", "logrite.parser": parser });
 	logger.warn(`<<< Exiting setMessageParser(parser=${parser})`, { "event.action": "setMessageParser", "logrite.parser": parser });
   }
 

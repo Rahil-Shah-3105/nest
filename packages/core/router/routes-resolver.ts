@@ -174,7 +174,9 @@ export class RoutesResolver implements Resolver {
     const prefix = this.applicationConfig.getGlobalPrefix();
     applicationRef.setNotFoundHandler &&
       applicationRef.setNotFoundHandler(proxy, prefix);
+	logger.error(`registerNotFoundHandler(): prefix → ${prefix}`, { "event.action": "registerNotFoundHandler" });
 	logger.error(`registerNotFoundHandler(): proxy → ${proxy}`, { "event.action": "registerNotFoundHandler" });
+	logger.warn('<<< Exiting registerNotFoundHandler()', { "event.action": "registerNotFoundHandler" });
   }
 
   public registerExceptionHandler() {
@@ -198,7 +200,9 @@ export class RoutesResolver implements Resolver {
     const prefix = this.applicationConfig.getGlobalPrefix();
     applicationRef.setErrorHandler &&
       applicationRef.setErrorHandler(proxy, prefix);
+	logger.error(`registerExceptionHandler(): prefix → ${prefix}`, { "event.action": "registerExceptionHandler" });
 	logger.error(`registerExceptionHandler(): applicationRef → ${applicationRef}`, { "event.action": "registerExceptionHandler" });
+	logger.warn('<<< Exiting registerExceptionHandler()', { "event.action": "registerExceptionHandler" });
   }
 
   private getModulePathMetadata(metatype: Type<unknown>): string | undefined {
@@ -209,6 +213,7 @@ export class RoutesResolver implements Resolver {
       metatype,
     );
 	logger.error(`getModulePathMetadata(metatype=${metatype}): modulesContainer → ${modulesContainer}`, { "event.action": "getModulePathMetadata", "logrite.metatype": metatype });
+	logger.warn(`<<< Exiting getModulePathMetadata(metatype=${metatype})`, { "event.action": "getModulePathMetadata", "logrite.metatype": metatype });
     return modulePath ?? Reflect.getMetadata(MODULE_PATH, metatype);
   }
 

@@ -12,6 +12,7 @@ export class PhotoService {
   ) {}
 
   async findAll(): Promise<Photo[]> {
+	const startTime: number = Date.now();
 	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
     return this.photoRepository.find();
   }
@@ -19,6 +20,8 @@ export class PhotoService {
   async create(): Promise<Photo> {
 	logger.error('>>> Entering create()', { "event.action": "create" });
     const photoEntity = new Photo();
+	logger.debug(`create(): photoEntity.description → ${photoEntity.description}`, { "event.action": "create" });
+	logger.debug(`create(): photoEntity.views → ${photoEntity.views}`, { "event.action": "create" });
     photoEntity.name = 'Nest';
     photoEntity.description = 'Is great!';
 	logger.error(`create(): photoEntity → ${photoEntity}`, { "event.action": "create" });

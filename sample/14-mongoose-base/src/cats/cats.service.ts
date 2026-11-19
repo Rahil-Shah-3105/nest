@@ -12,6 +12,7 @@ export class CatsService {
 	logger.error(`>>> Entering create(createCatDto=${createCatDto})`, { "event.action": "create", "logrite.createCatDto": createCatDto });
     const createdCat = this.catModel.create(createCatDto);
 	logger.error(`create(createCatDto=${createCatDto}): createdCat → ${createdCat}`, { "event.action": "create", "logrite.createCatDto": createCatDto });
+	logger.warn(`<<< Exiting create(createCatDto=${createCatDto})`, { "event.action": "create", "logrite.createCatDto": createCatDto });
     return createdCat;
   }
 

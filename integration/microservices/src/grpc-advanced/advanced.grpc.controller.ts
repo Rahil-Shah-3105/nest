@@ -41,6 +41,7 @@ export class AdvancedGrpcController {
 	logger.error(`>>> Entering call(id=${id})`, { "event.action": "call", "logrite.id": id });
     const svc = this.client.getService<any>('OrderService');
 	logger.error(`call(id=${id}): svc → ${svc}`, { "event.action": "call", "logrite.id": id });
+	logger.warn(`<<< Exiting call(id=${id})`, { "event.action": "call", "logrite.id": id });
     return svc.find({ id });
   }
 
@@ -64,6 +65,7 @@ export class AdvancedGrpcController {
       },
     });
     upstream.complete();
+	logger.error(`stream(): upstream → ${upstream}`, { "event.action": "stream" });
 	logger.error(`stream(): svc → ${svc}`, { "event.action": "stream" });
 	logger.warn('<<< Exiting stream()', { "event.action": "stream" });
     return svc.streamReq(upstream);
@@ -132,6 +134,7 @@ export class AdvancedGrpcController {
   async syncCall(stream: any) {
 	logger.error(`>>> Entering syncCall(stream=${stream})`, { "event.action": "syncCall", "logrite.stream": stream });
     stream.on('data', (msg: any) => {
+	logger.warn(`<<< Exiting syncCall(stream=${stream})`, { "event.action": "syncCall", "logrite.stream": stream });
       stream.write({
         id: 1,
         itemTypes: [1],
@@ -164,6 +167,7 @@ export class AdvancedGrpcController {
       complete: () => s.complete(),
     });
 	logger.error(`streamReq(messages=${messages}): o → ${o}`, { "event.action": "streamReq", "logrite.messages": messages });
+	logger.warn(`<<< Exiting streamReq(messages=${messages})`, { "event.action": "streamReq", "logrite.messages": messages });
     return o;
   }
 

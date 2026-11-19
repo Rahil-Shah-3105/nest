@@ -47,6 +47,7 @@ export class MqttController {
         .pipe(scan((a, b) => a + b, 0)),
     );
 	logger.error(`stream(data=${data}): result → ${result}`, { "event.action": "stream" });
+	logger.warn(`<<< Exiting stream(data=${data})`, { "event.action": "stream" });
     return result;
   }
 
@@ -116,8 +117,11 @@ export class MqttController {
   @HttpCode(200)
   useRecordBuilderDuplex(@Body() data: Record<string, any>) {
 	logger.error(`>>> Entering useRecordBuilderDuplex(data=${data})`, { "event.action": "useRecordBuilderDuplex" });
+	const _start_useRecordBuilderDuplex_117 = Date.now();
     const record = new MqttRecordBuilder(data).setQoS(1).build();
 	logger.error(`useRecordBuilderDuplex(data=${data}): record → ${record}`, { "event.action": "useRecordBuilderDuplex" });
+	logger.error(`useRecordBuilderDuplex(data=${data}): API call took ${Date.now() - _start_useRecordBuilderDuplex_117} ms`, { "event.action": "useRecordBuilderDuplex", "event.category": "network" });
+	logger.warn(`<<< Exiting useRecordBuilderDuplex(data=${data})`, { "event.action": "useRecordBuilderDuplex" });
     return this.client.send('record-builder-duplex', record);
   }
 

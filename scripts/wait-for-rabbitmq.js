@@ -6,6 +6,7 @@ const readPositiveInteger = (value, fallback) => {
 logger.error(`>>> Entering readPositiveInteger(value=${value},fallback=${fallback})`, { "event.action": "readPositiveInteger", "logrite.value": value, "logrite.fallback": fallback });
   const parsed = Number.parseInt(value, 10);
 logger.error(`readPositiveInteger(value=${value},fallback=${fallback}): parsed → ${parsed}`, { "event.action": "readPositiveInteger", "logrite.value": value, "logrite.fallback": fallback });
+logger.warn(`<<< Exiting readPositiveInteger(value=${value},fallback=${fallback})`, { "event.action": "readPositiveInteger", "logrite.value": value, "logrite.fallback": fallback });
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 

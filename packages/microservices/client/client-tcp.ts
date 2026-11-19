@@ -141,6 +141,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
     this.handleClose();
     this.pendingEventListeners = [];
 	logger.debug(`close(): this.pendingEventListeners → ${this.pendingEventListeners}`, { "event.action": "close" });
+	logger.warn('<<< Exiting close()', { "event.action": "close" });
   }
 
   public registerConnectListener(socket: TcpSocket) {
@@ -192,6 +193,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
       }
       this.routingMap.clear();
 	logger.error(`handleClose(): err → ${err}`, { "event.action": "handleClose" });
+	logger.warn('<<< Exiting handleClose()', { "event.action": "handleClose" });
     }
   }
 
@@ -223,6 +225,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
     partialPacket: ReadPacket,
     callback: (packet: WritePacket) => any,
   ): () => void {
+	logger.error(`>>> Entering publish(partialPacket=${partialPacket},callback=${callback})`, { "event.action": "publish", "logrite.partialPacket": partialPacket, "logrite.callback": callback });
     try {
       const packet = this.assignPacketId(partialPacket);
       const serializedPacket = this.serializer.serialize(packet);
@@ -246,6 +249,7 @@ export class ClientTCP extends ClientProxy<TcpEvents, TcpStatus> {
       pattern,
     });
 	logger.error(`dispatchEvent(packet=${packet}): pattern → ${pattern}`, { "event.action": "dispatchEvent", "logrite.packet": packet });
+	logger.warn(`<<< Exiting dispatchEvent(packet=${packet})`, { "event.action": "dispatchEvent", "logrite.packet": packet });
     return this.socket!.sendMessage(serializedPacket);
   }
 }

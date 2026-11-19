@@ -67,6 +67,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
 	logger.debug(`close(): this.natsClient → ${this.natsClient}`, { "event.action": "close" });
     this.connectionPromise = null;
 	logger.debug(`close(): this.connectionPromise → ${this.connectionPromise}`, { "event.action": "close" });
+	logger.warn('<<< Exiting close()', { "event.action": "close" });
   }
 
   public async connect(): Promise<any> {
@@ -78,6 +79,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
     this.natsClient = await this.connectionPromise.catch(err => {
 	logger.error('Exception in connect()', { "event.action": "connect", "event.category": "process" });
       this.connectionPromise = null;
+	logger.debug(`connect(): this.connectionPromise → ${this.connectionPromise}`, { "event.action": "connect" });
       throw err;
     });
 
@@ -104,6 +106,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
     }
 
     const options = this.options || ({} as NatsOptions);
+	logger.error(`createClient(): options → ${options}`, { "event.action": "createClient" });
 	logger.warn('<<< Exiting createClient()', { "event.action": "createClient" });
     return natsPackage.connect({
       servers: NATS_DEFAULT_URL,
@@ -212,6 +215,7 @@ export class ClientNats extends ClientProxy<NatsEvents, NatsStatus> {
     packet: ReadPacket & PacketId,
     callback: (packet: WritePacket) => any,
   ) {
+	logger.error(`>>> Entering createSubscriptionHandler(packet=${packet},callback=${callback})`, { "event.action": "createSubscriptionHandler", "logrite.packet": packet, "logrite.callback": callback });
     return async (error: Error | null, natsMsg: NatsMsg) => {
       if (error) {
         return callback({

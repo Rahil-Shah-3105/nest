@@ -26,6 +26,7 @@ export function upperDirectiveTransformer(
 		logger.error(`resolve(source=${source},args=${args},context=${context},info=${info}): result → ${result}`, { "event.action": "resolve", "logrite.source": source });
             return result.toUpperCase();
           }
+		logger.warn(`<<< Exiting resolve(source=${source},args=${args},context=${context},info=${info})`, { "event.action": "resolve", "logrite.source": source });
           return result;
         };
         return fieldConfig;

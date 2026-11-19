@@ -16,6 +16,7 @@ export class WebhooksExplorer {
       metadataKey: Webhook.KEY,
     });
 	logger.warn('<<< Exiting getWebhooks()', { "event.action": "getWebhooks" });
+	logger.error(`getWebhooks(): webhooks → ${webhooks}`, { "event.action": "getWebhooks" });
     return webhooks.map(wrapper => {
       const { name } = this.discoveryService.getMetadataByDecorator(
         Webhook,

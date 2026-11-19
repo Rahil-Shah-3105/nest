@@ -184,6 +184,7 @@ export class FastifyAdapter<
 		logger.error(`>>> Entering get(version=${version})`, { "event.action": "get", "logrite.version": version });
           if (Array.isArray(version)) {
 			logger.error(`storage(): versions → ${versions}`, { "event.action": "storage" });
+			logger.warn(`<<< Exiting get(args=${args})`, { "event.action": "get" });
             return versions.get(version.find(v => versions.has(v))!) || null;
           }
 		logger.warn(`<<< Exiting get(version=${version})`, { "event.action": "get", "logrite.version": version });
@@ -310,6 +311,7 @@ export class FastifyAdapter<
   ) {
 	logger.error(`>>> Entering setOnRequestHook(hook=${hook})`, { "event.action": "setOnRequestHook", "logrite.hook": hook });
     this.onRequestHook = hook;
+	logger.debug(`setOnRequestHook(hook=${hook}): this.onRequestHook → ${this.onRequestHook}`, { "event.action": "setOnRequestHook", "logrite.hook": hook });
 	logger.warn(`<<< Exiting setOnRequestHook(hook=${hook})`, { "event.action": "setOnRequestHook", "logrite.hook": hook });
   }
 
@@ -322,6 +324,7 @@ export class FastifyAdapter<
   ) {
 	logger.error(`>>> Entering setOnResponseHook(hook=${hook})`, { "event.action": "setOnResponseHook", "logrite.hook": hook });
     this.onResponseHook = hook;
+	logger.debug(`setOnResponseHook(hook=${hook}): this.onResponseHook → ${this.onResponseHook}`, { "event.action": "setOnResponseHook", "logrite.hook": hook });
 	logger.warn(`<<< Exiting setOnResponseHook(hook=${hook})`, { "event.action": "setOnResponseHook", "logrite.hook": hook });
   }
 
@@ -340,6 +343,7 @@ export class FastifyAdapter<
       this.pendingMiddlewares = [];
 	logger.debug(`init(): this.pendingMiddlewares → ${this.pendingMiddlewares}`, { "event.action": "init" });
     }
+	logger.warn('<<< Exiting init()', { "event.action": "init" });
   }
 
   public listen(port: string | number, callback?: () => void): void;
@@ -648,6 +652,7 @@ export class FastifyAdapter<
 	logger.error('>>> Entering initHttpServer()', { "event.action": "initHttpServer" });
     this.httpServer = this.instance.server;
 	logger.debug(`initHttpServer(): this.httpServer → ${this.httpServer}`, { "event.action": "initHttpServer" });
+	logger.warn('<<< Exiting initHttpServer()', { "event.action": "initHttpServer" });
   }
 
   public async useStaticAssets(options: FastifyStaticOptions) {
@@ -754,6 +759,7 @@ export class FastifyAdapter<
         : prefix
       : undefined;
 	logger.warn(`<<< Exiting registerParserMiddleware(prefix=${prefix},rawBody=${rawBody})`, { "event.action": "registerParserMiddleware", "logrite.prefix": prefix, "logrite.rawBody": rawBody });
+	logger.debug(`registerParserMiddleware(prefix=${prefix},rawBody=${rawBody}): this._pathPrefix → ${this._pathPrefix}`, { "event.action": "registerParserMiddleware", "logrite.prefix": prefix, "logrite.rawBody": rawBody });
   }
 
   public useBodyParser(
@@ -982,6 +988,7 @@ export class FastifyAdapter<
       middie as unknown as Parameters<TInstance['register']>[0],
     );
 	logger.debug(`registerMiddie(): this.isMiddieRegistered → ${this.isMiddieRegistered}`, { "event.action": "registerMiddie" });
+	logger.warn('<<< Exiting registerMiddie()', { "event.action": "registerMiddie" });
   }
 
   private getRequestOriginalUrl(rawRequest: TRawRequest) {
@@ -1089,6 +1096,7 @@ export class FastifyAdapter<
       url = url.toLowerCase();
     }
 	logger.error(`sanitizeUrl(url=${url}): url → ${url}`, { "event.action": "sanitizeUrl", "logrite.url": url });
+	logger.warn(`<<< Exiting sanitizeUrl(url=${url})`, { "event.action": "sanitizeUrl", "logrite.url": url });
     return safeDecodeURI(
       url,
       routerOptions.useSemicolonDelimiter ||

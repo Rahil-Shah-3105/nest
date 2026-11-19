@@ -29,6 +29,7 @@ function frame(obj: unknown): string {
 logger.error(`>>> Entering frame(obj=${obj})`, { "event.action": "frame", "logrite.obj": obj });
   const json = JSON.stringify(obj);
 logger.error(`frame(obj=${obj}): json → ${json}`, { "event.action": "frame", "logrite.obj": obj });
+logger.warn(`<<< Exiting frame(obj=${obj})`, { "event.action": "frame", "logrite.obj": obj });
   return `${json.length}#${json}`;
 }
 

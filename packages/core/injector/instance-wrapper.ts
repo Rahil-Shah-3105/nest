@@ -155,6 +155,7 @@ export class InstanceWrapper<T = any> {
       return this.getInstanceByInquirerId(contextId, inquirerId);
     }
     const instancePerContext = this.values.get(contextId);
+	LoggerService.error(`getInstanceByContextId(contextId=${contextId},inquirerId=${inquirerId}): instancePerContext → ${instancePerContext}`, { "event.action": "getInstanceByContextId", "logrite.contextId": contextId, "logrite.inquirerId": inquirerId });
 	LoggerService.warn(`<<< Exiting getInstanceByContextId(contextId=${contextId},inquirerId=${inquirerId})`, { "event.action": "getInstanceByContextId", "logrite.contextId": contextId, "logrite.inquirerId": inquirerId });
     return instancePerContext
       ? instancePerContext
@@ -182,6 +183,7 @@ export class InstanceWrapper<T = any> {
     return instancePerContext
       ? instancePerContext
       : this.cloneTransientInstance(contextId, inquirerId);
+	LoggerService.error(`getInstanceByInquirerId(contextId=${contextId},inquirerId=${inquirerId}): instancePerContext → ${instancePerContext}`, { "event.action": "getInstanceByInquirerId", "logrite.contextId": contextId, "logrite.inquirerId": inquirerId });
 	LoggerService.warn(`<<< Exiting getInstanceByInquirerId(contextId=${contextId},inquirerId=${inquirerId})`, { "event.action": "getInstanceByInquirerId", "logrite.contextId": contextId, "logrite.inquirerId": inquirerId });
   }
 
@@ -231,6 +233,7 @@ export class InstanceWrapper<T = any> {
     }
     collection.delete(contextId);
 	LoggerService.error(`removeInstanceByInquirerId(contextId=${contextId},inquirerId=${inquirerId}): collection → ${collection}`, { "event.action": "removeInstanceByInquirerId", "logrite.contextId": contextId, "logrite.inquirerId": inquirerId });
+	LoggerService.warn(`<<< Exiting removeInstanceByInquirerId(contextId=${contextId},inquirerId=${inquirerId})`, { "event.action": "removeInstanceByInquirerId", "logrite.contextId": contextId, "logrite.inquirerId": inquirerId });
   }
 
   public addCtorMetadata(index: number, wrapper: InstanceWrapper) {
@@ -538,6 +541,7 @@ export class InstanceWrapper<T = any> {
       return [];
     }
     const instances = [...this.transientMap.values()];
+	LoggerService.error(`getStaticTransientInstances(): instances → ${instances}`, { "event.action": "getStaticTransientInstances" });
 	LoggerService.warn('<<< Exiting getStaticTransientInstances()', { "event.action": "getStaticTransientInstances" });
     return iterate(instances)
       .map(item => item.get(STATIC_CONTEXT))

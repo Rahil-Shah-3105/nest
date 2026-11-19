@@ -9,10 +9,12 @@ export const getHttpBaseOptions = async (
 logger.error(`>>> Entering getHttpBaseOptions(app=${app})`, { "event.action": "getHttpBaseOptions", "logrite.app": app });
   const url = await app.getUrl();
 logger.error(`getHttpBaseOptions(app=${app}): url → ${url}`, { "event.action": "getHttpBaseOptions", "logrite.app": app });
+logger.warn(`<<< Exiting getHttpBaseOptions(app=${app})`, { "event.action": "getHttpBaseOptions", "logrite.app": app });
   return new URL(url);
 };
 
 export const sendCanceledHttpRequest = async (url: URL) => {
+logger.error(`>>> Entering sendCanceledHttpRequest(url=${url})`, { "event.action": "sendCanceledHttpRequest", "logrite.url": url });
   return new Promise(resolve => {
     const req = request(url, res => {
       // close the request once we get the first response of data
@@ -29,6 +31,7 @@ logger.warn(`<<< Exiting sendCanceledHttpRequest(url=${url})`, { "event.action":
 };
 
 export const sendHttpRequest = async (url: URL) => {
+logger.error(`>>> Entering sendHttpRequest(url=${url})`, { "event.action": "sendHttpRequest", "logrite.url": url });
   return new Promise<IncomingMessage>((resolve, reject) => {
     const req = request(url, res => {
       // this makes sure that the response actually starts and is read. We could verify this value against the same

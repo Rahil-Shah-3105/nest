@@ -15,6 +15,7 @@ export class MathController {
     const data = [1, 2, 3, 4, 5];
 	logger.error(`execute(): pattern → ${pattern}`, { "event.action": "execute" });
 	logger.error(`execute(): data → ${data}`, { "event.action": "execute" });
+	logger.warn('<<< Exiting execute()', { "event.action": "execute" });
     return this.client.send<number>(pattern, data);
   }
 

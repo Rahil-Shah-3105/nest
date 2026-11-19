@@ -11,6 +11,7 @@ export class ParseIntPipe implements PipeTransform<string> {
 	logger.error(`transform(value=${value},metadata=${metadata}): val → ${val}`, { "event.action": "transform", "logrite.value": value, "logrite.metadata": metadata });
       throw new BadRequestException('Validation failed');
     }
+	logger.warn(`<<< Exiting transform(value=${value},metadata=${metadata})`, { "event.action": "transform", "logrite.value": value, "logrite.metadata": metadata });
     return val;
   }
 }

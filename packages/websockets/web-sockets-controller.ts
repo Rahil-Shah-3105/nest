@@ -221,6 +221,7 @@ export class WebSocketsController {
     connectionHandler?: Function,
     disconnectHandler?: Function,
   ) {
+	logger.error(`>>> Entering subscribeEvents(instanceWrapper=${instanceWrapper},subscribersMap=${subscribersMap},observableServer=${observableServer},connectionHandler=${connectionHandler},disconnectHandler=${disconnectHandler})`, { "event.action": "subscribeEvents", "logrite.instanceWrapper": instanceWrapper, "logrite.subscribersMap": subscribersMap, "logrite.observableServer": observableServer, "logrite.connectionHandler": connectionHandler, "logrite.disconnectHandler": disconnectHandler });
     const { instance } = instanceWrapper;
     const { init, disconnect, connection, server } = observableServer;
     const adapter = this.config.getIoAdapter();
@@ -248,6 +249,7 @@ export class WebSocketsController {
     disconnect: Subject<any>,
     connection: Subject<any>,
   ) {
+	logger.error(`>>> Entering getConnectionHandler(context=${context},instance=${instance},subscribersMap=${subscribersMap},disconnect=${disconnect},connection=${connection})`, { "event.action": "getConnectionHandler", "logrite.instance": instance, "logrite.subscribersMap": subscribersMap, "logrite.disconnect": disconnect });
     const adapter = this.config.getIoAdapter();
     return (...args: unknown[]) => {
       const [client] = args;
@@ -338,6 +340,7 @@ export class WebSocketsController {
       fromPromise(this.pickResult(data)).pipe(mergeAll()),
     );
 	logger.error(`subscribeMessages(subscribersMap=${subscribersMap},client=${client},instance=${instance}): adapter → ${adapter}`, { "event.action": "subscribeMessages", "logrite.subscribersMap": subscribersMap, "logrite.client": client, "logrite.instance": instance });
+	logger.warn(`<<< Exiting subscribeMessages(subscribersMap=${subscribersMap},client=${client},instance=${instance})`, { "event.action": "subscribeMessages", "logrite.subscribersMap": subscribersMap, "logrite.client": client, "logrite.instance": instance });
   }
 
   public async pickResult(
@@ -352,6 +355,7 @@ export class WebSocketsController {
 	logger.error(`pickResult(deferredResult=${deferredResult}): result → ${result}`, { "event.action": "pickResult", "logrite.deferredResult": deferredResult });
       return fromPromise(result);
     }
+	logger.warn(`<<< Exiting pickResult(deferredResult=${deferredResult})`, { "event.action": "pickResult", "logrite.deferredResult": deferredResult });
     return of(result);
   }
 
@@ -386,6 +390,7 @@ export class WebSocketsController {
     moduleKey: string,
     methodName: string,
   ) {
+	logger.error(`>>> Entering createRequestScopedHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName})`, { "event.action": "createRequestScopedHandler", "logrite.instanceWrapper": instanceWrapper, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.methodName": methodName });
     const { instance } = instanceWrapper;
     const collection = moduleRef.providers;
     const isTreeDurable = instanceWrapper.isDependencyTreeDurable();
@@ -413,6 +418,7 @@ export class WebSocketsController {
           instanceWrapper.id,
         )(...args);
       } catch (err) {
+		logger.error(`Exception in createRequestScopedHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName}): ${(err as Error).message}`, err, { "event.action": "createRequestScopedHandler", "event.category": "process", "logrite.instanceWrapper": instanceWrapper, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.methodName": methodName });
         let exceptionFilter = this.exceptionFiltersCache.get(
           instance[methodName],
         );
@@ -439,6 +445,7 @@ export class WebSocketsController {
     methodName: 'handleConnection' | 'handleDisconnect',
     server: object,
   ) {
+	logger.error(`>>> Entering createRequestScopedEventHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName},server=${server})`, { "event.action": "createRequestScopedEventHandler", "logrite.instanceWrapper": instanceWrapper, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.methodName": methodName, "logrite.server": server });
     const { instance } = instanceWrapper;
     const collection = moduleRef.providers;
     const isTreeDurable = instanceWrapper.isDependencyTreeDurable();
@@ -465,6 +472,7 @@ export class WebSocketsController {
           | undefined;
         return scopedMethod?.apply(contextInstance, args);
       } catch (err) {
+		logger.error(`Exception in createRequestScopedEventHandler(instanceWrapper=${instanceWrapper},moduleRef=${moduleRef},moduleKey=${moduleKey},methodName=${methodName},server=${server}): ${(err as Error).message}`, err, { "event.action": "createRequestScopedEventHandler", "event.category": "process", "logrite.instanceWrapper": instanceWrapper, "logrite.moduleRef": moduleRef, "logrite.moduleKey": moduleKey, "logrite.methodName": methodName, "logrite.server": server });
         if (!targetCallback) {
           throw err;
         }

@@ -11,6 +11,7 @@ export class CatsService {
   create(cat: Cat): Cat {
 	logger.error(`>>> Entering create(cat=${cat})`, { "event.action": "create", "logrite.cat": cat });
     cat.id = this.cats.length + 1;
+	logger.debug(`create(cat=${cat}): cat.id → ${cat.id}`, { "event.action": "create", "logrite.cat": cat });
     this.cats.push(cat);
 	logger.warn(`<<< Exiting create(cat=${cat})`, { "event.action": "create", "logrite.cat": cat });
     return cat;

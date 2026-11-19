@@ -13,6 +13,7 @@ export class PhotoService {
 
   async findAll(): Promise<Photo[]> {
 	logger.error('>>> Entering findAll()', { "event.action": "findAll" });
+	const startTime: number = Date.now();
 	logger.warn('<<< Exiting findAll()', { "event.action": "findAll" });
     return this.photoRepository.find();
   }

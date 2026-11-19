@@ -16,6 +16,7 @@ export class AuthGuard implements CanActivate {
 	logger.error(`canActivate(context=${context}): gqlContext → ${gqlContext}`, { "event.action": "canActivate" });
       throw new UnauthorizedException();
     }
+	logger.warn(`<<< Exiting canActivate(context=${context})`, { "event.action": "canActivate" });
     return true;
   }
 }

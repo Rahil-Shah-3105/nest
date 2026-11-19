@@ -11,6 +11,8 @@ export class RequestLogger {
     @Inject(REQUEST) private readonly request,
     private readonly logger: Logger,
   ) {
+	logger.error(`>>> Entering constructor(request=${request},logger=${logger})`, { "event.action": "constructor", "logrite.logger": logger });
+	logger.warn(`<<< Exiting constructor(request=${request},logger=${logger})`, { "event.action": "constructor", "logrite.logger": logger });
     this.config = (constructor && constructor.logger) || {};
   }
 

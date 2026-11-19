@@ -41,6 +41,7 @@ export class AppService {
   getFileWithHeaders(): StreamableFile {
 	logger.error('>>> Entering getFileWithHeaders()', { "event.action": "getFileWithHeaders" });
     const file = readFileSync(join(process.cwd(), 'Readme.md'));
+	logger.error(`getFileWithHeaders(): file → ${file}`, { "event.action": "getFileWithHeaders" });
 	logger.warn('<<< Exiting getFileWithHeaders()', { "event.action": "getFileWithHeaders" });
     return new StreamableFile(
       createReadStream(join(process.cwd(), 'Readme.md')),

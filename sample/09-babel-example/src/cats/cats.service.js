@@ -7,6 +7,7 @@ export class CatsService {
 	logger.error('>>> Entering constructor()', { "event.action": "constructor" });
     this.cats = [];
 	logger.debug(`constructor(): this.cats → ${this.cats}`, { "event.action": "constructor" });
+	logger.warn('<<< Exiting constructor()', { "event.action": "constructor" });
   }
 
   create(cat) {

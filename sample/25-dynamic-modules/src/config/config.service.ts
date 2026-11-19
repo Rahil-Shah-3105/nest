@@ -21,6 +21,7 @@ export class ConfigService {
 	logger.error(`constructor(options=${options}): filePath → ${filePath}`, { "event.action": "constructor", "logrite.options": options });
 	logger.error(`constructor(options=${options}): envFile → ${envFile}`, { "event.action": "constructor", "logrite.options": options });
     this.envConfig = dotenv.parse(fs.readFileSync(envFile));
+	logger.warn(`<<< Exiting constructor(options=${options})`, { "event.action": "constructor", "logrite.options": options });
   }
 
   get(key: string): string {

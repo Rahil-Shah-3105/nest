@@ -35,6 +35,7 @@ logger.error(`>>> Entering parseNumber(value=${value},fallback=${fallback})`, { 
   if (!value) return fallback;
   const n = Number(value);
 logger.error(`parseNumber(value=${value},fallback=${fallback}): n → ${n}`, { "event.action": "parseNumber", "logrite.value": value, "logrite.fallback": fallback });
+logger.warn(`<<< Exiting parseNumber(value=${value},fallback=${fallback})`, { "event.action": "parseNumber", "logrite.value": value, "logrite.fallback": fallback });
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
@@ -182,6 +183,7 @@ function toNumber(value: unknown, fallback = 0): number {
 logger.error(`>>> Entering toNumber(value=${value},fallback=${fallback})`, { "event.action": "toNumber", "logrite.value": value, "logrite.fallback": fallback });
   const n = typeof value === 'number' ? value : Number(value);
 logger.error(`toNumber(value=${value},fallback=${fallback}): n → ${n}`, { "event.action": "toNumber", "logrite.value": value, "logrite.fallback": fallback });
+logger.warn(`<<< Exiting toNumber(value=${value},fallback=${fallback})`, { "event.action": "toNumber", "logrite.value": value, "logrite.fallback": fallback });
   return Number.isFinite(n) ? n : fallback;
 }
 
@@ -212,6 +214,7 @@ logger.error(`>>> Entering fmtPct(p=${p},digits=${digits})`, { "event.action": "
   if (p == null) return 'n/a';
   const sign = p >= 0 ? '+' : '';
 logger.error(`fmtPct(p=${p},digits=${digits}): sign → ${sign}`, { "event.action": "fmtPct", "logrite.p": p, "logrite.digits": digits });
+logger.warn(`<<< Exiting fmtPct(p=${p},digits=${digits})`, { "event.action": "fmtPct", "logrite.p": p, "logrite.digits": digits });
   return `${sign}${p.toFixed(digits)}%`;
 }
 
